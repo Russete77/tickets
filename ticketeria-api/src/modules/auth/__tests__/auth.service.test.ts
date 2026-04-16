@@ -286,12 +286,13 @@ describe('AuthService', () => {
 
     it('should throw NotFoundError if user not found', async () => {
       const userId = 'nonexistent';
+      const refreshToken = 'some-token';
 
       vi.mocked(jwt.verify).mockReturnValueOnce({ userId } as any);
-      vi.mocked(redis.get).mockResolvedValueOnce('token');
+      vi.mocked(redis.get).mockResolvedValueOnce(refreshToken);
       vi.mocked(prisma.user.findUnique).mockResolvedValueOnce(null);
 
-      await expect(authService.refreshToken('some-token')).rejects.toThrow(NotFoundError);
+      await expect(authService.refreshToken(refreshToken)).rejects.toThrow(NotFoundError);
     });
   });
 

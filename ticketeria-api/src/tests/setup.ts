@@ -71,7 +71,7 @@ export const mockPrisma = {
 export const mockRedis = {
   get: vi.fn(),
   set: vi.fn(),
-  setex: vi.fn(),
+  setex: vi.fn().mockResolvedValue('OK'),
   del: vi.fn(),
   incr: vi.fn(),
   expire: vi.fn(),

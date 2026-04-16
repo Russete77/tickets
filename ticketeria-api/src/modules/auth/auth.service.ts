@@ -6,6 +6,7 @@ import { redis } from '../../config/redis';
 import { env } from '../../config/env';
 import { jwtKeys } from '../../config/jwt';
 import {
+  AppError,
   BadRequestError,
   UnauthorizedError,
   NotFoundError,
@@ -220,6 +221,9 @@ export class AuthService {
       // Gerar novos tokens
       return this.generateTokens(user);
     } catch (error) {
+      if (error instanceof AppError) {
+        throw error;
+      }
       if (error instanceof jwt.TokenExpiredError) {
         throw new UnauthorizedError('Refresh token expirado');
       }
