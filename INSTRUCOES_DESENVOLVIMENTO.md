@@ -106,8 +106,11 @@
 | Push notifications (Expo) | Expo SDK + BullMQ worker + mobile hook | - | CONCLUIDO |
 | Relatorio Excel 9 abas | ExcelJS 9 abas com formatacao profissional | - | CONCLUIDO |
 | Fila inteligente (virtual queue) | Middleware existe | Testar fluxo completo | MEDIA |
-| Modo offline mobile (SQLite) | IndexedDB (web only) | Falta SQLite no mobile | MEDIA |
-| TOTP mobile (producao) | Simplificado | Revisar HMAC para producao | MEDIA |
+| Modo offline mobile (SQLite) | expo-sqlite + sync queue + TOTP offline | - | CONCLUIDO |
+| TOTP mobile (producao) | otplib RFC 6238 + compatibilidade hex/base32 | - | CONCLUIDO |
+| Capacity alerts Socket.IO | Redis pub/sub bridge + producer room | - | CONCLUIDO |
+| Event ownership middleware | requireEventOwnership em 8 routers | - | CONCLUIDO |
+| Device fingerprinting | Web (canvas hash) + Mobile (device props) + header injection | - | CONCLUIDO |
 | Super App (mapa, pedido, social) | Nao iniciado | Fase v1.2 do roadmap | BAIXA |
 | NFC | Nao iniciado | Fase v1.2 do roadmap | BAIXA |
 | Dynamic pricing ML | Nao iniciado | Fase v1.3 do roadmap | BAIXA |
@@ -313,11 +316,11 @@ StockMovementType, StaffRole, StoreItemType
 
 | # | Item | Descricao |
 |---|---|---|
-| 6 | Modo offline mobile (SQLite) | PRD exige snapshot local. Web tem IndexedDB, mobile precisa SQLite |
-| 7 | Capacity alerts via Socket.IO | Worker existe mas TODO no broadcast |
-| 8 | TOTP mobile (producao) | Implementacao atual admite ser simplificada - revisar HMAC |
-| 9 | RLS / multi-tenant | PRD exige isolamento por org_id. Prisma nao tem RLS nativo |
-| 10 | Device fingerprinting | Mencionado no PRD para antifraude, verificar implementacao |
+| 6 | ~~Modo offline mobile (SQLite)~~ | ~~CONCLUIDO~~ — expo-sqlite, offlineDb.ts, useOfflineSync, TOTP validation local |
+| 7 | ~~Capacity alerts via Socket.IO~~ | ~~CONCLUIDO~~ — Redis pub/sub bridge, producer room, 80/95/100% alerts |
+| 8 | ~~TOTP mobile (producao)~~ | ~~CONCLUIDO~~ — otplib RFC 6238, compatibilidade hex→base32 legado |
+| 9 | ~~RLS / multi-tenant~~ | ~~CONCLUIDO~~ — requireEventOwnership middleware em 8 routers (30+ rotas) |
+| 10 | ~~Device fingerprinting~~ | ~~CONCLUIDO~~ — Canvas hash (web) + device props (mobile) + x-device-fingerprint header |
 
 ### Prioridade BAIXA (futuro)
 
