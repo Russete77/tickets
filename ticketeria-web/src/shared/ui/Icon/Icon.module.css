@@ -1,0 +1,13 @@
+/* TIMELAPSE — Icon v2.0 */
+
+.icon {
+  display: inline-flex;
+  vertical-align: middle;
+  flex-shrink: 0;
+  color: inherit;
+}
+
+.size-sm  { width: 16px; height: 16px; }
+.size-md  { width: 20px; height: 20px; }
+.size-lg  { width: 24px; height: 24px; }
+.size-xl  { width: 32px; height: 32px; }

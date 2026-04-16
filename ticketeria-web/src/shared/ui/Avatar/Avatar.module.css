@@ -1,0 +1,48 @@
+/* TIMELAPSE — Avatar v2.0 */
+
+.avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--tl-bg-elevated);
+  border-radius: var(--tl-radius-full);
+  overflow: hidden;
+  flex-shrink: 0;
+  color: var(--tl-text-secondary);
+  font-weight: 600;
+  border: 2px solid var(--tl-border-default);
+}
+
+.size-xs { width: 24px; height: 24px; font-size: var(--tl-text-xs); border-width: 1px; }
+.size-sm { width: 32px; height: 32px; font-size: var(--tl-text-sm); border-width: 1px; }
+.size-md { width: 40px; height: 40px; font-size: var(--tl-text-base); }
+.size-lg { width: 56px; height: 56px; font-size: var(--tl-text-lg); }
+.size-xl { width: 80px; height: 80px; font-size: var(--tl-text-2xl); border-width: 3px; }
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.initials {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.online::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 25%;
+  height: 25%;
+  min-width: 8px;
+  min-height: 8px;
+  background-color: var(--tl-brand);
+  border-radius: var(--tl-radius-full);
+  border: 2px solid var(--tl-bg-secondary);
+}

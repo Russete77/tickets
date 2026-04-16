@@ -1,0 +1,81 @@
+name: Web - Build & Deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'ticketeria-web/**'
+      - 'ticketeria-types/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'ticketeria-web/**'
+      - 'ticketeria-types/**'
+
+jobs:
+  lint-and-typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: ticketeria-web/package-lock.json
+      - run: npm ci
+        working-directory: ticketeria-web
+      - run: npm run lint
+        working-directory: ticketeria-web
+      - run: npm run typecheck
+        working-directory: ticketeria-web
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: ticketeria-web/package-lock.json
+      - run: npm ci
+        working-directory: ticketeria-web
+      - run: npm test
+        working-directory: ticketeria-web
+
+  build:
+    needs: [lint-and-typecheck, test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: ticketeria-web/package-lock.json
+      - run: npm ci
+        working-directory: ticketeria-web
+      - run: npm run build
+        working-directory: ticketeria-web
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web-dist
+          path: ticketeria-web/dist/
+
+  deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: build
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: web-dist
+          path: dist/
+      # Deploy to Cloudflare Pages (since they already use R2)
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist/ --project-name=ticketeria-web

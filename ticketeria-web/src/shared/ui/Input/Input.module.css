@@ -1,0 +1,158 @@
+/* ═══════════════════════════════════════════════════
+   TIMELAPSE — Input v2.0
+   Pill search, rectangular form, glass style
+   ═══════════════════════════════════════════════════ */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tl-space-2);
+  min-width: 0;
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+.label {
+  font-size: var(--tl-text-base);
+  font-weight: 500;
+  color: var(--tl-text-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--tl-space-2);
+}
+
+.required {
+  color: var(--tl-error);
+}
+
+/* ── Input Wrapper ── */
+
+.inputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  background-color: var(--tl-bg-glass-light);
+  border: 1px solid var(--tl-border-medium);
+  border-radius: var(--tl-radius-md);
+  transition:
+    border-color var(--tl-duration-fast) var(--tl-ease-default),
+    box-shadow var(--tl-duration-fast) var(--tl-ease-default),
+    background-color var(--tl-duration-fast) var(--tl-ease-default);
+
+  &:hover {
+    border-color: var(--tl-border-strong);
+    background-color: var(--tl-bg-surface);
+  }
+
+  &:focus-within {
+    border-color: var(--tl-border-accent);
+    box-shadow: var(--tl-shadow-focus);
+    background-color: var(--tl-bg-elevated);
+  }
+}
+
+.inputWrapper.errorState {
+  border-color: var(--tl-error);
+
+  &:focus-within {
+    box-shadow: 0 0 0 3px rgba(255, 59, 48, 0.15);
+  }
+}
+
+/* ── Search Variant (Pill) ── */
+
+.inputWrapper.variantSearch {
+  border-radius: var(--tl-radius-pill);
+  padding-right: var(--tl-space-5);
+  box-shadow: var(--tl-shadow-inner);
+}
+
+.inputWrapper.variantSearch:focus-within {
+  background-color: var(--tl-bg-glass);
+  box-shadow: var(--tl-shadow-lg);
+}
+
+/* ── The Input ── */
+
+.input {
+  flex: 1;
+  padding: var(--tl-space-3) var(--tl-space-4);
+  background: transparent;
+  border: none;
+  color: var(--tl-text-primary);
+  font-size: var(--tl-text-md);
+  font-family: var(--tl-font-body);
+
+  &::placeholder {
+    color: var(--tl-text-tertiary);
+    font-weight: 400;
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  &:focus {
+    outline: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .input {
+    font-size: 16px; /* prevent zoom on iOS */
+  }
+}
+
+/* ── Icons ── */
+
+.leftIcon,
+.rightIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  color: var(--tl-text-tertiary);
+  flex-shrink: 0;
+}
+
+.passwordToggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: none;
+  border: none;
+  color: var(--tl-text-tertiary);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color var(--tl-duration-fast) var(--tl-ease-default);
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  &:hover {
+    color: var(--tl-text-primary);
+  }
+}
+
+/* ── Messages ── */
+
+.error {
+  font-size: var(--tl-text-sm);
+  color: var(--tl-error);
+  font-weight: 500;
+}
+
+.helper {
+  font-size: var(--tl-text-sm);
+  color: var(--tl-text-secondary);
+}

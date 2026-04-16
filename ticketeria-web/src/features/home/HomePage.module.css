@@ -1,0 +1,10 @@
+/* ═══════════════════════════════════════════
+   HOME PAGE — Root wrapper
+   ═══════════════════════════════════════════ */
+
+.container {
+  width: 100%;
+  background: var(--tl-bg-primary);
+  color: var(--tl-text-primary);
+  /* Stack sections without gaps — each section manages own spacing */
+}

@@ -1,0 +1,273 @@
+/* ═══════════════════════════════════════════════════════════
+   TIMELAPSE — TYPOGRAPHY v2.0
+   Font stack: Monument Extended (display) + Helvetica Now Display (body)
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Display (Hero, Titulos de Seção) ── */
+h1 {
+  font-family: var(--tl-font-display);
+  font-size: var(--tl-text-5xl);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  text-transform: uppercase;
+}
+
+h2 {
+  font-family: var(--tl-font-display);
+  font-size: var(--tl-text-4xl);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+}
+
+h3 {
+  font-size: var(--tl-text-3xl);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+}
+
+h4 {
+  font-size: var(--tl-text-2xl);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+h5 {
+  font-size: var(--tl-text-xl);
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+h6 {
+  font-size: var(--tl-text-lg);
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+
+/* ── Display Classes ── */
+.text-display-xl {
+  font-family: var(--tl-font-display);
+  font-size: var(--tl-text-5xl);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  text-transform: uppercase;
+}
+
+.text-display-lg {
+  font-family: var(--tl-font-display);
+  font-size: var(--tl-text-4xl);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+}
+
+.text-display-md {
+  font-family: var(--tl-font-display);
+  font-size: var(--tl-text-3xl);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+}
+
+.text-display-sm {
+  font-family: var(--tl-font-display);
+  font-size: var(--tl-text-xl);
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1.2;
+}
+
+
+/* ── Heading Classes ── */
+.text-heading-lg {
+  font-size: var(--tl-text-2xl);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.text-heading-md {
+  font-size: var(--tl-text-xl);
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.text-heading-sm {
+  font-size: var(--tl-text-lg);
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+
+/* ── Body Classes ── */
+.text-body-lg {
+  font-size: var(--tl-text-lg);
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+.text-body-md {
+  font-size: var(--tl-text-md);
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.text-body-sm {
+  font-size: var(--tl-text-base);
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+
+/* ── Label Classes ── */
+.text-label-lg {
+  font-size: var(--tl-text-base);
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: 0.02em;
+}
+
+.text-label-md {
+  font-size: var(--tl-text-sm);
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: 0.02em;
+}
+
+.text-label-sm {
+  font-size: 0.6875rem; /* 11px */
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.text-label-xs {
+  font-size: var(--tl-text-xs);
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+
+/* ── Caption ── */
+.text-caption {
+  font-size: var(--tl-text-sm);
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--tl-text-secondary);
+}
+
+
+/* ── Mono (preços, dados, código) ── */
+.text-mono {
+  font-family: var(--tl-font-mono);
+  font-size: var(--tl-text-base);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+
+.text-mono-lg {
+  font-family: var(--tl-font-mono);
+  font-size: var(--tl-text-md);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+
+/* ── Price Classes ── */
+.text-price-lg {
+  font-family: var(--tl-font-body);
+  font-size: var(--tl-text-2xl);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.text-price-md {
+  font-family: var(--tl-font-body);
+  font-size: var(--tl-text-lg);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+
+.text-price-sm {
+  font-family: var(--tl-font-body);
+  font-size: var(--tl-text-base);
+  font-weight: 600;
+  line-height: 1;
+}
+
+
+/* ── Section Label (Sidebar, Menu) ── */
+.text-section-label {
+  font-size: 0.7rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tl-text-tertiary);
+}
+
+
+/* ── Text Color Modifiers ── */
+.text-primary   { color: var(--tl-text-primary); }
+.text-secondary { color: var(--tl-text-secondary); }
+.text-tertiary  { color: var(--tl-text-tertiary); }
+.text-muted     { color: var(--tl-text-muted); }
+.text-accent    { color: var(--tl-text-accent); }
+.text-success   { color: var(--tl-success); }
+.text-danger    { color: var(--tl-error); }
+.text-warning   { color: var(--tl-warning); }
+.text-info      { color: var(--tl-info); }
+.text-brand     { color: var(--tl-brand); }
+
+
+/* ── Text Utilities ── */
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.text-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.text-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.text-uppercase {
+  text-transform: uppercase;
+}
+
+.text-center { text-align: center; }
+.text-right  { text-align: right; }
+.text-left   { text-align: left; }
+
+
+/* ── Responsive Typography ── */
+@media (max-width: 768px) {
+  h1, .text-display-xl {
+    font-size: var(--tl-text-4xl);
+  }
+
+  h2, .text-display-lg {
+    font-size: var(--tl-text-3xl);
+  }
+
+  h3, .text-display-md {
+    font-size: var(--tl-text-2xl);
+  }
+}

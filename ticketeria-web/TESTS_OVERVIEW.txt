@@ -1,0 +1,108 @@
+PLAYWRIGHT E2E TESTS OVERVIEW
+=============================
+
+Total Tests: 114 (38 unique tests × 3 browsers)
+Browsers: Chromium, Firefox, Mobile Chrome (Pixel 5)
+
+TEST BREAKDOWN BY FILE:
+=======================
+
+1. AUTH.SPEC.TS (8 tests × 3 browsers = 24 tests)
+   - should render login page
+   - should show validation errors on empty login submission
+   - should login with valid credentials
+   - should show error on invalid login
+   - should render register page
+   - should navigate from login to register
+   - should navigate from register to login
+   - should register with valid data
+
+2. CHECKOUT.SPEC.TS (6 tests × 3 browsers = 18 tests)
+   - should redirect unauthenticated users to login
+   - should display checkout page for authenticated users
+   - should display order summary on checkout page
+   - should display payment methods on checkout
+   - should allow selecting different payment methods
+   - should display my tickets page after authentication
+
+3. EVENT-DETAIL.SPEC.TS (10 tests × 3 browsers = 30 tests)
+   - should load event detail page
+   - should display event title and information
+   - should display event image/gallery
+   - should display batch/ticket options
+   - should allow selecting different ticket batches
+   - should display event reviews/ratings
+   - should have buy ticket button
+   - should navigate to checkout when clicking buy button
+   - should display event timeline/schedule if available
+   - should display venue/location information
+
+4. HOME.SPEC.TS (7 tests × 3 browsers = 21 tests)
+   - should load homepage successfully
+   - should display navigation links
+   - should display hero section
+   - should display event cards
+   - should navigate to search page
+   - should navigate to login page from header
+   - should navigate to event detail page when clicking event card
+
+5. SEARCH.SPEC.TS (7 tests × 3 browsers = 21 tests)
+   - should load search page successfully
+   - should display search input and allow typing
+   - should perform search and display results
+   - should display category filters
+   - should filter events by category
+   - should clear search and show all events
+   - should navigate to event detail from search results
+
+CRITICAL USER FLOWS COVERED:
+============================
+✓ Page Loading and Navigation
+✓ Authentication (Login/Register)
+✓ Search and Filtering
+✓ Event Discovery
+✓ Purchase Flow (Checkout)
+✓ Protected Routes
+✓ Mobile Responsiveness
+✓ Error Handling
+
+TEST CHARACTERISTICS:
+====================
+- Uses MSW for API mocking (no real backend required)
+- Flexible selectors (multiple fallback options)
+- Proper async/await handling
+- Timeout management
+- Auto-detects element visibility
+- Works with React Router protected routes
+- Handles form validation
+- Tests cross-browser compatibility
+
+RUNNING THE TESTS:
+==================
+Development:
+  npm run test:e2e              Run all tests headless
+  npm run test:e2e:ui          Run with interactive UI (can see browser)
+  npm run test:e2e:debug       Run in debug mode with inspector
+
+Specific Tests:
+  npx playwright test e2e/home.spec.ts        Run only homepage tests
+  npx playwright test -g "login"               Run tests matching pattern
+  npx playwright test --project=chromium       Run only in Chrome
+
+CI/CD:
+  CI=true npm run test:e2e     Run in CI mode (1 worker, 2 retries)
+
+View Results:
+  npx playwright show-report   View HTML test report
+  npx playwright show-trace    View execution trace (with screenshots/videos)
+
+EXPECTED MOCK DATA:
+===================
+- Mock user credentials: demo@ticketeria.com.br / password123
+- Weekend events, trending events, recommendations
+- Search functionality with category filtering
+- Admin dashboard data (events, orders, users, finance)
+- Checkout and payment flows
+- Ticket purchase and viewing
+
+All tests are production-ready and can be integrated into CI/CD pipelines!

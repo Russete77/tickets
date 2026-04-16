@@ -1,0 +1,41 @@
+# ============================================
+# Ticketeria Digital - Docker Compose (Dev)
+# PostgreSQL 16 + Redis 7
+# ============================================
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: ticketeria-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ticketeria
+    volumes:
+      - ticketeria-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: ticketeria-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - ticketeria-redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  ticketeria-pgdata:
+  ticketeria-redis:

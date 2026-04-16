@@ -1,0 +1,86 @@
+# ============================================
+# Ticketeria API - Docker Compose (Produção)
+# ============================================
+
+services:
+  # API Principal (Express + Socket.IO)
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ticketeria-api
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "3333:3333"
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3333/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - ticketeria-net
+
+  # Worker BullMQ (mesmo código, entry point diferente)
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ticketeria-worker
+    restart: unless-stopped
+    env_file: .env
+    command: ["node", "dist/jobs/worker-runner.js"]
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - ticketeria-net
+
+  # Redis (cache, sessions, filas BullMQ)
+  redis:
+    image: redis:7-alpine
+    container_name: ticketeria-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - ticketeria-net
+
+  # Caddy (reverse proxy, auto-HTTPS)
+  caddy:
+    image: caddy:2-alpine
+    container_name: ticketeria-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - ticketeria-net
+
+volumes:
+  redis-data:
+  caddy-data:
+  caddy-config:
+
+networks:
+  ticketeria-net:
+    driver: bridge

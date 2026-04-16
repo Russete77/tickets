@@ -1,0 +1,40 @@
+/* TIMELAPSE — ThemeToggle v2.0 */
+
+.toggleButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: none;
+  border: none;
+  border-radius: var(--tl-radius-full);
+  cursor: pointer;
+  color: var(--tl-text-secondary);
+  transition:
+    color var(--tl-duration-fast) var(--tl-ease-default),
+    background-color var(--tl-duration-fast) var(--tl-ease-default),
+    transform var(--tl-duration-fast) var(--tl-ease-default);
+  padding: 0;
+}
+
+.toggleButton:hover {
+  color: var(--tl-text-primary);
+  background-color: var(--tl-bg-glass-light);
+  transform: scale(1.05);
+}
+
+.toggleButton:active {
+  transform: scale(0.95);
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform var(--tl-duration-normal) var(--tl-ease-spring);
+}
+
+.toggleButton:hover .icon {
+  transform: rotate(20deg);
+}

@@ -1,0 +1,165 @@
+/* ═══════════════════════════════════════════════════
+   TIMELAPSE — Card v2.0
+   Event cards 3:4, glassmorphism, hover lift
+   ═══════════════════════════════════════════════════ */
+
+.card {
+  border-radius: var(--tl-radius-md);
+  transition:
+    transform var(--tl-duration-fast) var(--tl-ease-default),
+    box-shadow var(--tl-duration-fast) var(--tl-ease-default),
+    border-color var(--tl-duration-fast) var(--tl-ease-default),
+    background-color var(--tl-duration-fast) var(--tl-ease-default);
+  position: relative;
+  overflow: hidden;
+}
+
+/* ── Variants ── */
+
+.variant-default {
+  background-color: var(--tl-bg-tertiary);
+  border: 1px solid var(--tl-border-default);
+}
+
+.variant-elevated {
+  background-color: var(--tl-bg-elevated);
+  box-shadow: var(--tl-shadow-md);
+}
+
+.variant-glass {
+  background: var(--tl-bg-glass);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  border: 1px solid var(--tl-border-medium);
+}
+
+.variant-interactive {
+  background-color: var(--tl-bg-tertiary);
+  border: 1px solid var(--tl-border-default);
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--tl-border-strong);
+    box-shadow: var(--tl-shadow-md);
+    transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.variant-event {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+
+  &:hover .eventImage {
+    transform: scale(1.05);
+  }
+}
+
+/* ── Padding ── */
+
+.padding-none { padding: 0; }
+.padding-sm   { padding: var(--tl-space-3); }
+.padding-md   { padding: var(--tl-space-4); }
+.padding-lg   { padding: var(--tl-space-6); }
+.padding-xl   { padding: var(--tl-space-8); }
+
+/* ── Event Card Specific ── */
+
+.eventImageWrapper {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  border-radius: var(--tl-radius-md);
+  overflow: hidden;
+  background-color: var(--tl-bg-tertiary);
+}
+
+.eventImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--tl-duration-normal) var(--tl-ease-default);
+}
+
+.eventOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 40%, rgba(0, 0, 0, 0.85) 100%);
+  opacity: 0;
+  transition: opacity var(--tl-duration-fast) var(--tl-ease-default);
+  display: flex;
+  align-items: flex-end;
+  padding: var(--tl-space-3);
+}
+
+.variant-event:hover .eventOverlay {
+  opacity: 1;
+}
+
+.eventBadge {
+  position: absolute;
+  top: var(--tl-space-2);
+  left: var(--tl-space-2);
+  background-color: var(--tl-brand-muted);
+  color: var(--tl-brand);
+  padding: 2px var(--tl-space-2);
+  border-radius: var(--tl-radius-xs);
+  font-size: var(--tl-text-xs);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  line-height: 1;
+  z-index: 1;
+}
+
+.eventInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tl-space-1);
+  padding-top: var(--tl-space-2);
+}
+
+.eventTitle {
+  font-size: var(--tl-text-md);
+  font-weight: 700;
+  color: var(--tl-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+}
+
+.eventDate {
+  font-size: var(--tl-text-sm);
+  font-weight: 500;
+  color: var(--tl-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.eventCity {
+  font-size: var(--tl-text-base);
+  color: var(--tl-text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.eventPrice {
+  font-size: var(--tl-text-base);
+  font-weight: 700;
+  color: var(--tl-brand);
+}
+
+@media (max-width: 768px) {
+  .eventTitle {
+    font-size: var(--tl-text-base);
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+}

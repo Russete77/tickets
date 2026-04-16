@@ -1,0 +1,38 @@
+# Robots.txt for Ticketeria Digital
+# https://www.robotstxt.org/
+
+# Default rules for all user agents
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /private/
+Disallow: /*.json
+Disallow: /*?*sort=
+Disallow: /*?*page=
+
+# Specific rules for common crawlers
+User-agent: Googlebot
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /private/
+
+User-agent: bingbot
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /private/
+
+User-agent: Slurp
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /private/
+
+# Crawl delay for general crawlers
+User-agent: *
+Crawl-delay: 1
+
+# Sitemap
+Sitemap: https://ticketeria.com.br/sitemap.xml

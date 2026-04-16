@@ -1,0 +1,478 @@
+import { prisma } from '../../config/database';
+import { redis } from '../../config/redis';
+import { NotFoundError, BadRequestError, ForbiddenError } from '../../shared/errors';
+import { CreateCashlessConfigInput, UpdateCashlessConfigInput } from './cashless.validators';
+
+export interface CashlessConfig {
+  id: string;
+  eventId: string;
+  minTopupCents: number;
+  maxTopupCents: number;
+  maxBalanceCents: number;
+  paymentMethods: string[];
+  enableWristbands: boolean;
+  enableCards: boolean;
+  enableMobile: boolean;
+  refundMaxDays: number;
+  isActive: boolean;
+  walletCount?: number;
+  totalVolumeCents?: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface DashboardStats {
+  totalWallets: number;
+  activeWallets: number;
+  totalTopupsCents: number;
+  totalSpentCents: number;
+  avgBalanceCents: number;
+  totalRefundsCents: number;
+  transactionCount: number;
+}
+
+export interface TopProduct {
+  productId: string;
+  name: string;
+  totalQty: number;
+  totalRevenueCents: number;
+}
+
+export interface HourlyStats {
+  hour: number;
+  transactionCount: number;
+  totalAmountCents: number;
+  uniqueWallets: number;
+}
+
+/**
+ * Serviço de configuração e analytics de cashless
+ */
+export class CashlessService {
+  private readonly CACHE_TTL = 3600; // 1 hora
+
+  /**
+   * Cria/atualiza configuração de cashless para um evento
+   */
+  async createConfig(
+    eventId: string,
+    userId: string,
+    data: CreateCashlessConfigInput,
+  ): Promise<CashlessConfig> {
+    // Validar propriedade do evento
+    const event = await prisma.event.findUnique({
+      where: { id: eventId },
+      select: { producerId: true },
+    });
+
+    if (!event) {
+      throw new NotFoundError('Evento não encontrado');
+    }
+
+    if (event.producerId !== userId) {
+      throw new ForbiddenError('Apenas o produtor do evento pode configurar cashless');
+    }
+
+    // Criar ou atualizar configuração
+    const config = await prisma.cashlessConfig.upsert({
+      where: { eventId },
+      update: {
+        minTopupCents: data.minTopupCents,
+        maxTopupCents: data.maxTopupCents,
+        maxBalanceCents: data.maxBalanceCents,
+        paymentMethods: data.paymentMethods,
+        enableWristbands: data.enableWristbands,
+        enableCards: data.enableCards,
+        enableMobile: data.enableMobile,
+        refundMaxDays: data.refundMaxDays,
+        isActive: true,
+      },
+      create: {
+        eventId,
+        minTopupCents: data.minTopupCents,
+        maxTopupCents: data.maxTopupCents,
+        maxBalanceCents: data.maxBalanceCents,
+        paymentMethods: data.paymentMethods,
+        enableWristbands: data.enableWristbands,
+        enableCards: data.enableCards,
+        enableMobile: data.enableMobile,
+        refundMaxDays: data.refundMaxDays,
+        isActive: true,
+      },
+      select: {
+        id: true,
+        eventId: true,
+        minTopupCents: true,
+        maxTopupCents: true,
+        maxBalanceCents: true,
+        paymentMethods: true,
+        enableWristbands: true,
+        enableCards: true,
+        enableMobile: true,
+        refundMaxDays: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    // Limpar cache
+    await redis.del(`cashless:config:${eventId}`);
+
+    return {
+      ...config,
+      paymentMethods: config.paymentMethods as string[],
+    };
+  }
+
+  /**
+   * Obtém configuração com estatísticas
+   */
+  async getConfig(eventId: string, includeStats: boolean = false): Promise<CashlessConfig> {
+    // Tentar obter do cache
+    const cached = await redis.get(`cashless:config:${eventId}`);
+    if (cached && !includeStats) {
+      return JSON.parse(cached);
+    }
+
+    const config = await prisma.cashlessConfig.findUnique({
+      where: { eventId },
+      select: {
+        id: true,
+        eventId: true,
+        minTopupCents: true,
+        maxTopupCents: true,
+        maxBalanceCents: true,
+        paymentMethods: true,
+        enableWristbands: true,
+        enableCards: true,
+        enableMobile: true,
+        refundMaxDays: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    if (!config) {
+      throw new NotFoundError('Configuração de cashless não encontrada');
+    }
+
+    const result: CashlessConfig = {
+      ...config,
+      paymentMethods: config.paymentMethods as string[],
+    };
+
+    if (includeStats) {
+      // Contar carteiras e volume
+      const [walletCount, volumeData] = await Promise.all([
+        prisma.cashlessWallet.count({
+          where: { eventId, status: 'wallet_active' },
+        }),
+        prisma.cashlessTransaction.aggregate({
+          where: { wallet: { eventId } },
+          _sum: { amountCents: true },
+        }),
+      ]);
+
+      result.walletCount = walletCount;
+      result.totalVolumeCents = volumeData._sum.amountCents || 0;
+    }
+
+    // Cachear por 1 hora
+    if (!includeStats) {
+      await redis.setex(`cashless:config:${eventId}`, this.CACHE_TTL, JSON.stringify(result));
+    }
+
+    return result;
+  }
+
+  /**
+   * Atualiza configuração
+   */
+  async updateConfig(
+    eventId: string,
+    userId: string,
+    data: UpdateCashlessConfigInput,
+  ): Promise<CashlessConfig> {
+    // Validar propriedade
+    const event = await prisma.event.findUnique({
+      where: { id: eventId },
+      select: { producerId: true },
+    });
+
+    if (!event) {
+      throw new NotFoundError('Evento não encontrado');
+    }
+
+    if (event.producerId !== userId) {
+      throw new ForbiddenError('Apenas o produtor do evento pode atualizar configurações');
+    }
+
+    const config = await prisma.cashlessConfig.update({
+      where: { eventId },
+      data: {
+        ...(data.minTopupCents !== undefined && { minTopupCents: data.minTopupCents }),
+        ...(data.maxTopupCents !== undefined && { maxTopupCents: data.maxTopupCents }),
+        ...(data.maxBalanceCents !== undefined && { maxBalanceCents: data.maxBalanceCents }),
+        ...(data.paymentMethods && { paymentMethods: data.paymentMethods }),
+        ...(data.enableWristbands !== undefined && { enableWristbands: data.enableWristbands }),
+        ...(data.enableCards !== undefined && { enableCards: data.enableCards }),
+        ...(data.enableMobile !== undefined && { enableMobile: data.enableMobile }),
+        ...(data.refundMaxDays !== undefined && { refundMaxDays: data.refundMaxDays }),
+      },
+      select: {
+        id: true,
+        eventId: true,
+        minTopupCents: true,
+        maxTopupCents: true,
+        maxBalanceCents: true,
+        paymentMethods: true,
+        enableWristbands: true,
+        enableCards: true,
+        enableMobile: true,
+        refundMaxDays: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    // Limpar cache
+    await redis.del(`cashless:config:${eventId}`);
+
+    return {
+      ...config,
+      paymentMethods: config.paymentMethods as string[],
+    };
+  }
+
+  /**
+   * Obtém dashboard com estatísticas de cashless
+   */
+  async getDashboard(
+    eventId: string,
+    userId: string,
+    startDate?: Date,
+    endDate?: Date,
+  ): Promise<DashboardStats> {
+    // Validar propriedade
+    const event = await prisma.event.findUnique({
+      where: { id: eventId },
+      select: { producerId: true },
+    });
+
+    if (!event) {
+      throw new NotFoundError('Evento não encontrado');
+    }
+
+    if (event.producerId !== userId) {
+      throw new ForbiddenError('Apenas o produtor pode acessar o dashboard');
+    }
+
+    const dateFilter = {
+      ...(startDate && { gte: startDate }),
+      ...(endDate && { lte: endDate }),
+    };
+
+    const [totalWallets, activeWallets, transactions, topupData, spentData, refundData] =
+      await Promise.all([
+        prisma.cashlessWallet.count({
+          where: { eventId },
+        }),
+        prisma.cashlessWallet.count({
+          where: { eventId, status: 'wallet_active' },
+        }),
+        prisma.cashlessTransaction.count({
+          where: {
+            wallet: { eventId },
+            ...(startDate || endDate ? { createdAt: dateFilter } : {}),
+          },
+        }),
+        prisma.cashlessTransaction.aggregate({
+          where: {
+            wallet: { eventId },
+            type: 'topup',
+            status: 'tx_completed',
+            ...(startDate || endDate ? { createdAt: dateFilter } : {}),
+          },
+          _sum: { amountCents: true },
+        }),
+        prisma.cashlessTransaction.aggregate({
+          where: {
+            wallet: { eventId },
+            type: 'purchase',
+            status: 'tx_completed',
+            ...(startDate || endDate ? { createdAt: dateFilter } : {}),
+          },
+          _sum: { amountCents: true },
+        }),
+        prisma.cashlessTransaction.aggregate({
+          where: {
+            wallet: { eventId },
+            type: 'cashless_refund',
+            status: 'tx_completed',
+            ...(startDate || endDate ? { createdAt: dateFilter } : {}),
+          },
+          _sum: { amountCents: true },
+        }),
+      ]);
+
+    // Calcular saldo médio
+    const wallets = await prisma.cashlessWallet.aggregate({
+      where: { eventId },
+      _avg: { balanceCents: true },
+    });
+
+    return {
+      totalWallets,
+      activeWallets,
+      totalTopupsCents: topupData._sum.amountCents || 0,
+      totalSpentCents: spentData._sum.amountCents || 0,
+      avgBalanceCents: Math.round(wallets._avg.balanceCents || 0),
+      totalRefundsCents: refundData._sum.amountCents || 0,
+      transactionCount: transactions,
+    };
+  }
+
+  /**
+   * Obtém produtos mais vendidos
+   */
+  async getTopProducts(
+    eventId: string,
+    userId: string,
+    limit: number = 10,
+    startDate?: Date,
+    endDate?: Date,
+  ): Promise<TopProduct[]> {
+    // Validar propriedade
+    const event = await prisma.event.findUnique({
+      where: { id: eventId },
+      select: { producerId: true },
+    });
+
+    if (!event) {
+      throw new NotFoundError('Evento não encontrado');
+    }
+
+    if (event.producerId !== userId) {
+      throw new ForbiddenError('Apenas o produtor pode acessar relatórios');
+    }
+
+    const dateFilter = {
+      ...(startDate && { gte: startDate }),
+      ...(endDate && { lte: endDate }),
+    };
+
+    // Buscar transações e processar
+    const transactions = await prisma.cashlessTransaction.findMany({
+      where: {
+        wallet: { eventId },
+        type: 'purchase',
+        status: 'tx_completed',
+        items: { not: null },
+        ...(startDate || endDate ? { createdAt: dateFilter } : {}),
+      },
+      select: {
+        items: true,
+      },
+    });
+
+    // Agregar dados dos itens
+    const products: Record<
+      string,
+      { productId: string; name: string; totalQty: number; totalRevenueCents: number }
+    > = {};
+
+    transactions.forEach((tx) => {
+      if (tx.items && Array.isArray(tx.items)) {
+        (tx.items as any[]).forEach((item) => {
+          if (!products[item.productId]) {
+            products[item.productId] = {
+              productId: item.productId,
+              name: item.name,
+              totalQty: 0,
+              totalRevenueCents: 0,
+            };
+          }
+          products[item.productId].totalQty += item.qty;
+          products[item.productId].totalRevenueCents += item.priceCents * item.qty;
+        });
+      }
+    });
+
+    // Ordenar e retornar top N
+    return Object.values(products)
+      .sort((a, b) => b.totalRevenueCents - a.totalRevenueCents)
+      .slice(0, limit);
+  }
+
+  /**
+   * Obtém estatísticas por hora
+   */
+  async getHourlyStats(
+    eventId: string,
+    userId: string,
+    startDate?: Date,
+    endDate?: Date,
+  ): Promise<HourlyStats[]> {
+    // Validar propriedade
+    const event = await prisma.event.findUnique({
+      where: { id: eventId },
+      select: { producerId: true },
+    });
+
+    if (!event) {
+      throw new NotFoundError('Evento não encontrado');
+    }
+
+    if (event.producerId !== userId) {
+      throw new ForbiddenError('Apenas o produtor pode acessar relatórios');
+    }
+
+    const dateFilter = {
+      ...(startDate && { gte: startDate }),
+      ...(endDate && { lte: endDate }),
+    };
+
+    // Buscar transações agrupadas por hora
+    const transactions = await prisma.cashlessTransaction.findMany({
+      where: {
+        wallet: { eventId },
+        status: 'tx_completed',
+        ...(startDate || endDate ? { createdAt: dateFilter } : {}),
+      },
+      select: {
+        amountCents: true,
+        walletId: true,
+        createdAt: true,
+      },
+    });
+
+    // Agrupar por hora
+    const hourlyData: Record<
+      number,
+      { transactionCount: number; totalAmountCents: number; uniqueWallets: Set<string> }
+    > = {};
+
+    transactions.forEach((tx) => {
+      const hour = tx.createdAt.getHours();
+      if (!hourlyData[hour]) {
+        hourlyData[hour] = { transactionCount: 0, totalAmountCents: 0, uniqueWallets: new Set() };
+      }
+      hourlyData[hour].transactionCount += 1;
+      hourlyData[hour].totalAmountCents += tx.amountCents;
+      hourlyData[hour].uniqueWallets.add(tx.walletId);
+    });
+
+    // Formatar resposta
+    return Array.from({ length: 24 }, (_, i) => ({
+      hour: i,
+      transactionCount: hourlyData[i]?.transactionCount || 0,
+      totalAmountCents: hourlyData[i]?.totalAmountCents || 0,
+      uniqueWallets: hourlyData[i]?.uniqueWallets.size || 0,
+    }));
+  }
+}
+
+export const cashlessService = new CashlessService();

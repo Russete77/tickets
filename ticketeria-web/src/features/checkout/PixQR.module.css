@@ -1,0 +1,133 @@
+.container {
+  background-color: var(--tl-bg-surface);
+  border: 1px solid var(--tl-border-default);
+  border-radius: var(--tl-radius-lg);
+  padding: var(--tl-space-6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--tl-space-5);
+}
+
+.header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pixLogo {
+  display: flex;
+  align-items: center;
+  gap: var(--tl-space-2);
+}
+
+.pixLabel {
+  font-weight: 600;
+  font-size: var(--tl-text-md);
+  color: var(--tl-text-primary);
+}
+
+.timer {
+  font-size: var(--tl-text-xl);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--tl-success);
+  background-color: rgba(0, 214, 143, 0.1);
+  padding: var(--tl-space-2) var(--tl-space-4);
+  border-radius: var(--tl-radius-md);
+}
+
+.timerUrgent {
+  color: var(--tl-warning);
+  background-color: rgba(255, 165, 2, 0.1);
+  animation: pulse 1s ease-in-out infinite;
+}
+
+.timerExpired {
+  color: var(--tl-error);
+  background-color: rgba(255, 71, 87, 0.1);
+  animation: none;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.qrWrapper {
+  padding: var(--tl-space-4);
+  background-color: white;
+  border-radius: var(--tl-radius-lg);
+  box-shadow: var(--tl-shadow-md);
+}
+
+.qrCanvas {
+  display: block;
+}
+
+.instruction {
+  font-size: var(--tl-text-sm);
+  color: var(--tl-text-secondary);
+  text-align: center;
+}
+
+.codeSection {
+  width: 100%;
+}
+
+.codeLabel {
+  font-size: var(--tl-text-xs);
+  color: var(--tl-text-secondary);
+  margin-bottom: var(--tl-space-2);
+}
+
+.codeBox {
+  display: flex;
+  align-items: center;
+  gap: var(--tl-space-3);
+  background-color: var(--tl-bg-elevated);
+  border: 1px solid var(--tl-border-default);
+  border-radius: var(--tl-radius-md);
+  padding: var(--tl-space-3);
+}
+
+.code {
+  flex: 1;
+  font-family: var(--tl-font-mono);
+  font-size: var(--tl-text-xs);
+  color: var(--tl-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.amount {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: var(--tl-space-4);
+  border-top: 1px solid var(--tl-border-default);
+}
+
+.amountLabel {
+  font-size: var(--tl-text-sm);
+  color: var(--tl-text-secondary);
+}
+
+.amountValue {
+  font-size: var(--tl-text-xl);
+  font-weight: 700;
+  color: var(--tl-text-primary);
+}
+
+.expired {
+  padding: var(--tl-space-6);
+  text-align: center;
+}
+
+.expired p {
+  font-size: var(--tl-text-sm);
+  color: var(--tl-text-secondary);
+}

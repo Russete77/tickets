@@ -1,0 +1,23 @@
+/* TIMELAPSE — Spinner v2.0 */
+
+.spinner {
+  border: 3px solid var(--tl-bg-elevated);
+  border-top-color: var(--tl-brand);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.size-sm { width: 24px; height: 24px; border-width: 2px; }
+.size-md { width: 40px; height: 40px; border-width: 3px; }
+.size-lg { width: 56px; height: 56px; border-width: 4px; }
+
+.centered {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

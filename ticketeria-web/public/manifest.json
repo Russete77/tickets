@@ -1,0 +1,77 @@
+{
+  "name": "Ticketeria Digital",
+  "short_name": "Ticketeria",
+  "description": "Plataforma de ingressos digitais",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "theme_color": "#0A0A0F",
+  "background_color": "#0A0A0F",
+  "lang": "pt-BR",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": ["entertainment", "events"],
+  "screenshots": [
+    {
+      "src": "/screenshot-1.png",
+      "sizes": "540x720",
+      "form_factor": "narrow",
+      "type": "image/png"
+    },
+    {
+      "src": "/screenshot-2.png",
+      "sizes": "1280x720",
+      "form_factor": "wide",
+      "type": "image/png"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Meus Ingressos",
+      "short_name": "Ingressos",
+      "description": "Ver seus ingressos salvos",
+      "url": "/tickets",
+      "icons": [
+        {
+          "src": "/favicon.svg",
+          "sizes": "any"
+        }
+      ]
+    },
+    {
+      "name": "Eventos",
+      "short_name": "Eventos",
+      "description": "Explorar eventos disponíveis",
+      "url": "/events",
+      "icons": [
+        {
+          "src": "/favicon.svg",
+          "sizes": "any"
+        }
+      ]
+    }
+  ],
+  "share_target": {
+    "action": "/share",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "name": "ticketeria",
+  "private": true,
+  "workspaces": [
+    "ticketeria-types",
+    "ticketeria-api",
+    "ticketeria-web"
+  ],
+  "scripts": {
+    "dev:api": "npm run dev -w ticketeria-api",
+    "dev:web": "npm run dev -w ticketeria-web",
+    "build": "npm run build -w ticketeria-types && npm run build -w ticketeria-api && npm run build -w ticketeria-web",
+    "build:types": "npm run build -w ticketeria-types",
+    "build:api": "npm run build -w ticketeria-api",
+    "build:web": "npm run build -w ticketeria-web",
+    "test": "npm run test -w ticketeria-api",
+    "test:api": "npm run test -w ticketeria-api",
+    "lint": "npm run lint -w ticketeria-api && npm run lint -w ticketeria-web",
+    "typecheck": "npm run typecheck -w ticketeria-api && npm run typecheck -w ticketeria-web",
+    "db:generate": "npm run db:generate -w ticketeria-api",
+    "db:migrate": "npm run db:migrate -w ticketeria-api",
+    "db:seed": "npm run db:seed -w ticketeria-api"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

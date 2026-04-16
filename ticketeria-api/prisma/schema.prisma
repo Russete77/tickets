@@ -1,0 +1,1216 @@
+// ============================================
+// Ticketeria Digital - Schema Prisma Completo
+// PostgreSQL 16 (Supabase)
+// ============================================
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================
+// ENUMS
+// ============================================
+
+enum UserRole {
+  consumer
+  producer
+  admin
+}
+
+enum EventStatus {
+  draft
+  published
+  cancelled
+  finished
+}
+
+enum EventCategory {
+  show
+  festival
+  esporte
+  teatro
+  museu
+  curso
+  outro
+}
+
+enum BatchType {
+  regular
+  vip
+  backstage
+  camarote
+}
+
+enum OrderStatus {
+  pending
+  paid
+  cancelled
+  refunded
+}
+
+enum PaymentMethod {
+  pix
+  credit_card
+  boleto
+}
+
+enum TicketStatus {
+  active
+  used
+  transferred
+  cancelled
+  refunded
+}
+
+enum TransferStatus {
+  pending
+  confirmed
+  cancelled
+  expired
+}
+
+enum CheckinResult {
+  valid
+  invalid_hash
+  invalid_totp
+  already_used
+  wrong_event
+  ticket_cancelled
+  offline_valid
+  offline_conflict
+}
+
+enum DiscountType {
+  percentage
+  fixed
+}
+
+enum NotificationType {
+  email
+  push
+  in_app
+}
+
+enum NotificationChannel {
+  email
+  push
+  in_app
+}
+
+enum CompanyType {
+  MEI
+  ME
+  EPP
+  LTDA
+  SA
+  INDIVIDUAL
+}
+
+enum AsaasAccountStatus {
+  pending
+  approved
+  rejected
+  suspended
+}
+
+enum DocumentsStatus {
+  pending
+  sent
+  approved
+  rejected
+}
+
+enum GuestListType {
+  free
+  vip
+  backstage
+  press
+}
+
+enum MediaType {
+  image
+  video
+}
+
+// ============================================
+// NEW ENUMS - PLATFORM EXPANSION
+// ============================================
+
+enum TicketPriceType {
+  inteira
+  meia_estudante
+  meia_idoso
+  meia_pcd
+  meia_jovem
+  meia_social
+  cortesia
+  promocional
+  crianca
+}
+
+enum GuestListStatus {
+  active
+  closed
+  archived
+}
+
+enum GuestEntryStatus {
+  pending
+  confirmed
+  checked_in
+  rejected
+  no_show
+}
+
+enum PromoterTier {
+  bronze
+  silver
+  gold
+  platinum
+  diamond
+}
+
+enum CourtesyStatus {
+  courtesy_pending
+  approved
+  issued
+  courtesy_used
+  courtesy_expired
+  revoked
+}
+
+enum WalletType {
+  digital
+  wristband
+  card
+}
+
+enum WalletStatus {
+  wallet_active
+  blocked
+  refund_pending
+  wallet_refunded
+  wallet_expired
+}
+
+enum CashlessTransactionType {
+  topup
+  purchase
+  cashless_refund
+  wallet_transfer
+  cashout
+  courtesy_credit
+}
+
+enum CashlessTransactionStatus {
+  tx_completed
+  tx_pending
+  tx_failed
+  reversed
+}
+
+enum ProductCategory {
+  beer
+  drink
+  cocktail
+  soft_drink
+  water
+  food
+  snack
+  merch
+  service
+  other
+}
+
+enum POSType {
+  bar
+  mobile
+  totem
+  vip_lounge
+  food_truck
+  backstage_pos
+}
+
+enum StockMovementType {
+  stock_entry
+  sale
+  loss
+  adjustment
+  stock_transfer
+}
+
+enum StaffRole {
+  coordinator
+  checkin_op
+  cashier
+  bartender
+  security_staff
+  promoter_op
+  vip_host
+  runner
+  medic
+  tech
+  custom
+}
+
+enum StoreItemType {
+  upgrade
+  merchandise
+  parking
+  locker
+  fast_lane
+  meet_greet
+  after_party
+  food_combo
+  cashless_credit
+}
+
+// ============================================
+// TABELAS
+// ============================================
+
+model User {
+  id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email              String    @unique @db.VarChar(255)
+  cpf                String    @unique @db.VarChar(14)
+  name               String    @db.VarChar(255)
+  phone              String?   @db.VarChar(20)
+  passwordHash       String    @map("password_hash") @db.VarChar(255)
+  totpSecret         String?   @map("totp_secret") @db.VarChar(64)
+  totpEnabled        Boolean   @default(false) @map("totp_enabled")
+  deviceFingerprints Json      @default("[]") @map("device_fingerprints") @db.JsonB
+  role               UserRole  @default(consumer)
+  emailVerified      Boolean   @default(false) @map("email_verified")
+  avatarUrl          String?   @map("avatar_url") @db.VarChar(500)
+  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relações
+  producerProfile    Producer?
+  eventsAsProducer   Event[]           @relation("EventProducer")
+  orders             Order[]
+  ticketsAsHolder    Ticket[]          @relation("TicketHolder")
+  ticketsAsBuyer     Ticket[]          @relation("TicketBuyer")
+  checkinOperations  Ticket[]          @relation("TicketCheckinOperator")
+  transfersFrom      TicketTransfer[]  @relation("TransferFrom")
+  transfersTo        TicketTransfer[]  @relation("TransferTo")
+  checkinLogs        CheckinLog[]      @relation("CheckinOperator")
+  affiliateLinks     AffiliateLink[]
+  reviews            EventReview[]
+  notifications      Notification[]
+  auditActions       AuditLog[]
+  favorites          Favorite[]
+  permissions        Permission[]
+  waitlists          Waitlist[]
+  promoterProfile2   Promoter?         @relation("PromoterUser")
+  cashlessWallets    CashlessWallet[]
+  posOperations      POSOperator[]
+  certificates       Certificate[]
+  boxOfficeSessions  BoxOfficeSession[] @relation("BoxOfficeOperator")
+
+  @@map("users")
+}
+
+model Producer {
+  id                    String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                String             @unique @map("user_id") @db.Uuid
+  companyName           String             @map("company_name") @db.VarChar(255)
+  cnpj                  String?            @unique @db.VarChar(18)
+  companyType           CompanyType        @map("company_type")
+  asaasAccountId        String             @unique @map("asaas_account_id") @db.VarChar(100)
+  asaasApiKeyEncrypted  String             @map("asaas_api_key_encrypted") @db.Text
+  asaasWalletId         String             @map("asaas_wallet_id") @db.VarChar(100)
+  asaasStatus           AsaasAccountStatus @default(pending) @map("asaas_status")
+  onboardingUrl         String?            @map("onboarding_url") @db.VarChar(500)
+  platformFeePercent    Decimal            @default(10.00) @map("platform_fee_percent") @db.Decimal(5, 2)
+  bankAccount           Json?              @map("bank_account") @db.JsonB
+  documentsStatus       DocumentsStatus    @default(pending) @map("documents_status")
+  approvedAt            DateTime?          @map("approved_at") @db.Timestamptz
+  createdAt             DateTime           @default(now()) @map("created_at") @db.Timestamptz
+
+  // Relações
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("producers")
+}
+
+model Event {
+  id                 String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  producerId         String        @map("producer_id") @db.Uuid
+  title              String        @db.VarChar(255)
+  slug               String        @unique @db.VarChar(255)
+  description        String        @db.Text
+  shortDescription   String        @map("short_description") @db.VarChar(500)
+  category           EventCategory
+  status             EventStatus   @default(draft)
+  venueName          String        @map("venue_name") @db.VarChar(255)
+  venueAddress       String        @map("venue_address") @db.Text
+  venueLat           Decimal?      @map("venue_lat") @db.Decimal(10, 8)
+  venueLng           Decimal?      @map("venue_lng") @db.Decimal(11, 8)
+  venueCapacity      Int           @map("venue_capacity")
+  startsAt           DateTime      @map("starts_at") @db.Timestamptz
+  endsAt             DateTime      @map("ends_at") @db.Timestamptz
+  doorsOpenAt        DateTime?     @map("doors_open_at") @db.Timestamptz
+  coverImageUrl      String        @map("cover_image_url") @db.VarChar(500)
+  gallery            Json          @default("[]") @db.JsonB
+  tags               String[]      @default([])
+  ageRating          String        @default("Livre") @map("age_rating") @db.VarChar(10)
+  dressCode          String?       @map("dress_code") @db.VarChar(100)
+  isOpenBar          Boolean       @default(false) @map("is_open_bar")
+  lineup             Json          @default("[]") @db.JsonB
+  rules              String?       @db.Text
+  maxTicketsPerCpf   Int           @default(4) @map("max_tickets_per_cpf")
+  createdAt          DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime      @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relações
+  producer           User                @relation("EventProducer", fields: [producerId], references: [id])
+  batches            TicketBatch[]
+  orders             Order[]
+  tickets            Ticket[]
+  checkinLogs        CheckinLog[]
+  reviews            EventReview[]
+  guestLists         GuestList[]
+  media              EventMedia[]
+  coupons            Coupon[]
+  affiliateLinks     AffiliateLink[]
+  favorites          Favorite[]
+  permissions        Permission[]
+  courtesies         Courtesy[]
+  waitlists          Waitlist[]
+  guestListConfig    GuestListConfig?
+  cashlessConfig     CashlessConfig?
+  cashlessWallets    CashlessWallet[]
+  pointsOfSale       PointOfSale[]
+  eventStaff         EventStaff[]
+  eventAreas         EventArea[]
+  storeItems         StoreItem[]
+  formFields         EventFormField[]
+  credentials        Credential[]
+  certificates       Certificate[]
+  insurance          EventInsurance?
+  boxOfficeSessions  BoxOfficeSession[]
+
+  // Índices
+  @@index([status, startsAt, category], name: "idx_events_search")
+  @@index([slug], name: "idx_events_slug")
+  @@map("events")
+}
+
+model TicketBatch {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  eventId     String    @map("event_id") @db.Uuid
+  name        String    @db.VarChar(100)
+  description String?   @db.VarChar(500)
+  priceCents  Int       @map("price_cents")
+  quantity    Int
+  soldCount   Int       @default(0) @map("sold_count")
+  sortOrder   Int       @default(0) @map("sort_order")
+  type        BatchType @default(regular)
+  startsAt    DateTime? @map("starts_at") @db.Timestamptz
+  endsAt      DateTime? @map("ends_at") @db.Timestamptz
+  autoSwitch  Boolean   @default(true) @map("auto_switch")
+  isVisible   Boolean   @default(true) @map("is_visible")
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  // Relações
+  event      Event               @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  tickets    Ticket[]
+  priceRules TicketPriceRule[]
+
+  @@map("ticket_batches")
+}
+
+model Order {
+  id                String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId            String        @map("user_id") @db.Uuid
+  eventId           String        @map("event_id") @db.Uuid
+  status            OrderStatus   @default(pending)
+  totalCents        Int           @map("total_cents")
+  platformFeeCents  Int           @map("platform_fee_cents")
+  paymentMethod     PaymentMethod @map("payment_method")
+  asaasPaymentId    String?       @map("asaas_payment_id") @db.VarChar(100)
+  asaasInvoiceUrl   String?       @map("asaas_invoice_url") @db.VarChar(500)
+  pixQrCode         String?       @map("pix_qr_code") @db.Text
+  pixCopyPaste      String?       @map("pix_copy_paste") @db.Text
+  paidAt            DateTime?     @map("paid_at") @db.Timestamptz
+  expiresAt         DateTime      @map("expires_at") @db.Timestamptz
+  ipAddress         String        @map("ip_address") @db.VarChar(45)
+  userAgent         String        @map("user_agent") @db.Text
+  deviceFingerprint String        @map("device_fingerprint") @db.VarChar(100)
+  riskScore         Decimal       @default(0) @map("risk_score") @db.Decimal(5, 2)
+  createdAt         DateTime      @default(now()) @map("created_at") @db.Timestamptz
+
+  // Relações
+  user          User           @relation(fields: [userId], references: [id])
+  event         Event          @relation(fields: [eventId], references: [id])
+  tickets       Ticket[]
+  paymentSplits PaymentSplit[]
+
+  // Índices
+  @@index([userId, createdAt(sort: Desc)], name: "idx_orders_user")
+  @@index([asaasPaymentId], name: "idx_orders_asaas")
+  @@map("orders")
+}
+
+model Ticket {
+  id              String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  orderId         String       @map("order_id") @db.Uuid
+  batchId         String       @map("batch_id") @db.Uuid
+  eventId         String       @map("event_id") @db.Uuid
+  holderId        String       @map("holder_id") @db.Uuid
+  originalBuyerId String       @map("original_buyer_id") @db.Uuid
+  status          TicketStatus @default(active)
+  ticketHash      String       @unique @map("ticket_hash") @db.VarChar(64)
+  totpSecret      String       @map("totp_secret") @db.VarChar(64)
+  holderName      String       @map("holder_name") @db.VarChar(255)
+  holderCpf       String       @map("holder_cpf") @db.VarChar(14)
+  holderEmail     String       @map("holder_email") @db.VarChar(255)
+  priceCents      Int          @map("price_cents")
+  checkedInAt     DateTime?    @map("checked_in_at") @db.Timestamptz
+  checkedInBy     String?      @map("checked_in_by") @db.Uuid
+  checkedInDevice String?      @map("checked_in_device") @db.VarChar(100)
+  transferCount   Int          @default(0) @map("transfer_count")
+  createdAt       DateTime     @default(now()) @map("created_at") @db.Timestamptz
+
+  // Relações
+  order           Order            @relation(fields: [orderId], references: [id])
+  batch           TicketBatch      @relation(fields: [batchId], references: [id])
+  event           Event            @relation(fields: [eventId], references: [id])
+  holder          User             @relation("TicketHolder", fields: [holderId], references: [id])
+  originalBuyer   User             @relation("TicketBuyer", fields: [originalBuyerId], references: [id])
+  checkinOperator User?            @relation("TicketCheckinOperator", fields: [checkedInBy], references: [id])
+  transfers       TicketTransfer[]
+  checkinLogs     CheckinLog[]
+
+  // Índices
+  @@index([ticketHash], name: "idx_tickets_hash")
+  @@index([holderId, status], name: "idx_tickets_holder")
+  @@index([eventId, status], name: "idx_tickets_event")
+  @@map("tickets")
+}
+
+model TicketTransfer {
+  id         String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ticketId   String         @map("ticket_id") @db.Uuid
+  fromUserId String         @map("from_user_id") @db.Uuid
+  toUserId   String         @map("to_user_id") @db.Uuid
+  status     TransferStatus @default(pending)
+  otpCode    String?        @map("otp_code") @db.VarChar(6)
+  otpExpiresAt DateTime?    @map("otp_expires_at") @db.Timestamptz
+  createdAt  DateTime       @default(now()) @map("created_at") @db.Timestamptz
+
+  // Relações
+  ticket   Ticket @relation(fields: [ticketId], references: [id])
+  fromUser User   @relation("TransferFrom", fields: [fromUserId], references: [id])
+  toUser   User   @relation("TransferTo", fields: [toUserId], references: [id])
+
+  @@map("ticket_transfers")
+}
+
+model CheckinLog {
+  id         String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ticketId   String        @map("ticket_id") @db.Uuid
+  eventId    String        @map("event_id") @db.Uuid
+  operatorId String        @map("operator_id") @db.Uuid
+  deviceId   String        @map("device_id") @db.VarChar(100)
+  result     CheckinResult
+  metadata   Json?         @db.JsonB
+  scannedAt  DateTime      @default(now()) @map("scanned_at") @db.Timestamptz
+
+  // Relações
+  ticket   Ticket @relation(fields: [ticketId], references: [id])
+  event    Event  @relation(fields: [eventId], references: [id])
+  operator User   @relation("CheckinOperator", fields: [operatorId], references: [id])
+
+  // Índices
+  @@index([eventId, scannedAt], name: "idx_checkin_event")
+  @@map("checkin_logs")
+}
+
+model AffiliateLink {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  eventId           String   @map("event_id") @db.Uuid
+  userId            String   @map("user_id") @db.Uuid
+  code              String   @unique @db.VarChar(50)
+  clickCount        Int      @default(0) @map("click_count")
+  conversionCount   Int      @default(0) @map("conversion_count")
+  commissionPercent Decimal  @map("commission_percent") @db.Decimal(5, 2)
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  // Relações
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id])
+
+  @@map("affiliate_links")
+}
+
+model Coupon {
+  id            String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  eventId       String       @map("event_id") @db.Uuid
+  code          String       @db.VarChar(50)
+  discountType  DiscountType @map("discount_type")
+  discountValue Decimal      @map("discount_value") @db.Decimal(10, 2)
+  usageLimit    Int?         @map("usage_limit")
+  usedCount     Int          @default(0) @map("used_count")
+  startsAt      DateTime?    @map("starts_at") @db.Timestamptz
+  endsAt        DateTime?    @map("ends_at") @db.Timestamptz
+  isActive      Boolean      @default(true) @map("is_active")
+  createdAt     DateTime     @default(now()) @map("created_at") @db.Timestamptz
+
+  // Relações
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, code])
+  @@map("coupons")
+}
+
+model EventReview {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  eventId      String   @map("event_id") @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  rating       Decimal  @db.Decimal(2, 1)
+  organization Decimal? @db.Decimal(2, 1)
+  sound        Decimal? @db.Decimal(2, 1)
+  bar          Decimal? @db.Decimal(2, 1)
+  experience   Decimal? @db.Decimal(2, 1)
+  comment      String?  @db.Text
+  photos       Json     @default("[]") @db.JsonB
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relações
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id])
+
+  @@unique([eventId, userId])
+  @@map("event_reviews")
+}
+
+model Favorite {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  eventId   String   @map("event_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  // Relações
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, eventId])
+  @@index([userId])
+  @@map("favorites")
+}
+
+model Notification {
+  id        String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String             @map("user_id") @db.Uuid
+  type      NotificationType
+  channel   NotificationChannel
+  title     String             @db.VarChar(255)
+  body      String             @db.Text
+  read      Boolean            @default(false)
+  metadata  Json?              @db.JsonB
+  sentAt    DateTime           @default(now()) @map("sent_at") @db.Timestamptz
+
+  // Relações
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read, sentAt(sort: Desc)])
+  @@map("notifications")
+}
+
+model AuditLog {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  actorId    String?  @map("actor_id") @db.Uuid
+  action     String   @db.VarChar(100)
+  entityType String   @map("entity_type") @db.VarChar(50)
+  entityId   String   @map("entity_id") @db.Uuid
+  metadata   Json?    @db.JsonB
+  ipAddress  String?  @map("ip_address") @db.VarChar(45)
+  userAgent  String?  @map("user_agent") @db.Text
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  // Relações
+  actor User? @relation(fields: [actorId], references: [id])
+
+  // Índices
+  @@index([entityType, entityId, createdAt], name: "idx_audit_entity")
+  @@map("audit_log")
+}
+
+model PaymentSplit {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  orderId       String   @map("order_id") @db.Uuid
+  recipientType String   @map("recipient_type") @db.VarChar(50)
+  recipientId   String   @map("recipient_id") @db.Uuid
+  amountCents   Int      @map("amount_cents")
+  asaasSplitId  String?  @map("asaas_split_id") @db.VarChar(100)
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  // Relações
+  order Order @relation(fields: [orderId], references: [id])
+
+  @@map("payment_splits")
+}
+
+model GuestList {
+  id         String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  eventId    String        @map("event_id") @db.Uuid
+  name       String        @db.VarChar(255)
+  cpf        String?       @db.VarChar(14)
+  listType   GuestListType @map("list_type")
+  invitedBy  String?       @map("invited_by") @db.Uuid
+  checkedIn  Boolean       @default(false) @map("checked_in")
+  createdAt  DateTime      @default(now()) @map("created_at") @db.Timestamptz
+
+  // Relações
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@map("guest_lists")
+}
+
+model EventMedia {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  eventId   String    @map("event_id") @db.Uuid
+  type      MediaType
+  url       String    @db.VarChar(500)
+  sortOrder Int       @default(0) @map("sort_order")
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  // Relações
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@map("event_media")
+}
+
+// ============================================
+// NEW MODELS - PRICE RULES (Meia-entrada)
+// ============================================
+
+model TicketPriceRule {
+  id          String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  batchId     String          @map("batch_id") @db.Uuid
+  priceType   TicketPriceType @map("price_type")
+  priceCents  Int             @map("price_cents")
+  quantity    Int?
+  soldCount   Int             @default(0) @map("sold_count")
+  requiresDoc Boolean         @default(true) @map("requires_doc")
+  isActive    Boolean         @default(true) @map("is_active")
+  createdAt   DateTime        @default(now()) @map("created_at") @db.Timestamptz
+
+  batch TicketBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+
+  @@index([batchId, priceType])
+  @@map("ticket_price_rules")
+}
+
+// ============================================
+// NEW MODELS - PERMISSIONS (RBAC)
+// ============================================
+
+model Permission {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  eventId   String?  @map("event_id") @db.Uuid
+  resource  String   @db.VarChar(50)
+  actions   Json     @db.JsonB
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event Event? @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, eventId, resource])
+  @@map("permissions")
+}
+
+// ============================================
+// NEW MODELS - COURTESIES
+// ============================================
+
+model Courtesy {
+  id             String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  eventId        String         @map("event_id") @db.Uuid
+  batchId        String?        @map("batch_id") @db.Uuid
+  requestedBy    String         @map("requested_by") @db.Uuid
+  approvedBy     String?        @map("approved_by") @db.Uuid
+  recipientName  String         @map("recipient_name") @db.VarChar(255)
+  recipientCpf   String?        @map("recipient_cpf") @db.VarChar(14)
+  recipientEmail String?        @map("recipient_email") @db.VarChar(255)
+  reason         String?        @db.VarChar(500)
+  status         CourtesyStatus @default(courtesy_pending)
+  ticketId       String?        @map("ticket_id") @db.Uuid
+  maxQuantity    Int            @default(1) @map("max_quantity")
+  issuedAt       DateTime?      @map("issued_at") @db.Timestamptz
+  createdAt      DateTime       @default(now()) @map("created_at") @db.Timestamptz
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId, status])
+  @@map("courtesies")
+}
+
+// ============================================
+// NEW MODELS - WAITLIST
+// ============================================
+
+model Waitlist {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  eventId    String    @map("event_id") @db.Uuid
+  batchId    String?   @map("batch_id") @db.Uuid
+  userId     String    @map("user_id") @db.Uuid
+  email      String    @db.VarChar(255)
+  quantity   Int       @default(1)
+  notified   Boolean   @default(false)
+  notifiedAt DateTime? @map("notified_at") @db.Timestamptz
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, userId])
+  @@map("waitlists")
+}
+
+// ============================================
+// NEW MODELS - GUEST LISTS (AZLIST Killer)
+// ============================================
+
+model GuestListConfig {
+  id                   String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  eventId              String          @unique @map("event_id") @db.Uuid
+  maxGuestsTotal       Int             @map("max_guests_total")
+  maxGuestsPerPromoter Int?            @map("max_guests_per_promoter")
+  maxPlusOnes          Int             @default(1) @map("max_plus_ones")
+  requiresCpf          Boolean         @default(true) @map("requires_cpf")
+  requiresPhone        Boolean         @default(false) @map("requires_phone")
+  autoApprove          Boolean         @default(true) @map("auto_approve")
+  closesAt             DateTime?       @map("closes_at") @db.Timestamptz
+  freeUntilHour        String?         @map("free_until_hour") @db.VarChar(5)
+  discountPercent      Decimal?        @map("discount_percent") @db.Decimal(5, 2)
+  discountUntilHour    String?         @map("discount_until_hour") @db.VarChar(5)
+  welcomeMessage       String?         @map("welcome_message") @db.Text
+  status               GuestListStatus @default(active)
+  createdAt            DateTime        @default(now()) @map("created_at") @db.Timestamptz
+
+  event     Event              @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  entries   GuestEntry[]
+  promoters PromoterAssignment[]
+
+  @@map("guest_list_configs")
+}
+
+model Promoter {
+  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId         String       @unique @map("user_id") @db.Uuid
+  displayName    String       @map("display_name") @db.VarChar(100)
+  slug           String       @unique @db.VarChar(100)
+  instagram      String?      @db.VarChar(100)
+  whatsapp       String?      @db.VarChar(20)
+  tier           PromoterTier @default(bronze)
+  totalGuests    Int          @default(0) @map("total_guests")
+  totalCheckins  Int          @default(0) @map("total_checkins")
+  conversionRate Decimal      @default(0) @map("conversion_rate") @db.Decimal(5, 2)
+  score          Int          @default(0)
+  isActive       Boolean      @default(true) @map("is_active")
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz
+
+  user        User                @relation("PromoterUser", fields: [userId], references: [id])
+  assignments PromoterAssignment[]
+  entries     GuestEntry[]
+
+  @@map("promoters")
+}
+
+model PromoterAssignment {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  promoterId   String   @map("promoter_id") @db.Uuid
+  guestListId  String   @map("guest_list_id") @db.Uuid
+  maxGuests    Int?     @map("max_guests")
+  shareLink    String   @unique @map("share_link") @db.VarChar(100)
+  qrCodeUrl    String?  @map("qr_code_url") @db.VarChar(500)
+  guestCount   Int      @default(0) @map("guest_count")
+  checkinCount Int      @default(0) @map("checkin_count")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  promoter  Promoter        @relation(fields: [promoterId], references: [id])
+  guestList GuestListConfig @relation(fields: [guestListId], references: [id], onDelete: Cascade)
+  entries   GuestEntry[]
+
+  @@unique([promoterId, guestListId])
+  @@map("promoter_assignments")
+}
+
+model GuestEntry {
+  id              String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  guestListId     String           @map("guest_list_id") @db.Uuid
+  promoterId      String?          @map("promoter_id") @db.Uuid
+  assignmentId    String?          @map("assignment_id") @db.Uuid
+  name            String           @db.VarChar(255)
+  cpf             String?          @db.VarChar(14)
+  phone           String?          @db.VarChar(20)
+  email           String?          @db.VarChar(255)
+  plusOnes        Int              @default(0) @map("plus_ones")
+  plusOnesChecked Int              @default(0) @map("plus_ones_checked")
+  listType        GuestListType    @map("list_type")
+  status          GuestEntryStatus @default(pending)
+  checkedInAt     DateTime?        @map("checked_in_at") @db.Timestamptz
+  checkedInBy     String?          @map("checked_in_by") @db.Uuid
+  notes           String?          @db.VarChar(500)
+  source          String           @default("manual") @db.VarChar(50)
+  createdAt       DateTime         @default(now()) @map("created_at") @db.Timestamptz
+
+  guestList  GuestListConfig    @relation(fields: [guestListId], references: [id], onDelete: Cascade)
+  promoter   Promoter?          @relation(fields: [promoterId], references: [id])
+  assignment PromoterAssignment? @relation(fields: [assignmentId], references: [id])
+
+  @@index([guestListId, status])
+  @@index([cpf])
+  @@map("guest_entries")
+}
+
+// ============================================
+// NEW MODELS - CASHLESS (Zig Pay Killer)
+// ============================================
+
+model CashlessConfig {
+  id                   String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  eventId              String   @unique @map("event_id") @db.Uuid
+  isEnabled            Boolean  @default(false) @map("is_enabled")
+  minTopupCents        Int      @default(2000) @map("min_topup_cents")
+  maxTopupCents        Int      @default(100000) @map("max_topup_cents")
+  maxWalletBalance     Int      @default(200000) @map("max_wallet_balance")
+  allowPartialPayment  Boolean  @default(false) @map("allow_partial_payment")
+  autoRefundAfterEvent Boolean  @default(true) @map("auto_refund_after_event")
+  refundDeadlineDays   Int      @default(30) @map("refund_deadline_days")
+  tipEnabled           Boolean  @default(false) @map("tip_enabled")
+  tipOptions           Json     @default("[10, 15, 20]") @map("tip_options") @db.JsonB
+  serviceChargePercent Decimal? @map("service_charge_percent") @db.Decimal(5, 2)
+  createdAt            DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@map("cashless_configs")
+}
+
+model CashlessWallet {
+  id              String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  eventId         String       @map("event_id") @db.Uuid
+  userId          String       @map("user_id") @db.Uuid
+  ticketId        String?      @map("ticket_id") @db.Uuid
+  walletType      WalletType   @map("wallet_type")
+  walletCode      String       @unique @map("wallet_code") @db.VarChar(100)
+  balanceCents    Int          @default(0) @map("balance_cents")
+  totalTopupCents Int          @default(0) @map("total_topup_cents")
+  totalSpentCents Int          @default(0) @map("total_spent_cents")
+  status          WalletStatus @default(wallet_active)
+  nfcTagId        String?      @map("nfc_tag_id") @db.VarChar(100)
+  activatedAt     DateTime?    @map("activated_at") @db.Timestamptz
+  lastUsedAt      DateTime?    @map("last_used_at") @db.Timestamptz
+  createdAt       DateTime     @default(now()) @map("created_at") @db.Timestamptz
+
+  event        Event                 @relation(fields: [eventId], references: [id])
+  user         User                  @relation(fields: [userId], references: [id])
+  transactions CashlessTransaction[]
+
+  @@unique([eventId, userId])
+  @@index([walletCode])
+  @@index([nfcTagId])
+  @@map("cashless_wallets")
+}
+
+model CashlessTransaction {
+  id             String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  walletId       String                    @map("wallet_id") @db.Uuid
+  posId          String?                   @map("pos_id") @db.Uuid
+  operatorId     String?                   @map("operator_id") @db.Uuid
+  type           CashlessTransactionType
+  status         CashlessTransactionStatus @default(tx_completed)
+  amountCents    Int                       @map("amount_cents")
+  tipCents       Int                       @default(0) @map("tip_cents")
+  balanceAfter   Int                       @map("balance_after")
+  items          Json?                     @db.JsonB
+  paymentMethod  PaymentMethod?            @map("payment_method")
+  asaasPaymentId String?                   @map("asaas_payment_id") @db.VarChar(100)
+  metadata       Json?                     @db.JsonB
+  createdAt      DateTime                  @default(now()) @map("created_at") @db.Timestamptz
+
+  wallet CashlessWallet @relation(fields: [walletId], references: [id])
+  pos    PointOfSale?   @relation(fields: [posId], references: [id])
+
+  @@index([walletId, createdAt(sort: Desc)])
+  @@index([posId, createdAt(sort: Desc)])
+  @@map("cashless_transactions")
+}
+
+// ============================================
+// NEW MODELS - POS / BAR
+// ============================================
+
+model PointOfSale {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  eventId   String   @map("event_id") @db.Uuid
+  name      String   @db.VarChar(100)
+  type      POSType
+  location  String?  @db.VarChar(255)
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  event          Event                 @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  operators      POSOperator[]
+  products       POSProduct[]
+  transactions   CashlessTransaction[]
+  stockMovements StockMovement[]
+
+  @@map("points_of_sale")
+}
+
+model POSOperator {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  posId     String   @map("pos_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  pin       String   @db.VarChar(6)
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  pos  PointOfSale @relation(fields: [posId], references: [id], onDelete: Cascade)
+  user User        @relation(fields: [userId], references: [id])
+
+  @@unique([posId, userId])
+  @@map("pos_operators")
+}
+
+model POSProduct {
+  id          String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  posId       String          @map("pos_id") @db.Uuid
+  name        String          @db.VarChar(255)
+  description String?         @db.VarChar(500)
+  category    ProductCategory
+  priceCents  Int             @map("price_cents")
+  imageUrl    String?         @map("image_url") @db.VarChar(500)
+  isAvailable Boolean         @default(true) @map("is_available")
+  stockQty    Int?            @map("stock_qty")
+  soldQty     Int             @default(0) @map("sold_qty")
+  sortOrder   Int             @default(0) @map("sort_order")
+  createdAt   DateTime        @default(now()) @map("created_at") @db.Timestamptz
+
+  pos PointOfSale @relation(fields: [posId], references: [id], onDelete: Cascade)
+
+  @@index([posId, category, isAvailable])
+  @@map("pos_products")
+}
+
+model StockMovement {
+  id         String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  posId      String            @map("pos_id") @db.Uuid
+  productId  String            @map("product_id") @db.Uuid
+  type       StockMovementType
+  quantity   Int
+  operatorId String?           @map("operator_id") @db.Uuid
+  notes      String?           @db.VarChar(500)
+  createdAt  DateTime          @default(now()) @map("created_at") @db.Timestamptz
+
+  pos PointOfSale @relation(fields: [posId], references: [id], onDelete: Cascade)
+
+  @@index([posId, productId, createdAt])
+  @@map("stock_movements")
+}
+
+// ============================================
+// NEW MODELS - STAFF
+// ============================================
+
+model EventStaff {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  eventId    String    @map("event_id") @db.Uuid
+  userId     String?   @map("user_id") @db.Uuid
+  name       String    @db.VarChar(255)
+  cpf        String?   @db.VarChar(14)
+  phone      String?   @db.VarChar(20)
+  role       StaffRole
+  customRole String?   @map("custom_role") @db.VarChar(100)
+  accessAreas Json     @default("[]") @map("access_areas") @db.JsonB
+  shiftStart DateTime? @map("shift_start") @db.Timestamptz
+  shiftEnd   DateTime? @map("shift_end") @db.Timestamptz
+  checkedIn  Boolean   @default(false) @map("checked_in")
+  checkedInAt DateTime? @map("checked_in_at") @db.Timestamptz
+  isActive   Boolean   @default(true) @map("is_active")
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId, role])
+  @@map("event_staff")
+}
+
+// ============================================
+// NEW MODELS - EVENT AREAS
+// ============================================
+
+model EventArea {
+  id           String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  eventId      String  @map("event_id") @db.Uuid
+  name         String  @db.VarChar(100)
+  capacity     Int
+  currentCount Int     @default(0) @map("current_count")
+  batchTypes   Json    @default("[]") @map("batch_types") @db.JsonB
+  posIds       Json    @default("[]") @map("pos_ids") @db.JsonB
+  mapCoords    Json?   @map("map_coords") @db.JsonB
+  isActive     Boolean @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@map("event_areas")
+}
+
+// ============================================
+// NEW MODELS - STORE
+// ============================================
+
+model StoreItem {
+  id          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  eventId     String        @map("event_id") @db.Uuid
+  type        StoreItemType
+  name        String        @db.VarChar(255)
+  description String?       @db.Text
+  priceCents  Int           @map("price_cents")
+  quantity    Int?
+  soldCount   Int           @default(0) @map("sold_count")
+  imageUrl    String?       @map("image_url") @db.VarChar(500)
+  isActive    Boolean       @default(true) @map("is_active")
+  metadata    Json?         @db.JsonB
+  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@map("store_items")
+}
+
+// ============================================
+// NEW MODELS - FORM FIELDS
+// ============================================
+
+model EventFormField {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  eventId   String   @map("event_id") @db.Uuid
+  label     String   @db.VarChar(255)
+  type      String   @db.VarChar(50)
+  options   Json?    @db.JsonB
+  required  Boolean  @default(false)
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  event     Event              @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  responses TicketFormResponse[]
+
+  @@map("event_form_fields")
+}
+
+model TicketFormResponse {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ticketId  String   @map("ticket_id") @db.Uuid
+  fieldId   String   @map("field_id") @db.Uuid
+  value     String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  field EventFormField @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+
+  @@map("ticket_form_responses")
+}
+
+// ============================================
+// NEW MODELS - CREDENTIALS
+// ============================================
+
+model Credential {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  eventId      String    @map("event_id") @db.Uuid
+  ticketId     String?   @map("ticket_id") @db.Uuid
+  name         String    @db.VarChar(255)
+  company      String?   @db.VarChar(255)
+  jobTitle     String?   @map("job_title") @db.VarChar(100)
+  category     String?   @db.VarChar(100)
+  photoUrl     String?   @map("photo_url") @db.VarChar(500)
+  qrCode       String    @unique @map("qr_code") @db.VarChar(100)
+  customFields Json?     @map("custom_fields") @db.JsonB
+  printedAt    DateTime? @map("printed_at") @db.Timestamptz
+  checkedInAt  DateTime? @map("checked_in_at") @db.Timestamptz
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+  @@map("credentials")
+}
+
+// ============================================
+// NEW MODELS - CERTIFICATES
+// ============================================
+
+model Certificate {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  eventId    String   @map("event_id") @db.Uuid
+  ticketId   String   @map("ticket_id") @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  code       String   @unique @db.VarChar(20)
+  holderName String   @map("holder_name") @db.VarChar(255)
+  hours      Int?
+  pdfUrl     String?  @map("pdf_url") @db.VarChar(500)
+  issuedAt   DateTime @default(now()) @map("issued_at") @db.Timestamptz
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id])
+
+  @@map("certificates")
+}
+
+// ============================================
+// NEW MODELS - INSURANCE
+// ============================================
+
+model EventInsurance {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  eventId        String   @unique @map("event_id") @db.Uuid
+  provider       String   @db.VarChar(100)
+  policyNumber   String?  @map("policy_number") @db.VarChar(100)
+  coverageType   String   @map("coverage_type") @db.VarChar(100)
+  coverageAmount Int      @map("coverage_amount")
+  premiumCents   Int      @map("premium_cents")
+  status         String   @db.VarChar(50)
+  startsAt       DateTime @map("starts_at") @db.Timestamptz
+  endsAt         DateTime @map("ends_at") @db.Timestamptz
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@map("event_insurance")
+}
+
+// ============================================
+// NEW MODELS - BOX OFFICE
+// ============================================
+
+model BoxOfficeSession {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  eventId      String    @map("event_id") @db.Uuid
+  operatorId   String    @map("operator_id") @db.Uuid
+  openedAt     DateTime  @default(now()) @map("opened_at") @db.Timestamptz
+  closedAt     DateTime? @map("closed_at") @db.Timestamptz
+  initialCash  Int       @default(0) @map("initial_cash")
+  finalCash    Int?      @map("final_cash")
+  totalSales   Int       @default(0) @map("total_sales")
+  totalTickets Int       @default(0) @map("total_tickets")
+  notes        String?   @db.Text
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  event    Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  operator User  @relation("BoxOfficeOperator", fields: [operatorId], references: [id])
+
+  @@map("box_office_sessions")
+}

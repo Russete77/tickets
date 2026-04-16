@@ -1,0 +1,40 @@
+/* TIMELAPSE — EmptyState v2.0 */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--tl-space-16) var(--tl-space-6);
+  text-align: center;
+  gap: var(--tl-space-4);
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  margin-bottom: var(--tl-space-2);
+  color: var(--tl-text-tertiary);
+  background-color: var(--tl-bg-glass-light);
+  border-radius: var(--tl-radius-xl);
+
+  svg { width: 40px; height: 40px; }
+}
+
+.title {
+  font-size: var(--tl-text-2xl);
+  font-weight: 700;
+  color: var(--tl-text-primary);
+  margin: 0;
+}
+
+.description {
+  font-size: var(--tl-text-md);
+  color: var(--tl-text-secondary);
+  max-width: 400px;
+  margin: 0;
+  line-height: 1.6;
+}

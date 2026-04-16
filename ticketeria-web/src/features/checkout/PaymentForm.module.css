@@ -1,0 +1,151 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tl-space-5);
+}
+
+.sectionTitle {
+  font-size: var(--tl-text-md);
+  font-weight: 600;
+  color: var(--tl-text-primary);
+}
+
+.methods {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tl-space-3);
+}
+
+.methodCard {
+  display: flex;
+  align-items: center;
+  gap: var(--tl-space-3);
+  padding: var(--tl-space-4);
+  background-color: var(--tl-bg-surface);
+  border: 2px solid var(--tl-border-default);
+  border-radius: var(--tl-radius-md);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color var(--tl-duration-fast), background-color var(--tl-duration-fast);
+  width: 100%;
+  color: var(--tl-text-primary);
+}
+
+.methodCard:hover {
+  border-color: var(--tl-brand);
+}
+
+.methodSelected {
+  border-color: var(--tl-brand);
+  background-color: rgba(108, 92, 231, 0.05);
+}
+
+.methodRadio {
+  width: 20px;
+  height: 20px;
+  border-radius: var(--tl-radius-pill);
+  border: 2px solid var(--tl-border-default);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: border-color var(--tl-duration-fast);
+}
+
+.methodSelected .methodRadio {
+  border-color: var(--tl-brand);
+}
+
+.methodRadioDot {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--tl-radius-pill);
+  background-color: var(--tl-brand);
+}
+
+.methodInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.methodLabel {
+  font-size: var(--tl-text-sm);
+  font-weight: 600;
+  color: var(--tl-text-primary);
+}
+
+.methodDesc {
+  font-size: var(--tl-text-xs);
+  color: var(--tl-text-secondary);
+}
+
+.cardForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tl-space-4);
+  padding: var(--tl-space-5);
+  background-color: var(--tl-bg-elevated);
+  border-radius: var(--tl-radius-md);
+  border: 1px solid var(--tl-border-default);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--tl-space-4);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tl-space-2);
+}
+
+.label {
+  font-size: var(--tl-text-sm);
+  font-weight: 500;
+  color: var(--tl-text-primary);
+}
+
+.select {
+  height: 40px;
+  padding: 0 var(--tl-space-3);
+  background-color: var(--tl-bg-surface);
+  border: 1px solid var(--tl-border-default);
+  border-radius: var(--tl-radius-md);
+  color: var(--tl-text-primary);
+  font-size: var(--tl-text-sm);
+  cursor: pointer;
+  transition: border-color var(--tl-duration-fast);
+  width: 100%;
+}
+
+.select:focus {
+  outline: none;
+  border-color: var(--tl-brand);
+}
+
+.pixInfo,
+.boletoInfo {
+  padding: var(--tl-space-4);
+  background-color: var(--tl-bg-elevated);
+  border: 1px solid var(--tl-border-default);
+  border-radius: var(--tl-radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--tl-space-2);
+}
+
+.pixInfo p,
+.boletoInfo p {
+  font-size: var(--tl-text-sm);
+  color: var(--tl-text-secondary);
+  line-height: 1.5;
+}
+
+.pixInfo strong,
+.boletoInfo strong {
+  color: var(--tl-text-primary);
+}

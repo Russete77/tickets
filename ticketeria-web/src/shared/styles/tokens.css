@@ -1,0 +1,259 @@
+/* ═══════════════════════════════════════════════════════════
+   TIMELAPSE DESIGN SYSTEM — TOKENS v2.0
+   Plataforma de Ticketeria & Admin
+
+   REGRA DE TEMAS:
+   • Ticketeria (público) → dark mode forçado
+   • Admin / Produtor     → light mode default, toggle dark
+   ═══════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Brand ── */
+  --tl-brand:             #00FF66;
+  --tl-brand-hover:       #00E65C;
+  --tl-brand-active:      #00CC52;
+  --tl-brand-muted:       rgba(0, 255, 102, 0.15);
+  --tl-brand-dark:        #121212;
+
+  /* ── Semantic (theme-agnostic) ── */
+  --tl-success:           #00FF66;
+  --tl-success-muted:     rgba(0, 255, 102, 0.12);
+  --tl-error:             #FF3B30;
+  --tl-error-hover:       #E8352B;
+  --tl-error-muted:       rgba(255, 59, 48, 0.12);
+  --tl-warning:           #FFB800;
+  --tl-warning-hover:     #E6A600;
+  --tl-warning-muted:     rgba(255, 184, 0, 0.12);
+  --tl-info:              #007AFF;
+  --tl-info-hover:        #006AE0;
+  --tl-info-muted:        rgba(0, 122, 255, 0.12);
+
+  /* ── Ticket Status ── */
+  --tl-ticket-available:   #00FF66;
+  --tl-ticket-few-left:    #FFB800;
+  --tl-ticket-sold-out:    #FF3B30;
+  --tl-ticket-coming-soon: #007AFF;
+  --tl-ticket-cancelled:   #888888;
+
+  /* ── Typography ── */
+  --tl-font-display: 'Monument Extended', 'Helvetica Now Display', sans-serif;
+  --tl-font-body:    'Helvetica Now Display', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --tl-font-mono:    'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+
+  /* ── Font Sizes ── */
+  --tl-text-xs:   0.625rem;   /* 10px */
+  --tl-text-sm:   0.75rem;    /* 12px */
+  --tl-text-base: 0.875rem;   /* 14px */
+  --tl-text-md:   1rem;       /* 16px */
+  --tl-text-lg:   1.125rem;   /* 18px */
+  --tl-text-xl:   1.25rem;    /* 20px */
+  --tl-text-2xl:  1.5rem;     /* 24px */
+  --tl-text-3xl:  1.75rem;    /* 28px */
+  --tl-text-4xl:  2.25rem;    /* 36px */
+  --tl-text-5xl:  3rem;       /* 48px */
+
+  /* ── Spacing (8px grid) ── */
+  --tl-space-0:   0;
+  --tl-space-0-5: 2px;
+  --tl-space-1:   4px;
+  --tl-space-1-5: 6px;
+  --tl-space-2:   8px;
+  --tl-space-3:   12px;
+  --tl-space-4:   16px;
+  --tl-space-5:   20px;
+  --tl-space-6:   24px;
+  --tl-space-8:   32px;
+  --tl-space-10:  40px;
+  --tl-space-12:  48px;
+  --tl-space-16:  64px;
+  --tl-space-20:  80px;
+  --tl-space-24:  96px;
+
+  /* ── Border Radius ── */
+  --tl-radius-xs:   4px;
+  --tl-radius-sm:   8px;
+  --tl-radius-md:   12px;
+  --tl-radius-lg:   16px;
+  --tl-radius-xl:   20px;
+  --tl-radius-2xl:  24px;
+  --tl-radius-pill: 100px;
+  --tl-radius-full: 50%;
+
+  /* ── Easing ── */
+  --tl-ease-default: cubic-bezier(0.25, 1, 0.5, 1);
+  --tl-ease-spring:  cubic-bezier(0.34, 1.56, 0.64, 1);
+  --tl-ease-smooth:  cubic-bezier(0.4, 0, 0.2, 1);
+  --tl-ease-sharp:   cubic-bezier(0.4, 0, 0.6, 1);
+
+  /* ── Durations ── */
+  --tl-duration-instant: 100ms;
+  --tl-duration-fast:    200ms;
+  --tl-duration-normal:  300ms;
+  --tl-duration-slow:    400ms;
+  --tl-duration-slower:  500ms;
+
+  /* ── Transition Shorthands ── */
+  --tl-transition-fast:   var(--tl-duration-fast)   var(--tl-ease-default);
+  --tl-transition-normal: var(--tl-duration-normal) var(--tl-ease-default);
+  --tl-transition-slow:   var(--tl-duration-slow)   var(--tl-ease-default);
+
+  /* ── Z-Index ── */
+  --tl-z-base:       0;
+  --tl-z-dropdown:   10;
+  --tl-z-sticky:     20;
+  --tl-z-fixed:      30;
+  --tl-z-overlay:    40;
+  --tl-z-modal:      50;
+  --tl-z-toast:      60;
+  --tl-z-tooltip:    70;
+  --tl-z-header:     99;
+  --tl-z-sidebar:    9999;
+  --tl-z-whatsapp:   9990;
+
+  /* ── Layout ── */
+  --tl-container-max:    1220px;
+  --tl-sidebar-width:    260px;
+  --tl-sidebar-collapsed: 72px;
+  --tl-header-height:    70px;
+  --tl-header-height-sm: 60px;
+}
+
+
+/* ─────────────────────────────────────────────────────────
+   DARK MODE (Ticketeria — público)
+   Aplicado por: class="dark", data-theme="dark",
+                 ou dentro de [data-layout="public"]
+   ───────────────────────────────────────────────────────── */
+
+:root,
+[data-theme="dark"],
+.dark,
+[data-layout="public"] {
+  --tl-bg-primary:     #0A0A0A;
+  --tl-bg-secondary:   #121212;
+  --tl-bg-tertiary:    #1A1A1A;
+  --tl-bg-elevated:    #222222;
+  --tl-bg-surface:     #2A2A2A;
+  --tl-bg-overlay:     rgba(0, 0, 0, 0.60);
+  --tl-bg-glass:       rgba(10, 10, 10, 0.96);
+  --tl-bg-glass-light: rgba(255, 255, 255, 0.08);
+
+  --tl-text-primary:   #FFFFFF;
+  --tl-text-secondary: rgba(255, 255, 255, 0.70);
+  --tl-text-tertiary:  rgba(255, 255, 255, 0.45);
+  --tl-text-muted:     rgba(255, 255, 255, 0.30);
+  --tl-text-accent:    #00FF66;
+  --tl-text-inverse:   #121212;
+
+  --tl-border-default: rgba(255, 255, 255, 0.08);
+  --tl-border-medium:  rgba(255, 255, 255, 0.12);
+  --tl-border-strong:  rgba(255, 255, 255, 0.20);
+  --tl-border-focus:   rgba(255, 255, 255, 0.40);
+  --tl-border-accent:  #00FF66;
+
+  --tl-shadow-sm:    0 2px 8px rgba(0, 0, 0, 0.3);
+  --tl-shadow-md:    0 4px 16px rgba(0, 0, 0, 0.4);
+  --tl-shadow-lg:    0 10px 30px rgba(0, 0, 0, 0.5);
+  --tl-shadow-xl:    0 20px 50px rgba(0, 0, 0, 0.8);
+  --tl-shadow-glow:  0 0 20px rgba(0, 255, 102, 0.3);
+  --tl-shadow-glow-strong: 0 0 40px rgba(0, 255, 102, 0.6);
+  --tl-shadow-inner: inset 0 1px 1px rgba(255, 255, 255, 0.05);
+  --tl-shadow-focus: 0 0 0 2px #00FF66;
+
+  /* Scrollbar */
+  --tl-scrollbar-track: transparent;
+  --tl-scrollbar-thumb: rgba(255, 255, 255, 0.15);
+  --tl-scrollbar-hover: rgba(255, 255, 255, 0.25);
+
+  /* Shimmer */
+  --tl-shimmer-from: #1A1A1A;
+  --tl-shimmer-to:   #2A2A2A;
+
+  color-scheme: dark;
+}
+
+
+/* ─────────────────────────────────────────────────────────
+   LIGHT MODE (Admin / Produtor / Check-in)
+   Aplicado por: data-theme="light", class="light",
+                 ou dentro de [data-layout="admin"]
+   ───────────────────────────────────────────────────────── */
+
+[data-theme="light"],
+.light,
+[data-layout="admin"] {
+  --tl-bg-primary:     #FAFAFA;
+  --tl-bg-secondary:   #FFFFFF;
+  --tl-bg-tertiary:    #F5F5F5;
+  --tl-bg-elevated:    #FFFFFF;
+  --tl-bg-surface:     #F0F0F0;
+  --tl-bg-overlay:     rgba(0, 0, 0, 0.40);
+  --tl-bg-glass:       rgba(255, 255, 255, 0.85);
+  --tl-bg-glass-light: rgba(0, 0, 0, 0.04);
+
+  --tl-text-primary:   #111111;
+  --tl-text-secondary: #555555;
+  --tl-text-tertiary:  #6B6B6B;
+  --tl-text-muted:     #BBBBBB;
+  --tl-text-accent:    #00803A;
+  --tl-text-inverse:   #FFFFFF;
+
+  --tl-border-default: #E8E8E8;
+  --tl-border-medium:  #D4D4D4;
+  --tl-border-strong:  #B0B0B0;
+  --tl-border-focus:   #00803A;
+  --tl-border-accent:  #00803A;
+
+  --tl-shadow-sm:    0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --tl-shadow-md:    0 4px 12px rgba(0, 0, 0, 0.08);
+  --tl-shadow-lg:    0 8px 24px rgba(0, 0, 0, 0.10);
+  --tl-shadow-xl:    0 16px 48px rgba(0, 0, 0, 0.12);
+  --tl-shadow-glow:  0 0 16px rgba(0, 128, 58, 0.15);
+  --tl-shadow-glow-strong: 0 0 32px rgba(0, 128, 58, 0.25);
+  --tl-shadow-inner: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+  --tl-shadow-focus: 0 0 0 3px rgba(0, 128, 58, 0.25);
+
+  /* Scrollbar */
+  --tl-scrollbar-track: #F5F5F5;
+  --tl-scrollbar-thumb: #D4D4D4;
+  --tl-scrollbar-hover: #B0B0B0;
+
+  /* Shimmer */
+  --tl-shimmer-from: #F0F0F0;
+  --tl-shimmer-to:   #E0E0E0;
+
+  color-scheme: light;
+}
+
+
+/* ─────────────────────────────────────────────────────────
+   ADMIN-SPECIFIC TOKENS
+   Sobreposição para dashboard/métricas
+   ───────────────────────────────────────────────────────── */
+
+[data-layout="admin"] {
+  --tl-admin-sidebar-bg:     #FCFCFC;
+  --tl-admin-sidebar-active: rgba(0, 128, 58, 0.08);
+  --tl-admin-sidebar-text:   #555555;
+  --tl-admin-sidebar-icon:   #888888;
+  --tl-admin-kpi-icon-bg:    rgba(0, 255, 102, 0.08);
+  --tl-admin-chart-primary:  #00CC52;
+  --tl-admin-chart-secondary:#66FFAA;
+  --tl-admin-chart-tertiary: #007AFF;
+  --tl-admin-table-stripe:   #FAFAFA;
+  --tl-admin-table-hover:    #F5F5F5;
+}
+
+/* Admin em dark mode (toggle) */
+[data-layout="admin"][data-theme="dark"] {
+  --tl-admin-sidebar-bg:     #141414;
+  --tl-admin-sidebar-active: rgba(0, 255, 102, 0.08);
+  --tl-admin-sidebar-text:   rgba(255, 255, 255, 0.60);
+  --tl-admin-sidebar-icon:   rgba(255, 255, 255, 0.40);
+  --tl-admin-kpi-icon-bg:    rgba(0, 255, 102, 0.10);
+  --tl-admin-chart-primary:  #00FF66;
+  --tl-admin-chart-secondary:#66FFAA;
+  --tl-admin-chart-tertiary: #4DA6FF;
+  --tl-admin-table-stripe:   #141414;
+  --tl-admin-table-hover:    #1A1A1A;
+}

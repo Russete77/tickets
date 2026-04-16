@@ -1,0 +1,211 @@
+/* ═══════════════════════════════════════════════════════════
+   TIMELAPSE — GLOBALS v2.0
+   Glassmorphism, utilities, layout helpers
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Glassmorphism Presets ── */
+
+.glass {
+  background: var(--tl-bg-glass);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  border: 1px solid var(--tl-border-medium);
+  border-radius: var(--tl-radius-xl);
+}
+
+.glass-subtle {
+  background: var(--tl-bg-glass-light);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--tl-border-default);
+}
+
+.glass-header {
+  backdrop-filter: blur(24px) saturate(1.8);
+  -webkit-backdrop-filter: blur(24px) saturate(1.8);
+  border-bottom: 1px solid var(--tl-border-default);
+}
+
+
+/* ── Container ── */
+.container-tl {
+  width: 100%;
+  max-width: var(--tl-container-max);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--tl-space-4);
+  padding-right: var(--tl-space-4);
+}
+
+@media (min-width: 768px) {
+  .container-tl {
+    padding-left: var(--tl-space-6);
+    padding-right: var(--tl-space-6);
+  }
+}
+
+@media (min-width: 1280px) {
+  .container-tl {
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
+
+
+/* ── Brand Marquee Banner ── */
+.tl-marquee-banner {
+  background-color: var(--tl-brand);
+  overflow: hidden;
+  position: relative;
+  padding: var(--tl-space-2) 0;
+}
+
+.tl-marquee-banner::before,
+.tl-marquee-banner::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 4%;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.tl-marquee-banner::before {
+  left: 0;
+  background: linear-gradient(to right, var(--tl-brand), transparent);
+}
+
+.tl-marquee-banner::after {
+  right: 0;
+  background: linear-gradient(to left, var(--tl-brand), transparent);
+}
+
+.tl-marquee-track {
+  display: flex;
+  white-space: nowrap;
+  animation: marqueeScroll 30s linear infinite;
+}
+
+.tl-marquee-track:hover {
+  animation-play-state: paused;
+}
+
+.tl-marquee-item {
+  color: var(--tl-brand-dark);
+  font-size: var(--tl-text-sm);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--tl-space-4);
+}
+
+.tl-marquee-separator {
+  color: var(--tl-brand-dark);
+  font-weight: 900;
+  font-size: var(--tl-text-md);
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .tl-marquee-track {
+    animation-duration: 20s;
+  }
+  .tl-marquee-item {
+    font-size: var(--tl-text-xs);
+    padding: 0 var(--tl-space-2);
+  }
+}
+
+
+/* ── Overlay ── */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background-color: var(--tl-bg-overlay);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  z-index: var(--tl-z-overlay);
+}
+
+
+/* ── Card Image Overlay (gradient bottom) ── */
+.card-overlay-gradient {
+  background: linear-gradient(180deg, transparent 40%, rgba(0, 0, 0, 0.85) 100%);
+}
+
+
+/* ── Divider ── */
+.divider {
+  width: 100%;
+  height: 1px;
+  background-color: var(--tl-border-default);
+  border: none;
+}
+
+
+/* ── Aspect Ratio Helpers ── */
+.aspect-event-card  { aspect-ratio: 3 / 4; }
+.aspect-banner      { aspect-ratio: 16 / 9; }
+.aspect-banner-wide { aspect-ratio: 21 / 9; }
+.aspect-square      { aspect-ratio: 1 / 1; }
+
+
+/* ── Visually Hidden (a11y) ── */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+
+/* ── WhatsApp Float ── */
+.tl-whatsapp-float {
+  position: fixed;
+  bottom: var(--tl-space-5);
+  right: var(--tl-space-5);
+  width: 56px;
+  height: 56px;
+  background-color: #25D366;
+  border-radius: var(--tl-radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  box-shadow: 0 4px 16px rgba(37, 211, 102, 0.4);
+  z-index: var(--tl-z-whatsapp);
+  transition: transform var(--tl-transition-fast), box-shadow var(--tl-transition-fast);
+  cursor: pointer;
+}
+
+.tl-whatsapp-float:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 24px rgba(37, 211, 102, 0.5);
+}
+
+@media (min-width: 768px) {
+  .tl-whatsapp-float {
+    width: 60px;
+    height: 60px;
+  }
+}
+
+
+/* ── Theme Transition ── */
+.theme-transition,
+.theme-transition *,
+.theme-transition *::before,
+.theme-transition *::after {
+  transition: background-color 300ms ease,
+              color 300ms ease,
+              border-color 300ms ease,
+              box-shadow 300ms ease !important;
+}

@@ -1,0 +1,21 @@
+# Caddyfile para Ticketeria API
+# Substituir api.ticketeria.com.br pelo domínio real
+
+api.ticketeria.com.br {
+  # Reverse proxy para a API Express
+  reverse_proxy api:3333
+
+  # Headers de segurança
+  header {
+    Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+    X-Content-Type-Options "nosniff"
+    X-Frame-Options "DENY"
+    Referrer-Policy "strict-origin-when-cross-origin"
+  }
+
+  # Logs
+  log {
+    output file /var/log/caddy/access.log
+    format json
+  }
+}

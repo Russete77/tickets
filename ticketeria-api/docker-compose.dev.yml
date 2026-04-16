@@ -1,0 +1,44 @@
+# ============================================
+# Ticketeria API - Docker Compose (Desenvolvimento)
+# Apenas serviços auxiliares (API roda local com tsx)
+# ============================================
+
+services:
+  # PostgreSQL local (desenvolvimento)
+  postgres:
+    image: postgres:16-alpine
+    container_name: ticketeria-postgres-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ticketeria
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-dev-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # Redis local (desenvolvimento)
+  redis:
+    image: redis:7-alpine
+    container_name: ticketeria-redis-dev
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-dev-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  postgres-dev-data:
+  redis-dev-data:

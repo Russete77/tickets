@@ -1,0 +1,211 @@
+.page {
+  max-width: var(--tl-container-max);
+  margin: 0 auto;
+  padding: var(--tl-space-6) var(--tl-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--tl-space-8);
+}
+
+/* ── Step Bar ── */
+.stepBar {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  overflow-x: auto;
+  padding-bottom: var(--tl-space-2);
+}
+
+.stepItem {
+  display: flex;
+  align-items: center;
+  gap: var(--tl-space-2);
+  flex-shrink: 0;
+}
+
+.stepDot {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--tl-radius-pill);
+  border: 2px solid var(--tl-border-default);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--tl-text-sm);
+  font-weight: 600;
+  color: var(--tl-text-secondary);
+  background-color: var(--tl-bg-surface);
+  flex-shrink: 0;
+  transition: all var(--tl-duration-fast);
+}
+
+.stepActive .stepDot {
+  border-color: var(--tl-brand);
+  background-color: var(--tl-brand);
+  color: white;
+}
+
+.stepLabel {
+  font-size: var(--tl-text-sm);
+  color: var(--tl-text-secondary);
+  transition: color var(--tl-duration-fast);
+  white-space: nowrap;
+}
+
+.stepActive .stepLabel {
+  color: var(--tl-text-primary);
+  font-weight: 600;
+}
+
+.stepConnector {
+  flex: 1;
+  height: 2px;
+  background-color: var(--tl-border-default);
+  min-width: 32px;
+  transition: background-color var(--tl-duration-fast);
+}
+
+.stepConnectorDone {
+  background-color: var(--tl-brand);
+}
+
+/* ── Content ── */
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tl-space-6);
+}
+
+.mainArea {
+  flex: 1;
+  min-width: 0;
+}
+
+.sidebar {
+  width: 100%;
+}
+
+/* ── Section ── */
+.section {
+  background-color: var(--tl-bg-surface);
+  border: 1px solid var(--tl-border-default);
+  border-radius: var(--tl-radius-lg);
+  padding: var(--tl-space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--tl-space-6);
+}
+
+.sectionTitle {
+  font-size: var(--tl-text-xl);
+  font-weight: 700;
+  color: var(--tl-text-primary);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tl-space-5);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--tl-space-4);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tl-space-2);
+}
+
+.label {
+  font-size: var(--tl-text-sm);
+  font-weight: 500;
+  color: var(--tl-text-primary);
+}
+
+/* ── Coupon ── */
+.couponRow {
+  display: flex;
+  gap: var(--tl-space-3);
+}
+
+.couponSuccess {
+  font-size: var(--tl-text-sm);
+  color: var(--tl-success);
+  font-weight: 500;
+}
+
+/* ── Nav Buttons ── */
+.navButtons {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--tl-space-3);
+}
+
+/* ── Review ── */
+.reviewBlock {
+  padding: var(--tl-space-4);
+  background-color: var(--tl-bg-elevated);
+  border-radius: var(--tl-radius-md);
+}
+
+.reviewLabel {
+  font-size: var(--tl-text-xs);
+  font-weight: 600;
+  color: var(--tl-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: var(--tl-space-2);
+}
+
+.reviewValue {
+  font-size: var(--tl-text-sm);
+  color: var(--tl-text-primary);
+  line-height: 1.6;
+}
+
+/* ── PIX ── */
+.pixNote {
+  font-size: var(--tl-text-sm);
+  color: var(--tl-text-secondary);
+  text-align: center;
+}
+
+/* ── Empty ── */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--tl-space-6);
+  padding: var(--tl-space-20) var(--tl-space-4);
+  text-align: center;
+}
+
+.empty h2 {
+  font-size: var(--tl-text-2xl);
+  font-weight: 700;
+  color: var(--tl-text-primary);
+}
+
+/* ── Responsive ── */
+@media (min-width: 1024px) {
+  .content {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .sidebar {
+    width: 380px;
+    flex-shrink: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .row {
+    grid-template-columns: 1fr;
+  }
+}

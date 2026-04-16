@@ -1,0 +1,54 @@
+/* TIMELAPSE — Skeleton v2.0 */
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--tl-shimmer-from) 0%,
+    var(--tl-shimmer-to) 50%,
+    var(--tl-shimmer-from) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease infinite;
+}
+
+.variant-text {
+  height: 14px;
+  border-radius: var(--tl-radius-sm);
+  margin-bottom: var(--tl-space-2);
+
+  &:last-child {
+    margin-bottom: 0;
+    width: 70%;
+  }
+}
+
+.variant-circle {
+  border-radius: var(--tl-radius-full);
+}
+
+.variant-rectangle {
+  border-radius: var(--tl-radius-md);
+}
+
+.variant-card {
+  border-radius: var(--tl-radius-md);
+  aspect-ratio: 3 / 4;
+  width: 100%;
+}
+
+.variant-banner {
+  border-radius: 0;
+  aspect-ratio: 16 / 9;
+  width: 100%;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tl-space-3);
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
