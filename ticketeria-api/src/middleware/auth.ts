@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { env } from '../config/env';
+import { jwtKeys } from '../config/jwt';
 import { UnauthorizedError, ForbiddenError } from '../shared/errors';
 import { UserRole } from '../generated/prisma/client';
 
@@ -19,40 +19,40 @@ declare global {
 }
 
 /**
- * Middleware de autenticação JWT
+ * Middleware de autenticacao JWT (RS256)
  */
 export function authenticate(req: Request, _res: Response, next: NextFunction): void {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    throw new UnauthorizedError('Token de acesso não fornecido');
+    throw new UnauthorizedError('Token de acesso nao fornecido');
   }
 
   const token = authHeader.substring(7);
 
   try {
-    const payload = jwt.verify(token, env.JWT_ACCESS_SECRET) as AuthPayload;
+    const payload = jwt.verify(token, jwtKeys.publicKey, { algorithms: ['RS256'] }) as AuthPayload;
     req.user = payload;
     next();
   } catch (error) {
     if (error instanceof jwt.TokenExpiredError) {
       throw new UnauthorizedError('Token expirado');
     }
-    throw new UnauthorizedError('Token inválido');
+    throw new UnauthorizedError('Token invalido');
   }
 }
 
 /**
- * Middleware de autorização por role
+ * Middleware de autorizacao por role
  */
 export function authorize(...roles: UserRole[]) {
   return (req: Request, _res: Response, next: NextFunction): void => {
     if (!req.user) {
-      throw new UnauthorizedError('Não autenticado');
+      throw new UnauthorizedError('Nao autenticado');
     }
 
     if (!roles.includes(req.user.role)) {
-      throw new ForbiddenError('Sem permissão para acessar este recurso');
+      throw new ForbiddenError('Sem permissao para acessar este recurso');
     }
 
     next();
@@ -60,7 +60,7 @@ export function authorize(...roles: UserRole[]) {
 }
 
 /**
- * Middleware opcional de autenticação (não exige token, mas extrai se presente)
+ * Middleware opcional de autenticacao (nao exige token, mas extrai se presente)
  */
 export function optionalAuth(req: Request, _res: Response, next: NextFunction): void {
   const authHeader = req.headers.authorization;
@@ -68,10 +68,10 @@ export function optionalAuth(req: Request, _res: Response, next: NextFunction): 
   if (authHeader && authHeader.startsWith('Bearer ')) {
     const token = authHeader.substring(7);
     try {
-      const payload = jwt.verify(token, env.JWT_ACCESS_SECRET) as AuthPayload;
+      const payload = jwt.verify(token, jwtKeys.publicKey, { algorithms: ['RS256'] }) as AuthPayload;
       req.user = payload;
     } catch {
-      // Token inválido mas é opcional - continua sem user
+      // Token invalido mas e opcional - continua sem user
     }
   }
 

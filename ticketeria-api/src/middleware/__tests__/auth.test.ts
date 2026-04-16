@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import { authenticate, authorize, optionalAuth, AuthPayload } from '../auth';
 import { UnauthorizedError, ForbiddenError } from '../../shared/errors';
 import { UserRole } from '../../generated/prisma/client';
+import { jwtKeys } from '../../config/jwt';
 
 // Mock jwt is already set up in setup.ts
 
@@ -103,6 +104,32 @@ describe('Auth Middleware', () => {
       expect(req.user?.userId).toBe('user456');
       expect(req.user?.email).toBe('john@example.com');
       expect(req.user?.role).toBe(UserRole.producer);
+    });
+
+    it('should verify token with RS256 public key and algorithms option', () => {
+      const payload: AuthPayload = {
+        userId: 'user123',
+        email: 'test@example.com',
+        role: UserRole.consumer,
+      };
+
+      const token = `token_${JSON.stringify(payload)}`;
+
+      const req = {
+        headers: { authorization: `Bearer ${token}` },
+        user: undefined,
+      } as any;
+
+      const res = {} as Response;
+      const next = vi.fn();
+
+      authenticate(req, res, next);
+
+      expect(jwt.verify).toHaveBeenCalledWith(
+        token,
+        jwtKeys.publicKey,
+        { algorithms: ['RS256'] }
+      );
     });
   });
 
