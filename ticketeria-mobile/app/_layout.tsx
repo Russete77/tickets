@@ -5,6 +5,7 @@ import { Stack } from 'expo-router';
 import React from 'react';
 import { Colors } from '../src/styles/tokens';
 import { useNotifications } from '../src/hooks/useNotifications';
+import { useOfflineSync } from '../src/hooks/useOfflineSync';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -17,6 +18,7 @@ const queryClient = new QueryClient({
 
 export default function RootLayout() {
   useNotifications();
+  useOfflineSync();
 
   return (
     <QueryClientProvider client={queryClient}>
