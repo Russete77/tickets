@@ -46,6 +46,11 @@ export const checkinSyncQueue = new Queue('sync-checkin-offline', {
   defaultJobOptions: { ...defaultJobOptions, priority: 1 },
 });
 
+export const pushQueue = new Queue('send-push', {
+  connection: redis,
+  defaultJobOptions: { ...defaultJobOptions, priority: 2 },
+});
+
 // ============================================
 // Filas com CRON
 // ============================================
@@ -135,6 +140,7 @@ export function setupQueueEvents(): void {
     postEventReportQueue,
     cleanupSessionsQueue,
     checkinSyncQueue,
+    pushQueue,
   ];
 
   for (const queue of queues) {
