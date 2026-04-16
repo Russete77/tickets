@@ -1,5 +1,15 @@
 import { vi } from 'vitest';
+import { generateKeyPairSync } from 'crypto';
 import { User, UserRole, Event, EventStatus, Order, OrderStatus, Ticket, TicketStatus, TicketBatch } from '../generated/prisma/client';
+
+// Generate test RSA keys for JWT RS256 tests
+const testKeyPair = generateKeyPairSync('rsa', {
+  modulusLength: 2048,
+  publicKeyEncoding: { type: 'spki', format: 'pem' },
+  privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
+});
+const TEST_PRIVATE_KEY_BASE64 = Buffer.from(testKeyPair.privateKey).toString('base64');
+const TEST_PUBLIC_KEY_BASE64 = Buffer.from(testKeyPair.publicKey).toString('base64');
 
 /**
  * Mock Prisma Client
@@ -113,7 +123,8 @@ export const mockEnv = {
   REDIS_HOST: 'localhost',
   REDIS_PORT: 6379,
   REDIS_PASSWORD: undefined,
-  JWT_ACCESS_SECRET: 'test-access-secret-minimum-32-characters-length-here',
+  JWT_PRIVATE_KEY_BASE64: TEST_PRIVATE_KEY_BASE64,
+  JWT_PUBLIC_KEY_BASE64: TEST_PUBLIC_KEY_BASE64,
   JWT_REFRESH_SECRET: 'test-refresh-secret-minimum-32-characters-length-here',
   JWT_ACCESS_EXPIRES_IN: '15m',
   JWT_REFRESH_EXPIRES_IN: '7d',
@@ -138,6 +149,17 @@ vi.mock('../config/redis', () => ({
 
 vi.mock('../config/env', () => ({
   env: mockEnv,
+}));
+
+vi.mock('../config/jwt', () => ({
+  jwtKeys: {
+    privateKey: testKeyPair.privateKey,
+    publicKey: testKeyPair.publicKey,
+  },
+  decodeJwtKeys: vi.fn((priv: string, pub: string) => ({
+    privateKey: Buffer.from(priv, 'base64').toString('utf-8'),
+    publicKey: Buffer.from(pub, 'base64').toString('utf-8'),
+  })),
 }));
 
 vi.mock('../shared/logger', () => ({
