@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { StoreController } from './store.controller';
 import { authenticate, authorize } from '../../middleware/auth';
+import { requireEventOwnership } from '../../middleware/eventOwnership';
 import { validate } from '../../middleware/validate';
 import {
   createItemSchema,
@@ -20,6 +21,7 @@ router.post(
   '/:eventId',
   authenticate,
   authorize(['producer', 'admin']),
+  requireEventOwnership,
   validate({ params: eventIdParamSchema, body: createItemSchema }),
   StoreController.createItem,
 );

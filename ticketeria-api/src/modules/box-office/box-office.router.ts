@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { authenticate, authorize } from '../../middleware/auth';
+import { requireEventOwnership } from '../../middleware/eventOwnership';
 import { validate } from '../../middleware/validate';
 import {
   openSession,
@@ -32,6 +33,7 @@ router.post(
   '/:eventId/open',
   authenticate,
   authorize('producer', 'admin'),
+  requireEventOwnership,
   validate({ params: eventIdParamSchema, body: openSessionSchema }),
   openSession,
 );
@@ -52,6 +54,7 @@ router.post(
   '/:eventId/sell',
   authenticate,
   authorize('producer', 'admin'),
+  requireEventOwnership,
   validate({ params: eventIdParamSchema, body: sellTicketSchema }),
   sellTicket,
 );
@@ -62,6 +65,7 @@ router.get(
   '/:eventId/report',
   authenticate,
   authorize('producer', 'admin'),
+  requireEventOwnership,
   validate({ params: eventIdParamSchema }),
   getReport,
 );

@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { authenticate, authorize } from '../../middleware/auth';
+import { requireEventOwnership } from '../../middleware/eventOwnership';
 import { validate } from '../../middleware/validate';
 import { CashlessController } from './cashless.controller';
 import {
@@ -36,6 +37,7 @@ router.post(
   '/:eventId/config',
   authenticate,
   authorize('producer', 'admin'),
+  requireEventOwnership,
   validate({
     params: eventIdParamSchema,
     body: createCashlessConfigSchema,
@@ -63,6 +65,7 @@ router.patch(
   '/:eventId/config',
   authenticate,
   authorize('producer', 'admin'),
+  requireEventOwnership,
   validate({
     params: eventIdParamSchema,
     body: updateCashlessConfigSchema,
@@ -228,6 +231,7 @@ router.get(
   '/:eventId/dashboard',
   authenticate,
   authorize('producer', 'admin'),
+  requireEventOwnership,
   validate({
     params: eventIdParamSchema,
     query: dashboardQuerySchema,
@@ -243,6 +247,7 @@ router.get(
   '/:eventId/transactions',
   authenticate,
   authorize('producer', 'admin'),
+  requireEventOwnership,
   validate({
     params: eventIdParamSchema,
     query: dashboardQuerySchema,
@@ -258,6 +263,7 @@ router.get(
   '/:eventId/top-products',
   authenticate,
   authorize('producer', 'admin'),
+  requireEventOwnership,
   validate({
     params: eventIdParamSchema,
     query: topProductsQuerySchema,
@@ -273,6 +279,7 @@ router.get(
   '/:eventId/revenue-by-pos',
   authenticate,
   authorize('producer', 'admin'),
+  requireEventOwnership,
   validate({
     params: eventIdParamSchema,
     query: dashboardQuerySchema,
@@ -288,6 +295,7 @@ router.get(
   '/:eventId/hourly-stats',
   authenticate,
   authorize('producer', 'admin'),
+  requireEventOwnership,
   validate({
     params: eventIdParamSchema,
     query: hourlyStatsQuerySchema,
@@ -303,6 +311,7 @@ router.get(
   '/:eventId/export',
   authenticate,
   authorize('producer', 'admin'),
+  requireEventOwnership,
   validate({
     params: eventIdParamSchema,
   }),

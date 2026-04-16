@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { authenticate, authorize } from '../../middleware/auth';
+import { requireEventOwnership } from '../../middleware/eventOwnership';
 import { validate } from '../../middleware/validate';
 import { CourtesiesController } from './courtesies.controller';
 import {
@@ -19,6 +20,7 @@ courtesiesRouter.post(
   '/:eventId',
   authenticate,
   authorize('producer', 'admin'),
+  requireEventOwnership,
   validate({ params: eventIdParamSchema, body: requestCourtesySchema }),
   CourtesiesController.requestCourtesy,
 );
@@ -31,6 +33,7 @@ courtesiesRouter.get(
   '/:eventId',
   authenticate,
   authorize('producer', 'admin'),
+  requireEventOwnership,
   validate({ params: eventIdParamSchema, query: listCourtesiesSchema }),
   CourtesiesController.listCourtesies,
 );
@@ -79,6 +82,7 @@ courtesiesRouter.get(
   '/:eventId/report',
   authenticate,
   authorize('producer', 'admin'),
+  requireEventOwnership,
   validate({ params: eventIdParamSchema }),
   CourtesiesController.getReport,
 );

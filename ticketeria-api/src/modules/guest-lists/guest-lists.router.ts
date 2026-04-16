@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { authenticate, authorize } from '../../middleware/auth';
+import { requireEventOwnership } from '../../middleware/eventOwnership';
 import { validate } from '../../middleware/validate';
 import { GuestListsController } from './guest-lists.controller';
 import {
@@ -23,6 +24,7 @@ guestListsRouter.post(
   '/:eventId/config',
   authenticate,
   authorize('producer', 'admin'),
+  requireEventOwnership,
   validate({ body: createOrUpdateConfigSchema }),
   GuestListsController.createOrUpdateConfig,
 );
@@ -45,6 +47,7 @@ guestListsRouter.post(
   '/:eventId/entries',
   authenticate,
   authorize('producer', 'admin'),
+  requireEventOwnership,
   validate({ body: addEntrySchema }),
   GuestListsController.addEntry,
 );
@@ -57,6 +60,7 @@ guestListsRouter.post(
   '/:eventId/import',
   authenticate,
   authorize('producer', 'admin'),
+  requireEventOwnership,
   validate({ body: importCSVSchema }),
   GuestListsController.importCSV,
 );
@@ -69,6 +73,7 @@ guestListsRouter.get(
   '/:eventId/entries',
   authenticate,
   authorize('producer', 'admin'),
+  requireEventOwnership,
   validate({ query: listEntriesSchema }),
   GuestListsController.listEntries,
 );
@@ -104,6 +109,7 @@ guestListsRouter.get(
   '/:eventId/search',
   authenticate,
   authorize('producer', 'admin'),
+  requireEventOwnership,
   validate({ query: searchEntriesSchema }),
   GuestListsController.searchEntries,
 );
@@ -127,6 +133,7 @@ guestListsRouter.get(
   '/:eventId/stats',
   authenticate,
   authorize('producer', 'admin'),
+  requireEventOwnership,
   GuestListsController.getStats,
 );
 
@@ -138,6 +145,7 @@ guestListsRouter.get(
   '/:eventId/report',
   authenticate,
   authorize('producer', 'admin'),
+  requireEventOwnership,
   GuestListsController.getReport,
 );
 

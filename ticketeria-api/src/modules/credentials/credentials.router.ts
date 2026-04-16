@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { authenticate, authorize } from '../../middleware/auth';
+import { requireEventOwnership } from '../../middleware/eventOwnership';
 import { validate } from '../../middleware/validate';
 import { CredentialsController } from './credentials.controller';
 import {
@@ -24,6 +25,7 @@ router.post(
   '/:eventId',
   authenticate,
   authorize('producer', 'admin'),
+  requireEventOwnership,
   validate({ params: eventIdParamSchema, body: createCredentialSchema }),
   CredentialsController.createCredential,
 );
@@ -33,6 +35,7 @@ router.get(
   '/:eventId',
   authenticate,
   authorize('producer', 'admin'),
+  requireEventOwnership,
   validate({ params: eventIdParamSchema, query: listCredentialsSchema }),
   CredentialsController.listByEvent,
 );
@@ -42,6 +45,7 @@ router.post(
   '/:eventId/bulk',
   authenticate,
   authorize('producer', 'admin'),
+  requireEventOwnership,
   validate({ params: eventIdParamSchema, body: bulkCreateSchema }),
   CredentialsController.bulkCreateCredentials,
 );

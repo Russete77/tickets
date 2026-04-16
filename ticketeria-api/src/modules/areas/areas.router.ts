@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { AreasController } from './areas.controller';
 import { authenticate, authorize } from '../../middleware/auth';
+import { requireEventOwnership } from '../../middleware/eventOwnership';
 import { validate } from '../../middleware/validate';
 import {
   createAreaSchema,
@@ -20,6 +21,7 @@ router.post(
   '/:eventId',
   authenticate,
   authorize(['producer']),
+  requireEventOwnership,
   validate({ params: eventIdParamSchema, body: createAreaSchema }),
   AreasController.createArea,
 );

@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { StaffController } from './staff.controller';
 import { authenticate, authorize } from '../../middleware/auth';
+import { requireEventOwnership } from '../../middleware/eventOwnership';
 import { validate } from '../../middleware/validate';
 import {
   createStaffSchema,
@@ -20,6 +21,7 @@ router.post(
   '/:eventId',
   authenticate,
   authorize(['producer']),
+  requireEventOwnership,
   validate({ params: eventIdParamSchema, body: createStaffSchema }),
   StaffController.addStaffMember,
 );
@@ -32,6 +34,7 @@ router.get(
   '/:eventId',
   authenticate,
   authorize(['producer']),
+  requireEventOwnership,
   validate({ params: eventIdParamSchema }),
   StaffController.listStaff,
 );
@@ -79,6 +82,7 @@ router.get(
   '/:eventId/dashboard',
   authenticate,
   authorize(['producer']),
+  requireEventOwnership,
   validate({ params: eventIdParamSchema }),
   StaffController.getStaffDashboard,
 );
