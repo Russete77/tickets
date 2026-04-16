@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { Stack } from 'expo-router';
 import React from 'react';
 import { Colors } from '../src/styles/tokens';
+import { useNotifications } from '../src/hooks/useNotifications';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -15,6 +16,8 @@ const queryClient = new QueryClient({
 });
 
 export default function RootLayout() {
+  useNotifications();
+
   return (
     <QueryClientProvider client={queryClient}>
       <SafeAreaProvider>
