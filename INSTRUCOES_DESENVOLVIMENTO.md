@@ -34,7 +34,7 @@
 | BullMQ | 5.12 | Job queue (7 workers) |
 | Socket.IO | 4.7.5 | Real-time |
 | Zod | 4.0 | Validacao |
-| JWT | jsonwebtoken (HS256) | Autenticacao |
+| JWT | jsonwebtoken (RS256) | Autenticacao |
 | bcryptjs | 2.4.3 | Hash de senhas |
 | Resend | - | E-mail transacional |
 | Sentry | 10.47 | Error tracking |
@@ -100,9 +100,9 @@
 
 | Funcionalidade PRD | Status Atual | Gap | Prioridade |
 |---|---|---|---|
-| JWT RS256 (assimetrico) | HS256 implementado | Migrar para RS256 com par de chaves | ALTA |
+| JWT RS256 (assimetrico) | RS256 implementado | - | CONCLUIDO |
 | Anti-replay Redis | Parcial | Verificar implementacao completa | ALTA |
-| Socket.IO JWT auth | TODO - placeholder | Implementar JWT no handshake | ALTA |
+| Socket.IO JWT auth | RS256 no handshake | - | CONCLUIDO |
 | Push notifications (FCM) | TODO - apenas log | Integrar Firebase/Expo Notifications | ALTA |
 | Relatorio Excel 9 abas | CSV simples | Implementar com ExcelJS | ALTA |
 | Fila inteligente (virtual queue) | Middleware existe | Testar fluxo completo | MEDIA |
@@ -303,8 +303,8 @@ StockMovementType, StaffRole, StoreItemType
 
 | # | Item | Local | Descricao |
 |---|---|---|---|
-| 1 | **JWT RS256** | `ticketeria-api/src/middleware/auth.ts` | Migrar de HS256 para RS256 com par de chaves. Obrigatorio para seguranca do QR rotativo conforme PRD |
-| 2 | **Socket.IO JWT auth** | `ticketeria-api/src/server.ts:36` | Verificar JWT no handshake do WebSocket. Placeholder atual nao valida |
+| 1 | ~~**JWT RS256**~~ | `ticketeria-api/src/middleware/auth.ts` | ~~CONCLUIDO~~ — RS256 com par de chaves implementado |
+| 2 | ~~**Socket.IO JWT auth**~~ | `ticketeria-api/src/server.ts` | ~~CONCLUIDO~~ — JWT RS256 verificado no handshake, user associado ao socket |
 | 3 | **Push notifications** | `ticketeria-api/src/modules/notifications/push.service.ts` | Integrar Firebase FCM + Expo Notifications. Atual apenas loga |
 | 4 | **Relatorio Excel 9 abas** | Novo modulo | Implementar com ExcelJS (equivalente Node do openpyxl). CSV atual e insuficiente |
 | 5 | **Anti-replay Redis completo** | Modulo checkin | Verificar que token QR usado e rejeitado na segunda leitura dentro da janela |
@@ -481,8 +481,9 @@ DATABASE_URL=postgresql://user:pass@host:5432/db
 REDIS_HOST=localhost
 REDIS_PORT=6379
 
-# Auth (MIGRAR PARA RS256 - gerar par de chaves)
-JWT_ACCESS_SECRET=<min 32 chars>
+# Auth (RS256 - gerar chaves com: npx tsx scripts/generate-keys.ts)
+JWT_PRIVATE_KEY_BASE64=<base64 da chave privada>
+JWT_PUBLIC_KEY_BASE64=<base64 da chave publica>
 JWT_REFRESH_SECRET=<min 32 chars>
 JWT_ACCESS_EXPIRES_IN=15m
 JWT_REFRESH_EXPIRES_IN=7d
@@ -594,14 +595,14 @@ cd ticketeria-api && npx prisma studio
 ### Fase 0 - Estabilizacao (AGORA)
 > Resolver gaps criticos entre PRD e implementacao atual
 
-- [ ] Decidir: manter Express/TS ou migrar para FastAPI/Python
-- [ ] Migrar JWT de HS256 para RS256 (par de chaves)
-- [ ] Implementar Socket.IO JWT auth no handshake
+- [x] Decidir: manter Express/TS (decidido)
+- [x] Migrar JWT de HS256 para RS256 (par de chaves)
+- [x] Implementar Socket.IO JWT auth no handshake
 - [ ] Integrar push notifications (FCM + Expo Notifications)
 - [ ] Implementar relatorio Excel 9 abas com ExcelJS
 - [ ] Completar anti-replay Redis no check-in
 - [ ] Revisar TOTP mobile para producao
-- [ ] Inicializar repositorio git
+- [x] Inicializar repositorio git
 
 ### Fase MVP (Meses 1-3 do PRD)
 > Maioria ja implementada. Foco em polimento e teste real.
@@ -682,7 +683,7 @@ cd ticketeria-api && npx prisma studio
 
 ## 16. Seguranca (Checklist PRD)
 
-- [ ] JWT RS256 com par de chaves publico/privado
+- [x] JWT RS256 com par de chaves publico/privado
 - [x] TOTP nos ingressos (muda a cada 30s)
 - [ ] Anti-replay Redis (token rejeitado na segunda leitura)
 - [x] Rate limiting global (100 req/min)
