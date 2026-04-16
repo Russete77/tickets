@@ -1,5 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { reportsService } from './reports.service';
+import { reportsDataService } from './reports.data.service';
+import { ExcelReportBuilder } from './reports.excel.service';
 import { SalesReportInput, CheckinReportInput, ExportReportInput } from './reports.validators';
 
 /**
@@ -105,6 +107,34 @@ export class ReportsController {
       res.setHeader('Content-Type', 'text/csv');
       res.setHeader('Content-Disposition', `attachment; filename="report-${type}-${eventId}.csv"`);
       res.send(csv);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * GET /reports/:eventId/excel
+   * Exportar relatorio completo em Excel (9 abas)
+   */
+  static async exportExcel(
+    req: Request<{ eventId: string }>,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
+    try {
+      const userId = req.user!.userId;
+      const { eventId } = req.params;
+
+      const data = await reportsDataService.getExcelReportData(eventId, userId);
+      const builder = new ExcelReportBuilder(data);
+      const buffer = await builder.toBuffer();
+
+      const safeTitle = data.event.title.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 50);
+      const filename = `PulsePass_${safeTitle}_${new Date().toISOString().split('T')[0]}.xlsx`;
+
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.send(buffer);
     } catch (error) {
       next(error);
     }

@@ -54,3 +54,15 @@ reportsRouter.get(
   authorize(UserRole.producer, UserRole.admin),
   ReportsController.exportReport,
 );
+
+/**
+ * GET /reports/:eventId/excel
+ * Exportar relatório completo em Excel 9 abas (autenticado, produtor)
+ */
+reportsRouter.get(
+  '/:eventId/excel',
+  authenticate,
+  authorize(UserRole.producer, UserRole.admin),
+  validate({ params: eventIdParamSchema }),
+  ReportsController.exportExcel,
+);
