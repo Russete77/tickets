@@ -58,6 +58,8 @@ export class CheckinService {
     eventId: string,
   ): Promise<CheckinResult> {
     try {
+      let replayKey: string | null = null;
+
       // 1. Decodificar QR data (pode ser base64 ou JSON)
       interface DecodedQR {
         ticketHash: string;
@@ -105,6 +107,17 @@ export class CheckinService {
         };
       }
 
+      // 2.5 Anti-replay Redis: rejeitar QR já processado
+      replayKey = `checkin:qr:${ticketHash}:${totpCode}`;
+      const isNew = await redis.set(replayKey, '1', 'EX', 300, 'NX');
+      if (!isNew) {
+        return {
+          success: false,
+          result: 'already_used',
+          message: 'QR code já foi processado',
+        };
+      }
+
       // 3. Localizar ticket pelo hash
       const ticket = await prisma.ticket.findUnique({
         where: { ticketHash },
@@ -116,6 +129,7 @@ export class CheckinService {
       });
 
       if (!ticket) {
+        if (replayKey) await redis.del(replayKey).catch(() => {});
         return {
           success: false,
           result: 'invalid_hash',
@@ -125,6 +139,7 @@ export class CheckinService {
 
       // 4. Validar evento
       if (ticket.eventId !== eventId) {
+        if (replayKey) await redis.del(replayKey).catch(() => {});
         return {
           success: false,
           result: 'wrong_event',
@@ -135,6 +150,7 @@ export class CheckinService {
       // 5. Validar TOTP
       const totpValid = verifyTotp(ticket.totpSecret, totpCode, 1);
       if (!totpValid) {
+        if (replayKey) await redis.del(replayKey).catch(() => {});
         return {
           success: false,
           result: 'invalid_totp',
@@ -152,6 +168,7 @@ export class CheckinService {
           };
         }
 
+        if (replayKey) await redis.del(replayKey).catch(() => {});
         return {
           success: false,
           result: 'ticket_cancelled',
