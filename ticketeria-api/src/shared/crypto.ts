@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import { env } from '../config/env';
+import { authenticator } from 'otplib';
 
 const ALGORITHM = 'aes-256-gcm';
 const IV_LENGTH = 16;
@@ -64,10 +65,10 @@ export function generateTicketHash(
 }
 
 /**
- * Gera secret TOTP aleatório (base32)
+ * Gera secret TOTP aleatório (base32, compativel com apps TOTP padrao)
  */
 export function generateTotpSecret(): string {
-  return crypto.randomBytes(20).toString('hex');
+  return authenticator.generateSecret();
 }
 
 /**

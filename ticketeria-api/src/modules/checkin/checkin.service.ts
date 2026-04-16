@@ -3,36 +3,45 @@ import { redis } from '../../config/redis';
 import { BadRequestError, NotFoundError, ConflictError } from '../../shared/errors';
 import { logAudit, AuditActions } from '../../shared/audit';
 import { CheckinResult } from '../../generated/prisma/client';
-import crypto from 'crypto';
+import { authenticator } from 'otplib';
+import { publishBroadcast } from '../../shared/socketBridge';
 
 /**
- * Verificação TOTP simplificada
- * Em produção, usar otplib completo com algoritmo HMAC-SHA1
+ * Verificacao TOTP usando otplib (RFC 6238 compliant)
+ * Suporta segredos base32 (novos ingressos) e hex (ingressos legados)
  */
 function verifyTotp(secret: string, code: string, windowSize: number = 1): boolean {
-  // Implementação simplificada: gera código esperado e compara
-  // Em produção, usar: import { totp } from 'otplib';
+  authenticator.options = {
+    window: windowSize,
+    step: 30,
+  };
 
-  const now = Math.floor(Date.now() / 30000); // Janela de 30 segundos
-
-  // Gerar códigos para janelas anteriores, atual e próximas
-  for (let i = -windowSize; i <= windowSize; i++) {
-    const hmac = crypto.createHmac('sha1', Buffer.from(secret, 'hex'));
-    const counter = Buffer.alloc(8);
-    counter.writeBigInt64BE(BigInt(now + i), 0);
-
-    hmac.update(counter);
-    const digest = hmac.digest();
-    const offset = digest[digest.length - 1] & 0xf;
-    const otp = (digest.readUInt32BE(offset) & 0x7fffffff) % 1000000;
-    const otpString = otp.toString().padStart(6, '0');
-
-    if (otpString === code) {
-      return true;
-    }
+  // Try verification with the secret as-is (base32 for new tickets)
+  if (authenticator.check(code, secret)) {
+    return true;
   }
 
-  return false;
+  // Fallback: try converting hex secret to base32 (legacy tickets)
+  try {
+    const base32Secret = base32Encode(Buffer.from(secret, 'hex'));
+    return authenticator.check(code, base32Secret);
+  } catch {
+    return false;
+  }
+}
+
+function base32Encode(buffer: Buffer): string {
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  let bits = '';
+  for (const byte of buffer) {
+    bits += byte.toString(2).padStart(8, '0');
+  }
+  let result = '';
+  for (let i = 0; i < bits.length; i += 5) {
+    const chunk = bits.substring(i, i + 5).padEnd(5, '0');
+    result += alphabet[parseInt(chunk, 2)];
+  }
+  return result;
 }
 
 export interface CheckinResult {
@@ -231,8 +240,12 @@ export class CheckinService {
         },
       });
 
-      // 10. Broadcast via Socket.IO (implementado em módulo de websocket)
-      // await io.to(`event:${eventId}`).emit('ticket:checked_in', { ticketId: ticket.id });
+      // 10. Broadcast check-in event via Redis pub/sub → Socket.IO
+      await publishBroadcast(`event:${eventId}`, 'checkin:success', {
+        ticketId: ticket.id,
+        holderName: ticket.holderName,
+        eventId,
+      }).catch(() => {}); // Don't fail check-in if broadcast fails
 
       return {
         success: true,
