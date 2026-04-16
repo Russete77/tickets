@@ -4,6 +4,8 @@ import { Server as SocketIOServer } from 'socket.io';
 import { initSentry, Sentry } from './config/sentry';
 import { createApp } from './app';
 import { env } from './config/env';
+import jwt from 'jsonwebtoken';
+import { jwtKeys } from './config/jwt';
 import { logger } from './shared/logger';
 import { prisma } from './config/database';
 import { redis } from './config/redis';
@@ -27,14 +29,24 @@ async function bootstrap() {
     transports: ['websocket', 'polling'],
   });
 
-  // Socket.IO middleware de autenticação
+  // Socket.IO middleware de autenticacao (RS256)
   io.use((socket, next) => {
     const token = socket.handshake.auth.token;
     if (!token) {
-      return next(new Error('Token não fornecido'));
+      return next(new Error('Token nao fornecido'));
     }
-    // TODO: Verificar JWT e associar user ao socket
-    next();
+
+    try {
+      const payload = jwt.verify(token, jwtKeys.publicKey, { algorithms: ['RS256'] }) as {
+        userId: string;
+        email: string;
+        role: string;
+      };
+      socket.data.user = payload;
+      next();
+    } catch {
+      next(new Error('Token invalido'));
+    }
   });
 
   io.on('connection', (socket) => {
@@ -60,9 +72,11 @@ async function bootstrap() {
       socket.leave(`event:${eventId}`);
     });
 
-    // Join room do usuário para notificações pessoais
-    socket.on('join:user', (userId: string) => {
-      socket.join(`user:${userId}`);
+    // Join room do usuario para notificacoes pessoais (usa userId autenticado)
+    socket.on('join:user', () => {
+      if (socket.data.user?.userId) {
+        socket.join(`user:${socket.data.user.userId}`);
+      }
     });
 
     // ============================
