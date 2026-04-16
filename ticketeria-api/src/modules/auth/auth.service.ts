@@ -4,6 +4,7 @@ import { authenticator } from 'otplib';
 import { prisma } from '../../config/database';
 import { redis } from '../../config/redis';
 import { env } from '../../config/env';
+import { jwtKeys } from '../../config/jwt';
 import {
   BadRequestError,
   UnauthorizedError,
@@ -66,7 +67,7 @@ export class AuthService {
     // Enviar email de verificação
     const verificationToken = jwt.sign(
       { userId: user.id, type: 'email_verification' },
-      env.JWT_ACCESS_SECRET,
+      env.JWT_REFRESH_SECRET,
       { expiresIn: '24h' }
     );
 
@@ -123,7 +124,7 @@ export class AuthService {
       // Gerar token temporário válido por 5 minutos para verificar 2FA
       const twoFAToken = jwt.sign(
         { userId: user.id, type: '2fa_pending' },
-        env.JWT_ACCESS_SECRET,
+        env.JWT_REFRESH_SECRET,
         { expiresIn: '5m' }
       );
 
@@ -231,7 +232,7 @@ export class AuthService {
    */
   async verifyEmail(userId: string, token: string): Promise<User> {
     try {
-      jwt.verify(token, env.JWT_ACCESS_SECRET);
+      jwt.verify(token, env.JWT_REFRESH_SECRET);
     } catch {
       throw new UnauthorizedError('Token de verificação inválido ou expirado');
     }
@@ -267,7 +268,7 @@ export class AuthService {
     // Gerar token de reset
     const resetToken = jwt.sign(
       { userId: user.id, type: 'password_reset' },
-      env.JWT_ACCESS_SECRET,
+      env.JWT_REFRESH_SECRET,
       { expiresIn: '1h' }
     );
 
@@ -289,7 +290,7 @@ export class AuthService {
    */
   async resetPassword(userId: string, token: string, newPassword: string): Promise<User> {
     try {
-      jwt.verify(token, env.JWT_ACCESS_SECRET);
+      jwt.verify(token, env.JWT_REFRESH_SECRET);
     } catch {
       throw new UnauthorizedError('Token de reset inválido ou expirado');
     }
@@ -441,19 +442,21 @@ export class AuthService {
       userId: user.id,
     };
 
+    // Access token: RS256 with private key (verifiable by public key)
     const accessToken = jwt.sign(
       accessPayload,
-      env.JWT_ACCESS_SECRET,
-      { expiresIn: env.JWT_ACCESS_EXPIRES_IN }
+      jwtKeys.privateKey,
+      { algorithm: 'RS256', expiresIn: env.JWT_ACCESS_EXPIRES_IN }
     );
 
+    // Refresh token: HS256 with symmetric secret (server-side only)
     const refreshToken = jwt.sign(
       refreshPayload,
       env.JWT_REFRESH_SECRET,
       { expiresIn: env.JWT_REFRESH_EXPIRES_IN }
     );
 
-    // Armazenar refresh token em Redis para invalidação
+    // Armazenar refresh token em Redis para invalidacao
     const refreshExpiresIn = 7 * 24 * 60 * 60; // 7 dias
     redis.setex(`refresh_token:${user.id}`, refreshExpiresIn, refreshToken).catch((err) => {
       console.error('Erro ao armazenar refresh token em Redis:', err);

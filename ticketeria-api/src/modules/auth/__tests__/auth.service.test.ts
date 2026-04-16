@@ -9,6 +9,7 @@ import { env } from '../../../config/env';
 import { ConflictError, UnauthorizedError, NotFoundError } from '../../../shared/errors';
 import { createMockUser } from '../../../tests/helpers';
 import { logAudit } from '../../../shared/audit';
+import { jwtKeys } from '../../../config/jwt';
 
 vi.mock('../../../shared/crypto', () => ({
   generateOtpCode: vi.fn(() => '123456'),
@@ -295,6 +296,30 @@ describe('AuthService', () => {
   });
 
   describe('generateTokens', () => {
+    it('should sign access token with RS256 and private key', async () => {
+      const mockUser = createMockUser();
+
+      vi.mocked(redis.setex).mockResolvedValueOnce('OK');
+      vi.mocked(jwt.sign).mockReturnValueOnce('access-token');
+      vi.mocked(jwt.sign).mockReturnValueOnce('refresh-token');
+
+      const result = (authService as any).generateTokens(mockUser);
+
+      // First call is access token — must use RS256 + private key
+      const accessCall = vi.mocked(jwt.sign).mock.calls[0];
+      expect(accessCall[1]).toBe(jwtKeys.privateKey);
+      expect(accessCall[2]).toEqual(
+        expect.objectContaining({ algorithm: 'RS256' })
+      );
+
+      // Second call is refresh token — stays HS256 + symmetric secret
+      const refreshCall = vi.mocked(jwt.sign).mock.calls[1];
+      expect(refreshCall[1]).toBe(env.JWT_REFRESH_SECRET);
+      expect(refreshCall[2]).not.toEqual(
+        expect.objectContaining({ algorithm: 'RS256' })
+      );
+    });
+
     it('should generate access and refresh tokens', async () => {
       const mockUser = createMockUser();
 
@@ -304,9 +329,9 @@ describe('AuthService', () => {
 
       const result = (authService as any).generateTokens(mockUser);
 
-      expect(result.accessToken).toBeDefined();
-      expect(result.refreshToken).toBeDefined();
-      expect(result.expiresIn).toBeGreaterThan(0);
+      expect(result.accessToken).toBe('access-token');
+      expect(result.refreshToken).toBe('refresh-token');
+      expect(result.expiresIn).toBe(900);
     });
 
     it('should store refresh token in Redis with TTL', async () => {
@@ -319,7 +344,7 @@ describe('AuthService', () => {
       expect(redis.setex).toHaveBeenCalled();
       const call = vi.mocked(redis.setex).mock.calls[0];
       expect(call[0]).toContain('refresh_token');
-      expect(call[1]).toBeGreaterThan(0); // TTL in seconds
+      expect(call[1]).toBe(7 * 24 * 60 * 60);
     });
   });
 });
