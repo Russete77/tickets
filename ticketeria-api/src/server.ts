@@ -10,6 +10,7 @@ import { logger } from './shared/logger';
 import { prisma } from './config/database';
 import { redis } from './config/redis';
 import { LiveService } from './modules/live/live.service';
+import { subscribeToSocketBroadcasts } from './shared/socketBridge';
 
 // Initialize Sentry at the very top
 initSentry();
@@ -79,6 +80,13 @@ async function bootstrap() {
       }
     });
 
+    // Join producer room for capacity alerts and event management
+    socket.on('join:producer', () => {
+      if (socket.data.user?.role === 'producer' || socket.data.user?.role === 'admin') {
+        socket.join(`producer:${socket.data.user.userId}`);
+      }
+    });
+
     // ============================
     // Heartbeat para viewer tracking
     // ============================
@@ -98,6 +106,9 @@ async function bootstrap() {
 
   // Disponibiliza io para os módulos via app.locals
   app.set('io', io);
+
+  // Bridge Redis pub/sub → Socket.IO for worker broadcasts
+  subscribeToSocketBroadcasts(io);
 
   // ============================
   // Start server

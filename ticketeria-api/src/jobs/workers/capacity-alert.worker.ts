@@ -3,6 +3,7 @@ import { redis } from '../../config/redis';
 import { prisma } from '../../config/database';
 import { logger } from '../../shared/logger';
 import { emailQueue } from '../queue';
+import { publishBroadcast } from '../../shared/socketBridge';
 
 interface CapacityAlertJobData {
   eventId: string;
@@ -85,13 +86,17 @@ export const capacityAlertWorker = new Worker<CapacityAlertJobData>(
             `⚠️ Capacity warning (80%): ${event.title} - ${checkedInCount}/${event.venueCapacity}`,
           );
 
-          // TODO: Emit Socket.IO alert to producer dashboard
-          // io.to(`producer:${event.producer.id}`).emit('capacity:warning', {
-          //   eventId,
-          //   capacityPercent,
-          //   checkedIn: checkedInCount,
-          //   capacity: event.venueCapacity,
-          // });
+          await publishBroadcast(
+            `producer:${event.producer.id}`,
+            'capacity:warning',
+            { eventId: event.id, eventTitle: event.title, percentage: capacityPercent, threshold: 80 },
+          );
+
+          await publishBroadcast(
+            `event:${event.id}`,
+            'capacity:update',
+            { eventId: event.id, percentage: capacityPercent, checkedIn: checkedInCount, capacity: event.venueCapacity },
+          );
         }
       }
 
@@ -128,13 +133,17 @@ export const capacityAlertWorker = new Worker<CapacityAlertJobData>(
             `🚨 CRITICAL capacity alert (95%): ${event.title} - ${checkedInCount}/${event.venueCapacity}`,
           );
 
-          // TODO: Emit Socket.IO critical alert
-          // io.to(`producer:${event.producer.id}`).emit('capacity:critical', {
-          //   eventId,
-          //   capacityPercent,
-          //   checkedIn: checkedInCount,
-          //   capacity: event.venueCapacity,
-          // });
+          await publishBroadcast(
+            `producer:${event.producer.id}`,
+            'capacity:critical',
+            { eventId: event.id, eventTitle: event.title, percentage: capacityPercent, threshold: 95 },
+          );
+
+          await publishBroadcast(
+            `event:${event.id}`,
+            'capacity:update',
+            { eventId: event.id, percentage: capacityPercent, checkedIn: checkedInCount, capacity: event.venueCapacity },
+          );
         }
       }
 
@@ -168,7 +177,18 @@ export const capacityAlertWorker = new Worker<CapacityAlertJobData>(
         );
 
         // TODO: Email to security team
-        // TODO: Emit Socket.IO alert to event room (block check-ins)
+
+        await publishBroadcast(
+          `producer:${event.producer.id}`,
+          'capacity:full',
+          { eventId: event.id, eventTitle: event.title, percentage: 100 },
+        );
+
+        await publishBroadcast(
+          `event:${event.id}`,
+          'capacity:update',
+          { eventId: event.id, percentage: 100, checkedIn: checkedInCount, capacity: event.venueCapacity },
+        );
 
         logger.fatal(
           `🚨🚨🚨 CAPACITY EXCEEDED: ${event.title} - ${checkedInCount}/${event.venueCapacity}`,
