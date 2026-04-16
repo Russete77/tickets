@@ -101,10 +101,10 @@
 | Funcionalidade PRD | Status Atual | Gap | Prioridade |
 |---|---|---|---|
 | JWT RS256 (assimetrico) | RS256 implementado | - | CONCLUIDO |
-| Anti-replay Redis | Parcial | Verificar implementacao completa | ALTA |
+| Anti-replay Redis | SET NX + TTL 300s + rate limiter | - | CONCLUIDO |
 | Socket.IO JWT auth | RS256 no handshake | - | CONCLUIDO |
-| Push notifications (FCM) | TODO - apenas log | Integrar Firebase/Expo Notifications | ALTA |
-| Relatorio Excel 9 abas | CSV simples | Implementar com ExcelJS | ALTA |
+| Push notifications (Expo) | Expo SDK + BullMQ worker + mobile hook | - | CONCLUIDO |
+| Relatorio Excel 9 abas | ExcelJS 9 abas com formatacao profissional | - | CONCLUIDO |
 | Fila inteligente (virtual queue) | Middleware existe | Testar fluxo completo | MEDIA |
 | Modo offline mobile (SQLite) | IndexedDB (web only) | Falta SQLite no mobile | MEDIA |
 | TOTP mobile (producao) | Simplificado | Revisar HMAC para producao | MEDIA |
@@ -305,9 +305,9 @@ StockMovementType, StaffRole, StoreItemType
 |---|---|---|---|
 | 1 | ~~**JWT RS256**~~ | `ticketeria-api/src/middleware/auth.ts` | ~~CONCLUIDO~~ — RS256 com par de chaves implementado |
 | 2 | ~~**Socket.IO JWT auth**~~ | `ticketeria-api/src/server.ts` | ~~CONCLUIDO~~ — JWT RS256 verificado no handshake, user associado ao socket |
-| 3 | **Push notifications** | `ticketeria-api/src/modules/notifications/push.service.ts` | Integrar Firebase FCM + Expo Notifications. Atual apenas loga |
-| 4 | **Relatorio Excel 9 abas** | Novo modulo | Implementar com ExcelJS (equivalente Node do openpyxl). CSV atual e insuficiente |
-| 5 | **Anti-replay Redis completo** | Modulo checkin | Verificar que token QR usado e rejeitado na segunda leitura dentro da janela |
+| 3 | ~~**Push notifications**~~ | `ticketeria-api/src/modules/notifications/push.service.ts` | ~~CONCLUIDO~~ — Expo SDK + BullMQ worker + mobile hook + endpoint PUT /users/push-token |
+| 4 | ~~**Relatorio Excel 9 abas**~~ | `ticketeria-api/src/modules/reports/reports.excel.service.ts` | ~~CONCLUIDO~~ — ExcelJS 9 abas com formatacao, cores PulsePass, endpoint GET /reports/:eventId/excel |
+| 5 | ~~**Anti-replay Redis completo**~~ | `ticketeria-api/src/modules/checkin/checkin.service.ts` | ~~CONCLUIDO~~ — Redis SET NX com TTL 300s + rate limiter 20req/s no endpoint |
 
 ### Prioridade MEDIA (melhoram qualidade)
 
@@ -598,9 +598,9 @@ cd ticketeria-api && npx prisma studio
 - [x] Decidir: manter Express/TS (decidido)
 - [x] Migrar JWT de HS256 para RS256 (par de chaves)
 - [x] Implementar Socket.IO JWT auth no handshake
-- [ ] Integrar push notifications (FCM + Expo Notifications)
-- [ ] Implementar relatorio Excel 9 abas com ExcelJS
-- [ ] Completar anti-replay Redis no check-in
+- [x] Integrar push notifications (Expo Push API + BullMQ)
+- [x] Implementar relatorio Excel 9 abas com ExcelJS
+- [x] Completar anti-replay Redis no check-in
 - [ ] Revisar TOTP mobile para producao
 - [x] Inicializar repositorio git
 
@@ -685,7 +685,7 @@ cd ticketeria-api && npx prisma studio
 
 - [x] JWT RS256 com par de chaves publico/privado
 - [x] TOTP nos ingressos (muda a cada 30s)
-- [ ] Anti-replay Redis (token rejeitado na segunda leitura)
+- [x] Anti-replay Redis (token rejeitado na segunda leitura)
 - [x] Rate limiting global (100 req/min)
 - [x] Rate limiting avancado (por CPF, device, IP, cartao)
 - [x] Idempotencia Redis para pagamentos
