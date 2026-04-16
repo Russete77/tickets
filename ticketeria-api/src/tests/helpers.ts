@@ -1,6 +1,7 @@
-import { User, UserRole, Event, EventStatus, Order, OrderStatus, Ticket, TicketStatus, TicketBatch } from '../generated/prisma/client';
+import { User, UserRole, Event, EventStatus, Order, OrderStatus, Ticket, TicketStatus, TicketBatch, Prisma } from '../generated/prisma/client';
 import { v4 as uuidv4 } from 'uuid';
-import { Decimal } from '@prisma/client/runtime/library';
+
+const Decimal = Prisma.Decimal;
 
 /**
  * Factory function to create a mock user
