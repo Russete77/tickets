@@ -2,8 +2,7 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@shared/lib/api';
-import { Icon } from '@shared/ui/Icon/Icon';
-import { formatCurrency, formatDate } from '@shared/lib/formatters';
+import { formatCurrency } from '@shared/lib/formatters';
 import styles from './HeroSection.module.css';
 
 interface FeaturedEvent {
@@ -76,7 +75,7 @@ const HeroSection: React.FC = () => {
   const navigate = useNavigate();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
-  const autoPlayRef = useRef<ReturnType<typeof setInterval>>();
+  const autoPlayRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
   const touchStartX = useRef(0);
 
   // Fetch featured events — fallback to demo
