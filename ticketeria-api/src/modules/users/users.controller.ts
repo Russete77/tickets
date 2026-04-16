@@ -5,6 +5,7 @@ import {
   ChangePasswordInput,
   PaginationInput,
   ConsentInput,
+  PushTokenInput,
 } from './users.validators';
 
 /**
@@ -240,6 +241,38 @@ export class UsersController {
       res.status(200).json({
         success: true,
         data: result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * PUT /users/push-token
+   * Salvar Expo push token do usuário
+   */
+  static async updatePushToken(
+    req: Request<unknown, unknown, PushTokenInput>,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      if (!req.user) {
+        res.status(401).json({
+          success: false,
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'Não autenticado',
+          },
+        });
+        return;
+      }
+
+      await usersService.updatePushToken(req.user.userId, req.body.pushToken);
+
+      res.status(200).json({
+        success: true,
+        data: { message: 'Push token atualizado com sucesso' },
       });
     } catch (error) {
       next(error);

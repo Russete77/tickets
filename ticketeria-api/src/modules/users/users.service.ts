@@ -361,6 +361,24 @@ export class UsersService {
 
     return { message: 'Consentimento registrado com sucesso' };
   }
+
+  /**
+   * Salvar Expo push token do usuário
+   */
+  async updatePushToken(userId: string, pushToken: string): Promise<void> {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundError('Usuário não encontrado');
+    }
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { expoPushToken: pushToken },
+    });
+  }
 }
 
 export const usersService = new UsersService();

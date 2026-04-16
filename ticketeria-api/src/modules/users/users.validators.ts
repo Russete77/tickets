@@ -55,8 +55,13 @@ export const consentSchema = z.object({
   given: z.boolean(),
 });
 
+export const pushTokenSchema = z.object({
+  pushToken: z.string().min(1, 'Push token é obrigatório'),
+});
+
 // Type exports
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 export type PaginationInput = z.infer<typeof paginationSchema>;
 export type ConsentInput = z.infer<typeof consentSchema>;
+export type PushTokenInput = z.infer<typeof pushTokenSchema>;

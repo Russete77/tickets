@@ -8,6 +8,7 @@ import {
   changePasswordSchema,
   paginationSchema,
   consentSchema,
+  pushTokenSchema,
 } from './users.validators';
 
 const router = Router();
@@ -73,5 +74,14 @@ router.post(
   '/me/consent',
   validate({ body: consentSchema }),
   UsersController.recordConsent);
+
+/**
+ * PUT /users/push-token
+ * Salvar Expo push token do dispositivo
+ */
+router.put(
+  '/push-token',
+  validate({ body: pushTokenSchema }),
+  UsersController.updatePushToken);
 
 export const usersRouter = router;

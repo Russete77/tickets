@@ -283,6 +283,7 @@ model User {
   passwordHash       String    @map("password_hash") @db.VarChar(255)
   totpSecret         String?   @map("totp_secret") @db.VarChar(64)
   totpEnabled        Boolean   @default(false) @map("totp_enabled")
+  expoPushToken      String?   @map("expo_push_token") @db.VarChar(255)
   deviceFingerprints Json      @default("[]") @map("device_fingerprints") @db.JsonB
   role               UserRole  @default(consumer)
   emailVerified      Boolean   @default(false) @map("email_verified")
