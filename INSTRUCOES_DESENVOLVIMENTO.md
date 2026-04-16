@@ -604,7 +604,7 @@ cd ticketeria-api && npx prisma studio
 - [x] Integrar push notifications (Expo Push API + BullMQ)
 - [x] Implementar relatorio Excel 9 abas com ExcelJS
 - [x] Completar anti-replay Redis no check-in
-- [ ] Revisar TOTP mobile para producao
+- [x] Revisar TOTP mobile para producao
 - [x] Inicializar repositorio git
 
 ### Fase MVP (Meses 1-3 do PRD)
