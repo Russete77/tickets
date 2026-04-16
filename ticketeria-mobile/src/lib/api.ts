@@ -1,4 +1,5 @@
 import * as SecureStore from 'expo-secure-store';
+import { getDeviceFingerprint } from './fingerprint';
 
 const API_BASE_URL = 'http://localhost:3333/api';
 
@@ -93,6 +94,13 @@ export class ApiClient {
 
     if (authToken) {
       headers['Authorization'] = `Bearer ${authToken}`;
+    }
+
+    try {
+      const fingerprint = await getDeviceFingerprint();
+      headers['x-device-fingerprint'] = fingerprint;
+    } catch {
+      // fingerprint is best-effort; never block requests
     }
 
     const fetchOptions: RequestInit = {

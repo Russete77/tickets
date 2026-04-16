@@ -1,3 +1,5 @@
+import { getDeviceFingerprint } from './fingerprint';
+
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3333/api';
 
 export interface ApiResponse<T> {
@@ -31,13 +33,20 @@ class ApiClient {
     }
   }
 
-  private getHeaders(contentType = 'application/json'): HeadersInit {
+  private async getHeaders(contentType = 'application/json'): Promise<HeadersInit> {
     const headers: HeadersInit = {
       'Content-Type': contentType,
     };
 
     if (this.token) {
       headers['Authorization'] = `Bearer ${this.token}`;
+    }
+
+    try {
+      const fingerprint = await getDeviceFingerprint();
+      headers['x-device-fingerprint'] = fingerprint;
+    } catch {
+      // fingerprint is best-effort; never block requests
     }
 
     return headers;
@@ -72,7 +81,7 @@ class ApiClient {
     try {
       const response = await fetch(url, {
         method: 'GET',
-        headers: this.getHeaders(),
+        headers: await this.getHeaders(),
       });
 
       return this.handleResponse<T>(response);
@@ -90,7 +99,7 @@ class ApiClient {
     try {
       const response = await fetch(url, {
         method: 'POST',
-        headers: this.getHeaders(),
+        headers: await this.getHeaders(),
         body: body ? JSON.stringify(body) : undefined,
       });
 
@@ -109,7 +118,7 @@ class ApiClient {
     try {
       const response = await fetch(url, {
         method: 'PUT',
-        headers: this.getHeaders(),
+        headers: await this.getHeaders(),
         body: body ? JSON.stringify(body) : undefined,
       });
 
@@ -128,7 +137,7 @@ class ApiClient {
     try {
       const response = await fetch(url, {
         method: 'PATCH',
-        headers: this.getHeaders(),
+        headers: await this.getHeaders(),
         body: body ? JSON.stringify(body) : undefined,
       });
 
@@ -147,7 +156,7 @@ class ApiClient {
     try {
       const response = await fetch(url, {
         method: 'DELETE',
-        headers: this.getHeaders(),
+        headers: await this.getHeaders(),
       });
 
       return this.handleResponse<T>(response);
