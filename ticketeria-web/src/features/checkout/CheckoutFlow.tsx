@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCartStore } from '@shared/stores/cartStore';
 import { useAuth } from '@shared/hooks/useAuth';
@@ -40,6 +40,39 @@ const CheckoutFlow: React.FC = () => {
   const { items, getTotal, clear } = useCartStore();
   const addToast = useToastStore((s) => s.addToast);
   const navigate = useNavigate();
+
+  const SESSION_DURATION = 10 * 60 * 1000; // 10 minutes in ms
+  const expiresAtRef = useRef<number>(Date.now() + SESSION_DURATION);
+  const [timeLeft, setTimeLeft] = useState<number>(SESSION_DURATION);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const remaining = expiresAtRef.current - Date.now();
+      if (remaining <= 0) {
+        clearInterval(interval);
+        setTimeLeft(0);
+        alert('Tempo esgotado! Sua reserva expirou.');
+        navigate(-1);
+      } else {
+        setTimeLeft(remaining);
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [navigate]);
+
+  const formatTime = (ms: number): string => {
+    const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  };
+
+  const timerClass =
+    timeLeft < 60_000
+      ? styles.timerCritical
+      : timeLeft < 120_000
+      ? styles.timerWarning
+      : styles.timerNormal;
 
   const [step, setStep] = useState<Step>('holder');
   const [loading, setLoading] = useState(false);
@@ -143,6 +176,16 @@ const CheckoutFlow: React.FC = () => {
                 )}
               </React.Fragment>
             ))}
+          </div>
+        )}
+
+        {step !== 'pix' && (
+          <div className={`${styles.timer} ${timerClass}`}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+            Tempo restante: <strong>{formatTime(timeLeft)}</strong>
           </div>
         )}
 

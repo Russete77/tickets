@@ -217,6 +217,43 @@
   box-shadow: 0 0 0 3px rgba(0, 255, 102, 0.08);
 }
 
+/* ── Price range inputs ── */
+.priceRangeInputs {
+  display: flex;
+  align-items: center;
+  gap: var(--tl-space-2);
+  margin-top: var(--tl-space-2);
+}
+
+.priceInput {
+  flex: 1;
+  min-width: 0;
+  padding: var(--tl-space-2) var(--tl-space-3);
+  background: var(--tl-bg-elevated);
+  border: 1px solid var(--tl-border-default);
+  border-radius: var(--tl-radius-lg);
+  font-size: var(--tl-text-sm);
+  color: var(--tl-text-primary);
+  font-family: inherit;
+  transition: border-color 200ms, box-shadow 200ms;
+}
+
+.priceInput:focus {
+  outline: none;
+  border-color: var(--tl-brand);
+  box-shadow: 0 0 0 3px rgba(0, 255, 102, 0.08);
+}
+
+.priceInput::placeholder {
+  color: var(--tl-text-secondary);
+}
+
+.priceRangeSep {
+  font-size: var(--tl-text-sm);
+  color: var(--tl-text-secondary);
+  flex-shrink: 0;
+}
+
 /* ═══════════════════════════════════
    RESULTS AREA
    ═══════════════════════════════════ */

@@ -27,8 +27,22 @@ const ProfilePage: React.FC = () => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  const [emailNotifications, setEmailNotifications] = useState(true);
-  const [pushNotifications, setPushNotifications] = useState(false);
+  const [preferences, setPreferences] = useState({
+    emailNotifications: true,
+    pushNotifications: false,
+  });
+
+  const handleToggle = async (key: string, value: boolean) => {
+    // Optimistic update
+    setPreferences((prev) => ({ ...prev, [key]: value }));
+    try {
+      await api.patch('/v1/users/me/preferences', { [key]: value });
+    } catch {
+      // Revert on failure
+      setPreferences((prev) => ({ ...prev, [key]: !value }));
+      addToast({ type: 'error', message: 'Erro ao salvar preferência' });
+    }
+  };
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -229,10 +243,10 @@ const ProfilePage: React.FC = () => {
                       <span className={styles.toggleDesc}>Receba atualizações sobre seus pedidos e eventos</span>
                     </div>
                     <div
-                      className={`${styles.toggleSwitch} ${emailNotifications ? styles.toggleOn : ''}`}
+                      className={`${styles.toggleSwitch} ${preferences.emailNotifications ? styles.toggleOn : ''}`}
                       role="switch"
-                      aria-checked={emailNotifications}
-                      onClick={() => setEmailNotifications(!emailNotifications)}
+                      aria-checked={preferences.emailNotifications}
+                      onClick={() => handleToggle('emailNotifications', !preferences.emailNotifications)}
                     >
                       <div className={styles.toggleThumb} />
                     </div>
@@ -244,10 +258,10 @@ const ProfilePage: React.FC = () => {
                       <span className={styles.toggleDesc}>Alertas no navegador sobre eventos próximos</span>
                     </div>
                     <div
-                      className={`${styles.toggleSwitch} ${pushNotifications ? styles.toggleOn : ''}`}
+                      className={`${styles.toggleSwitch} ${preferences.pushNotifications ? styles.toggleOn : ''}`}
                       role="switch"
-                      aria-checked={pushNotifications}
-                      onClick={() => setPushNotifications(!pushNotifications)}
+                      aria-checked={preferences.pushNotifications}
+                      onClick={() => handleToggle('pushNotifications', !preferences.pushNotifications)}
                     >
                       <div className={styles.toggleThumb} />
                     </div>

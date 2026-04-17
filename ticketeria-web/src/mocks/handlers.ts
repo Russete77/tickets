@@ -626,6 +626,27 @@ export const handlers = [
     });
   }),
 
+  http.patch(`${BASE}/users/me`, async ({ request }) => {
+    await delay(LAT);
+    const body = (await request.json()) as Record<string, unknown>;
+    return HttpResponse.json({
+      data: {
+        id: 'usr-current',
+        name: body.name ?? 'Usuário Demo',
+        email: 'demo@ticketeria.com.br',
+        role: 'user',
+        avatar: null,
+        ...body,
+      },
+    });
+  }),
+
+  http.patch(`${BASE}/users/me/preferences`, async ({ request }) => {
+    await delay(LAT);
+    const body = (await request.json()) as Record<string, unknown>;
+    return HttpResponse.json({ data: { ...body } });
+  }),
+
   // ── Check-in ────────────────────────────────────────────────────────────
 
   http.post(`${BASE}/checkin/validate`, async ({ request }) => {

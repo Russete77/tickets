@@ -47,6 +47,21 @@ const SearchPage: React.FC = () => {
   const sort = searchParams.get('sort') ?? 'relevance';
   const dateFrom = searchParams.get('dateFrom') ?? '';
   const dateTo = searchParams.get('dateTo') ?? '';
+  const priceMin = searchParams.get('priceMin') ?? '';
+  const priceMax = searchParams.get('priceMax') ?? '';
+  const city = searchParams.get('city') ?? '';
+
+  const [priceMinInput, setPriceMinInput] = useState(priceMin);
+  const [priceMaxInput, setPriceMaxInput] = useState(priceMax);
+  const [cityInput, setCityInput] = useState(city);
+
+  const PRICE_PRESETS = [
+    { label: 'Grátis', min: '0', max: '0' },
+    { label: 'Até R$50', min: '', max: '50' },
+    { label: 'Até R$100', min: '', max: '100' },
+    { label: 'Até R$200', min: '', max: '200' },
+    { label: 'R$200+', min: '200', max: '' },
+  ];
 
   // Set SEO meta tags
   useDocumentHead({
@@ -74,7 +89,7 @@ const SearchPage: React.FC = () => {
     isFetchingNextPage,
     isError,
   } = useInfiniteQuery({
-    queryKey: ['search', q, category, sort, dateFrom, dateTo],
+    queryKey: ['search', q, category, sort, dateFrom, dateTo, priceMin, priceMax, city],
     queryFn: async ({ pageParam }) => {
       const params = new URLSearchParams();
       if (q) params.set('q', q);
@@ -82,6 +97,9 @@ const SearchPage: React.FC = () => {
       if (sort) params.set('sort', sort);
       if (dateFrom) params.set('dateFrom', dateFrom);
       if (dateTo) params.set('dateTo', dateTo);
+      if (priceMin) params.set('priceMin', priceMin);
+      if (priceMax) params.set('priceMax', priceMax);
+      if (city) params.set('city', city);
       params.set('limit', '12');
       if (pageParam) params.set('cursor', pageParam as string);
       const response = await api.get(`/v1/events/search?${params}`);
@@ -115,9 +133,12 @@ const SearchPage: React.FC = () => {
     updateParam('q', searchInput);
   };
 
-  // Sync input when q param changes from elsewhere
+  // Sync inputs when URL params change from elsewhere
   useEffect(() => {
     setSearchInput(searchParams.get('q') ?? '');
+    setPriceMinInput(searchParams.get('priceMin') ?? '');
+    setPriceMaxInput(searchParams.get('priceMax') ?? '');
+    setCityInput(searchParams.get('city') ?? '');
   }, [searchParams]);
 
   return (
@@ -177,6 +198,65 @@ const SearchPage: React.FC = () => {
                 />
               </div>
             </div>
+
+            <div className={styles.filterGroup}>
+              <h3 className={styles.filterTitle}>Preço</h3>
+              <div className={styles.filterList}>
+                {PRICE_PRESETS.map((preset) => {
+                  const isActive = priceMin === preset.min && priceMax === preset.max;
+                  return (
+                    <button
+                      key={preset.label}
+                      className={`${styles.filterBtn} ${isActive ? styles.filterBtnActive : ''}`}
+                      onClick={() => {
+                        updateParam('priceMin', preset.min);
+                        updateParam('priceMax', preset.max);
+                        setPriceMinInput(preset.min);
+                        setPriceMaxInput(preset.max);
+                      }}
+                    >
+                      {preset.label}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className={styles.priceRangeInputs}>
+                <input
+                  type="number"
+                  min="0"
+                  placeholder="Mín R$"
+                  value={priceMinInput}
+                  className={styles.priceInput}
+                  onChange={(e) => setPriceMinInput(e.target.value)}
+                  onBlur={() => updateParam('priceMin', priceMinInput)}
+                />
+                <span className={styles.priceRangeSep}>–</span>
+                <input
+                  type="number"
+                  min="0"
+                  placeholder="Máx R$"
+                  value={priceMaxInput}
+                  className={styles.priceInput}
+                  onChange={(e) => setPriceMaxInput(e.target.value)}
+                  onBlur={() => updateParam('priceMax', priceMaxInput)}
+                />
+              </div>
+            </div>
+
+            <div className={styles.filterGroup}>
+              <h3 className={styles.filterTitle}>Cidade</h3>
+              <input
+                type="text"
+                placeholder="Ex: São Paulo"
+                value={cityInput}
+                className={styles.dateInput}
+                onChange={(e) => setCityInput(e.target.value)}
+                onBlur={() => updateParam('city', cityInput)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') updateParam('city', cityInput);
+                }}
+              />
+            </div>
           </aside>
 
           {/* ── Results ── */}
@@ -207,7 +287,7 @@ const SearchPage: React.FC = () => {
             </div>
 
             {/* Active filters */}
-            {(q || category || dateFrom) && (
+            {(q || category || dateFrom || priceMin || priceMax || city) && (
               <div className={styles.activeFilters}>
                 {q && (
                   <span className={styles.filterChip}>
@@ -225,6 +305,22 @@ const SearchPage: React.FC = () => {
                   <span className={styles.filterChip}>
                     {dateFrom}
                     <button onClick={() => updateParam('dateFrom', '')}>×</button>
+                  </span>
+                )}
+                {(priceMin || priceMax) && (
+                  <span className={styles.filterChip}>
+                    {priceMin && priceMax
+                      ? `R$${priceMin} – R$${priceMax}`
+                      : priceMin
+                      ? `A partir de R$${priceMin}`
+                      : `Até R$${priceMax}`}
+                    <button onClick={() => { updateParam('priceMin', ''); updateParam('priceMax', ''); }}>×</button>
+                  </span>
+                )}
+                {city && (
+                  <span className={styles.filterChip}>
+                    {city}
+                    <button onClick={() => updateParam('city', '')}>×</button>
                   </span>
                 )}
               </div>
