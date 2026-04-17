@@ -1213,4 +1213,116 @@ export const handlers = [
 
     return HttpResponse.json({ data: recentCheckins });
   }),
+
+  // ── Admin: Affiliates ────────────────────────────────────────────────────
+
+  http.get(`${BASE}/admin/affiliates`, async () => {
+    await delay(LAT);
+    const links = [
+      {
+        id: 'afl-001',
+        code: 'aff-tech-2025-001',
+        eventId: 'evt-001',
+        eventTitle: 'Lollapalooza Brasil 2025',
+        commissionPercentage: 10,
+        clicks: 312,
+        conversions: 24,
+        totalEarned: 1184.40,
+        status: 'active',
+        createdAt: '2025-03-15T10:00:00Z',
+      },
+      {
+        id: 'afl-002',
+        code: 'aff-ultra-2025-01',
+        eventId: 'evt-012',
+        eventTitle: 'Ultra Music Festival Brasil',
+        commissionPercentage: 8,
+        clicks: 540,
+        conversions: 47,
+        totalEarned: 1892.50,
+        status: 'active',
+        createdAt: '2025-02-20T10:00:00Z',
+      },
+      {
+        id: 'afl-003',
+        code: 'aff-rock-2025-02',
+        eventId: 'evt-003',
+        eventTitle: 'Rock in Rio 2025',
+        commissionPercentage: 12,
+        clicks: 98,
+        conversions: 6,
+        totalEarned: 288.00,
+        status: 'inactive',
+        createdAt: '2025-01-10T10:00:00Z',
+      },
+      {
+        id: 'afl-004',
+        code: 'aff-coldplay-2025',
+        eventId: 'evt-005',
+        eventTitle: 'Coldplay Tour 2025',
+        commissionPercentage: 9,
+        clicks: 215,
+        conversions: 18,
+        totalEarned: 950.40,
+        status: 'active',
+        createdAt: '2025-04-01T10:00:00Z',
+      },
+    ];
+
+    const topAffiliates = [
+      { id: 'aff-1', name: 'João Silva',     email: 'joao.silva@parceiro.com',    totalSales: 5200.00,  totalCommission: 520.00,  conversionRate: 7.8, rank: 1 },
+      { id: 'aff-2', name: 'Maria Santos',   email: 'maria.santos@parceiro.com',  totalSales: 3800.00,  totalCommission: 380.00,  conversionRate: 6.5, rank: 2 },
+      { id: 'aff-3', name: 'Pedro Oliveira', email: 'pedro@parceiro.com',         totalSales: 2900.00,  totalCommission: 232.00,  conversionRate: 5.2, rank: 3 },
+      { id: 'aff-4', name: 'Ana Costa',      email: 'ana.costa@parceiro.com',     totalSales: 1800.00,  totalCommission: 162.00,  conversionRate: 4.1, rank: 4 },
+      { id: 'aff-5', name: 'Carlos Martins', email: 'carlos.martins@parceiro.com',totalSales: 1200.00,  totalCommission: 96.00,   conversionRate: 3.8, rank: 5 },
+    ];
+
+    const commissionHistory = [
+      { id: 'comm-1', date: '2025-04-10', affiliateName: 'João Silva',     affiliateEmail: 'joao.silva@parceiro.com',    eventTitle: 'Lollapalooza Brasil 2025', saleAmount: 395.00, commissionPercentage: 10, commissionValue: 39.50, status: 'paid' },
+      { id: 'comm-2', date: '2025-04-09', affiliateName: 'Maria Santos',   affiliateEmail: 'maria.santos@parceiro.com',  eventTitle: 'Ultra Music Festival',     saleAmount: 250.00, commissionPercentage: 8,  commissionValue: 20.00, status: 'paid' },
+      { id: 'comm-3', date: '2025-04-08', affiliateName: 'Pedro Oliveira', affiliateEmail: 'pedro@parceiro.com',         eventTitle: 'Lollapalooza Brasil 2025', saleAmount: 580.00, commissionPercentage: 10, commissionValue: 58.00, status: 'pending' },
+      { id: 'comm-4', date: '2025-04-07', affiliateName: 'Ana Costa',      affiliateEmail: 'ana.costa@parceiro.com',     eventTitle: 'Coldplay Tour 2025',       saleAmount: 310.00, commissionPercentage: 9,  commissionValue: 27.90, status: 'pending' },
+      { id: 'comm-5', date: '2025-04-06', affiliateName: 'Carlos Martins', affiliateEmail: 'carlos.martins@parceiro.com',eventTitle: 'Rock in Rio 2025',         saleAmount: 240.00, commissionPercentage: 12, commissionValue: 28.80, status: 'paid' },
+    ];
+
+    const totalClicks = links.reduce((s, l) => s + l.clicks, 0);
+    const totalConversions = links.reduce((s, l) => s + l.conversions, 0);
+    const totalCommissionsCents = Math.round(commissionHistory.reduce((s, c) => s + c.commissionValue, 0) * 100);
+
+    return HttpResponse.json({
+      data: {
+        links,
+        topAffiliates,
+        commissionHistory,
+        stats: {
+          totalAffiliates: topAffiliates.length,
+          totalClicks,
+          totalConversions,
+          totalCommissionsCents,
+        },
+      },
+    });
+  }),
+
+  http.post(`${BASE}/admin/affiliates`, async ({ request }) => {
+    await delay(LAT);
+    const body = (await request.json()) as Record<string, unknown>;
+    return HttpResponse.json({
+      data: {
+        id: `afl-${Date.now()}`,
+        ...body,
+        code: `aff-${Date.now()}`,
+        clicks: 0,
+        conversions: 0,
+        totalEarned: 0,
+        status: 'active',
+        createdAt: new Date().toISOString(),
+      },
+    }, { status: 201 });
+  }),
+
+  http.patch(`${BASE}/admin/affiliates/:id/deactivate`, async ({ params }) => {
+    await delay(LAT);
+    return HttpResponse.json({ data: { id: params.id, status: 'inactive' } });
+  }),
 ];

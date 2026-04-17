@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AdminLayout } from '@shared/layout/AdminLayout/AdminLayout';
+import { api } from '@shared/lib/api';
 import { formatCurrency } from '@shared/lib/formatters';
 import { Icon, IconName } from '@shared/ui/Icon/Icon';
+import { Skeleton } from '@shared/ui/Skeleton/Skeleton';
 import styles from './AdminAffiliates.module.css';
 import sharedStyles from './admin.shared.module.css';
 
@@ -41,147 +44,19 @@ interface CommissionHistory {
   status: 'pending' | 'paid';
 }
 
-// ── Mock Data ──────────────────────────────────
-const mockAffiliateLinks: AffiliateLink[] = [
-  {
-    id: '1',
-    code: 'aff-tech-2024-001',
-    eventId: 'evt-1',
-    eventTitle: 'TechConf 2024',
-    commissionPercentage: 10,
-    clicks: 245,
-    conversions: 18,
-    totalEarned: 890.50,
-    status: 'active',
-    createdAt: '2024-03-15',
-  },
-  {
-    id: '2',
-    code: 'aff-music-fest-02',
-    eventId: 'evt-2',
-    eventTitle: 'Music Festival 2024',
-    commissionPercentage: 8,
-    clicks: 512,
-    conversions: 42,
-    totalEarned: 1250.75,
-    status: 'active',
-    createdAt: '2024-02-20',
-  },
-  {
-    id: '3',
-    code: 'aff-workshop-001',
-    eventId: 'evt-3',
-    eventTitle: 'UX Workshop Series',
-    commissionPercentage: 12,
-    clicks: 89,
-    conversions: 5,
-    totalEarned: 240.00,
-    status: 'inactive',
-    createdAt: '2024-01-10',
-  },
-];
+interface AffiliateStats {
+  totalAffiliates: number;
+  totalClicks: number;
+  totalConversions: number;
+  totalCommissionsCents: number;
+}
 
-const mockTopAffiliates: TopAffiliate[] = [
-  {
-    id: 'aff-1',
-    name: 'João Silva',
-    email: 'joao.silva@example.com',
-    totalSales: 5200.00,
-    totalCommission: 520.00,
-    conversionRate: 7.8,
-    rank: 1,
-  },
-  {
-    id: 'aff-2',
-    name: 'Maria Santos',
-    email: 'maria.santos@example.com',
-    totalSales: 3800.00,
-    totalCommission: 380.00,
-    conversionRate: 6.5,
-    rank: 2,
-  },
-  {
-    id: 'aff-3',
-    name: 'Pedro Oliveira',
-    email: 'pedro.oliveira@example.com',
-    totalSales: 2900.00,
-    totalCommission: 232.00,
-    conversionRate: 5.2,
-    rank: 3,
-  },
-  {
-    id: 'aff-4',
-    name: 'Ana Costa',
-    email: 'ana.costa@example.com',
-    totalSales: 1800.00,
-    totalCommission: 162.00,
-    conversionRate: 4.1,
-    rank: 4,
-  },
-  {
-    id: 'aff-5',
-    name: 'Carlos Martins',
-    email: 'carlos.martins@example.com',
-    totalSales: 1200.00,
-    totalCommission: 96.00,
-    conversionRate: 3.8,
-    rank: 5,
-  },
-];
-
-const mockCommissionHistory: CommissionHistory[] = [
-  {
-    id: 'comm-1',
-    date: '2024-04-08',
-    affiliateName: 'João Silva',
-    affiliateEmail: 'joao.silva@example.com',
-    eventTitle: 'TechConf 2024',
-    saleAmount: 299.90,
-    commissionPercentage: 10,
-    commissionValue: 29.99,
-    status: 'paid',
-  },
-  {
-    id: 'comm-2',
-    date: '2024-04-07',
-    affiliateName: 'Maria Santos',
-    affiliateEmail: 'maria.santos@example.com',
-    eventTitle: 'Music Festival 2024',
-    saleAmount: 189.90,
-    commissionPercentage: 8,
-    commissionValue: 15.19,
-    status: 'paid',
-  },
-  {
-    id: 'comm-3',
-    date: '2024-04-06',
-    affiliateName: 'Pedro Oliveira',
-    affiliateEmail: 'pedro.oliveira@example.com',
-    eventTitle: 'TechConf 2024',
-    saleAmount: 449.90,
-    commissionPercentage: 10,
-    commissionValue: 44.99,
-    status: 'pending',
-  },
-  {
-    id: 'comm-4',
-    date: '2024-04-05',
-    affiliateName: 'Ana Costa',
-    affiliateEmail: 'ana.costa@example.com',
-    eventTitle: 'UX Workshop Series',
-    saleAmount: 99.90,
-    commissionPercentage: 12,
-    commissionValue: 11.99,
-    status: 'pending',
-  },
-];
-
-const mockEvents = [
-  { id: 'evt-1', title: 'TechConf 2024' },
-  { id: 'evt-2', title: 'Music Festival 2024' },
-  { id: 'evt-3', title: 'UX Workshop Series' },
-  { id: 'evt-4', title: 'Marketing Summit' },
-];
+interface AffiliatesData {
+  links: AffiliateLink[];
+  topAffiliates: TopAffiliate[];
+  commissionHistory: CommissionHistory[];
+  stats: AffiliateStats;
+}
 
 // ── KPI Card ──────────────────────────────────
 interface KpiCardProps {
@@ -203,22 +78,51 @@ const KpiCard: React.FC<KpiCardProps> = ({ title, value, icon, color = 'blue' })
 
 // ── Main Component ─────────────────────────────
 const AdminAffiliates: React.FC = () => {
-  const [selectedEvent, setSelectedEvent] = useState<string>('evt-1');
+  const queryClient = useQueryClient();
+  const [selectedEvent, setSelectedEvent] = useState<string>('evt-001');
   const [commissionPercentage, setCommissionPercentage] = useState<number>(10);
-  const [links] = useState<AffiliateLink[]>(mockAffiliateLinks);
-  const [affiliates] = useState<TopAffiliate[]>(mockTopAffiliates);
-  const [commissions] = useState<CommissionHistory[]>(mockCommissionHistory);
 
-  // Calculate KPIs
-  const totalAffiliates = affiliates.length;
-  const totalClicks = links.reduce((sum, link) => sum + link.clicks, 0);
-  const totalConversions = links.reduce((sum, link) => sum + link.conversions, 0);
-  const totalCommissionPaid = commissions
-    .filter((c) => c.status === 'paid')
-    .reduce((sum, c) => sum + c.commissionValue, 0);
+  // ── Data query ──
+  const { data, isLoading } = useQuery({
+    queryKey: ['admin-affiliates'],
+    queryFn: async () => {
+      const res = await api.get<AffiliatesData>('/v1/admin/affiliates');
+      if (res.error) throw new Error(res.error);
+      return res.data!;
+    },
+  });
+
+  // ── Create link mutation ──
+  const createLink = useMutation({
+    mutationFn: async (payload: { eventId: string; commissionPercentage: number }) => {
+      const res = await api.post<AffiliateLink>('/v1/admin/affiliates', payload);
+      if (res.error) throw new Error(res.error);
+      return res.data!;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-affiliates'] });
+    },
+  });
+
+  // ── Deactivate mutation ──
+  const deactivate = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await api.patch<{ id: string; status: string }>(`/v1/admin/affiliates/${id}/deactivate`, {});
+      if (res.error) throw new Error(res.error);
+      return res.data!;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-affiliates'] });
+    },
+  });
+
+  const links = data?.links ?? [];
+  const affiliates = data?.topAffiliates ?? [];
+  const commissions = data?.commissionHistory ?? [];
+  const stats = data?.stats;
 
   const handleGenerateLink = () => {
-    alert(`Link gerado para ${selectedEvent} com ${commissionPercentage}% de comissão`);
+    createLink.mutate({ eventId: selectedEvent, commissionPercentage });
   };
 
   const handleCopyLink = (code: string) => {
@@ -228,7 +132,7 @@ const AdminAffiliates: React.FC = () => {
   };
 
   const handleDeactivateLink = (id: string) => {
-    alert(`Link ${id} desativado`);
+    deactivate.mutate(id);
   };
 
   const statusLabel: Record<string, { label: string; cls: string }> = {
@@ -251,30 +155,38 @@ const AdminAffiliates: React.FC = () => {
 
         {/* KPI Grid */}
         <div className={sharedStyles.kpiGrid}>
-          <KpiCard
-            title="Total de Afiliados"
-            value={totalAffiliates.toString()}
-            icon="users"
-            color="blue"
-          />
-          <KpiCard
-            title="Total de Cliques"
-            value={totalClicks.toLocaleString('pt-BR')}
-            icon="globe"
-            color="green"
-          />
-          <KpiCard
-            title="Conversões"
-            value={totalConversions.toLocaleString('pt-BR')}
-            icon="check-circle"
-            color="orange"
-          />
-          <KpiCard
-            title="Comissões Pagas"
-            value={formatCurrency(totalCommissionPaid)}
-            icon="dollar-sign"
-            color="purple"
-          />
+          {isLoading ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} width="100%" height="100px" borderRadius="12px" />
+            ))
+          ) : (
+            <>
+              <KpiCard
+                title="Total de Afiliados"
+                value={(stats?.totalAffiliates ?? 0).toString()}
+                icon="users"
+                color="blue"
+              />
+              <KpiCard
+                title="Total de Cliques"
+                value={(stats?.totalClicks ?? 0).toLocaleString('pt-BR')}
+                icon="globe"
+                color="green"
+              />
+              <KpiCard
+                title="Conversões"
+                value={(stats?.totalConversions ?? 0).toLocaleString('pt-BR')}
+                icon="check-circle"
+                color="orange"
+              />
+              <KpiCard
+                title="Comissões Pagas"
+                value={formatCurrency((stats?.totalCommissionsCents ?? 0) / 100)}
+                icon="dollar-sign"
+                color="purple"
+              />
+            </>
+          )}
         </div>
 
         {/* Create Affiliate Link Section */}
@@ -284,18 +196,14 @@ const AdminAffiliates: React.FC = () => {
           </div>
           <div className={styles.formContainer}>
             <div className={styles.formGroup}>
-              <label className={styles.label}>Evento</label>
-              <select
-                className={styles.select}
+              <label className={styles.label}>Evento (ID)</label>
+              <input
+                type="text"
+                className={styles.input}
                 value={selectedEvent}
                 onChange={(e) => setSelectedEvent(e.target.value)}
-              >
-                {mockEvents.map((evt) => (
-                  <option key={evt.id} value={evt.id}>
-                    {evt.title}
-                  </option>
-                ))}
-              </select>
+                placeholder="evt-001"
+              />
             </div>
             <div className={styles.formGroup}>
               <label className={styles.label}>Comissão (%)</label>
@@ -308,9 +216,13 @@ const AdminAffiliates: React.FC = () => {
                 onChange={(e) => setCommissionPercentage(Math.max(1, Math.min(50, parseInt(e.target.value) || 10)))}
               />
             </div>
-            <button className={sharedStyles.btnPrimary} onClick={handleGenerateLink}>
+            <button
+              className={sharedStyles.btnPrimary}
+              onClick={handleGenerateLink}
+              disabled={createLink.isPending}
+            >
               <Icon name="plus" size={16} />
-              Gerar Link
+              {createLink.isPending ? 'Gerando...' : 'Gerar Link'}
             </button>
           </div>
         </div>
@@ -336,7 +248,11 @@ const AdminAffiliates: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {links.length === 0 ? (
+                {isLoading ? (
+                  <tr>
+                    <td colSpan={9} className={sharedStyles.emptyRow}>Carregando...</td>
+                  </tr>
+                ) : links.length === 0 ? (
                   <tr>
                     <td colSpan={9} className={sharedStyles.emptyRow}>
                       Nenhum link de afiliado criado
@@ -376,6 +292,7 @@ const AdminAffiliates: React.FC = () => {
                                 className={`${sharedStyles.actionBtn} ${sharedStyles.actionBtnDanger}`}
                                 title="Desativar"
                                 onClick={() => handleDeactivateLink(link.id)}
+                                disabled={deactivate.isPending}
                               >
                                 <Icon name="x" size={14} />
                               </button>
@@ -397,29 +314,35 @@ const AdminAffiliates: React.FC = () => {
             <h2 className={sharedStyles.cardTitle}>Ranking de Afiliados</h2>
           </div>
           <div className={styles.affiliatesList}>
-            {affiliates.map((aff) => (
-              <div key={aff.id} className={styles.affiliateItem}>
-                <div className={styles.affiliateRank}>#{aff.rank}</div>
-                <div className={styles.affiliateInfo}>
-                  <p className={styles.affiliateName}>{aff.name}</p>
-                  <p className={styles.affiliateEmail}>{aff.email}</p>
+            {isLoading ? (
+              Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton key={i} width="100%" height="72px" borderRadius="8px" />
+              ))
+            ) : (
+              affiliates.map((aff) => (
+                <div key={aff.id} className={styles.affiliateItem}>
+                  <div className={styles.affiliateRank}>#{aff.rank}</div>
+                  <div className={styles.affiliateInfo}>
+                    <p className={styles.affiliateName}>{aff.name}</p>
+                    <p className={styles.affiliateEmail}>{aff.email}</p>
+                  </div>
+                  <div className={styles.affiliateStats}>
+                    <div className={styles.statBox}>
+                      <p className={styles.statLabel}>Vendas</p>
+                      <p className={styles.statValue}>{formatCurrency(aff.totalSales)}</p>
+                    </div>
+                    <div className={styles.statBox}>
+                      <p className={styles.statLabel}>Comissão</p>
+                      <p className={styles.statValue}>{formatCurrency(aff.totalCommission)}</p>
+                    </div>
+                    <div className={styles.statBox}>
+                      <p className={styles.statLabel}>Taxa Conv.</p>
+                      <p className={styles.statValue}>{aff.conversionRate.toFixed(2)}%</p>
+                    </div>
+                  </div>
                 </div>
-                <div className={styles.affiliateStats}>
-                  <div className={styles.statBox}>
-                    <p className={styles.statLabel}>Vendas</p>
-                    <p className={styles.statValue}>{formatCurrency(aff.totalSales)}</p>
-                  </div>
-                  <div className={styles.statBox}>
-                    <p className={styles.statLabel}>Comissão</p>
-                    <p className={styles.statValue}>{formatCurrency(aff.totalCommission)}</p>
-                  </div>
-                  <div className={styles.statBox}>
-                    <p className={styles.statLabel}>Taxa Conv.</p>
-                    <p className={styles.statValue}>{aff.conversionRate.toFixed(2)}%</p>
-                  </div>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
 
@@ -442,7 +365,11 @@ const AdminAffiliates: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {commissions.length === 0 ? (
+                {isLoading ? (
+                  <tr>
+                    <td colSpan={7} className={sharedStyles.emptyRow}>Carregando...</td>
+                  </tr>
+                ) : commissions.length === 0 ? (
                   <tr>
                     <td colSpan={7} className={sharedStyles.emptyRow}>
                       Nenhuma comissão registrada
