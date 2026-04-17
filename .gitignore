@@ -10,3 +10,4 @@ coverage/
 ticketeria-api/generated/
 ticketeria-api/src/generated/
 .claude/
+node_modules

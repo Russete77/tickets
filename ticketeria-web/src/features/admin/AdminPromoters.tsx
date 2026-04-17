@@ -188,7 +188,6 @@ const AdminPromoters: React.FC = () => {
   const sorted = [...filtered].sort((a, b) => b.score - a.score);
 
   const totalGuests = promoters.reduce((s, p) => s + p.totalGuests, 0);
-  const totalCheckIns = promoters.reduce((s, p) => s + p.checkIns, 0);
   const avgConversion = promoters.length
     ? (promoters.reduce((s, p) => s + p.conversionPct, 0) / promoters.length).toFixed(1)
     : '0.0';

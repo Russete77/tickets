@@ -61,9 +61,6 @@ const MOCK_EVENTS: MockEvent[] = [
 ];
 
 // ── Helpers ───────────────────────────────────────
-function formatTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-}
 
 function relativeTime(iso: string): string {
   const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
