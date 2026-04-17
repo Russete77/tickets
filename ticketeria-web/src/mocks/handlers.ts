@@ -978,6 +978,222 @@ export const handlers = [
     return HttpResponse.json({ data: { notified: true, message: 'Notificações enviadas com sucesso' } });
   }),
 
+  // ── Favorites toggle ───────────────────────────────────────────────────
+
+  http.post(`${BASE}/favorites/toggle`, async ({ request }) => {
+    await delay(LAT);
+    const body = (await request.json()) as { eventId: string };
+    const isFavorited = Math.random() > 0.5;
+    return HttpResponse.json({ data: { isFavorited, eventId: body.eventId } });
+  }),
+
+  // ── Orders ─────────────────────────────────────────────────────────────
+
+  http.get(`${BASE}/orders/:id`, async ({ params }) => {
+    await delay(LAT);
+    const orderId = params.id as string;
+    const qrBase = `https://api.qrserver.com/v1/create-qr-code/?size=60x60&data=`;
+    return HttpResponse.json({
+      data: {
+        id: orderId,
+        status: 'confirmed',
+        createdAt: '2025-01-15T10:22:00Z',
+        event: {
+          id: 'evt-001',
+          title: 'Lollapalooza Brasil 2025',
+          startDate: '2025-03-28T12:00:00-03:00',
+          coverImage: 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=400&q=80',
+          venue: { name: 'Autódromo de Interlagos', city: 'São Paulo', state: 'SP' },
+        },
+        tickets: [
+          { id: 'tkt-001', holderName: 'Usuário Demo', batchName: '1º Lote — Pista', batchType: 'normal', price: 39500, qrCodeUrl: `${qrBase}tkt-001-${orderId}` },
+          { id: 'tkt-002', holderName: 'Usuário Demo', batchName: '1º Lote — Pista', batchType: 'normal', price: 39500, qrCodeUrl: `${qrBase}tkt-002-${orderId}` },
+        ],
+        payment: {
+          method: 'pix',
+          amountCents: 79000,
+          pixCode: '00020126580014BR.GOV.BCB.PIX013636c8e359-0eda-4bce-9740-11e9c1a76e625204000053039865406790.005802BR5925TICKETY PAGAMENTOS LTDA6009SAO PAULO6304ABCD',
+          paidAt: '2025-01-15T10:25:00Z',
+        },
+      },
+    });
+  }),
+
+  http.post(`${BASE}/orders/:id/cancel`, async ({ params }) => {
+    await delay(LAT);
+    return HttpResponse.json({ data: { id: params.id, status: 'cancelled' } });
+  }),
+
+  // ── Promoter Me Dashboard ────────────────────────────────────────────────
+
+  http.get(`${BASE}/promoters/me/dashboard`, async ({ request }) => {
+    await delay(LAT);
+    const url = new URL(request.url);
+    const eventId = url.searchParams.get('eventId');
+    const guests = Array.from({ length: 14 }, (_, i) => ({
+      id: `guest-${i + 1}`,
+      name: ['João Silva', 'Maria Santos', 'Carlos Oliveira', 'Ana Costa', 'Pedro Lima', 'Fernanda Melo', 'Ricardo Alves', 'Juliana Nunes', 'Bruno Carvalho', 'Camila Rocha', 'Lucas Mendes', 'Marina Silva', 'Felipe Gomes', 'Larissa Costa'][i],
+      email: `convidado${i + 1}@email.com`,
+      status: i < 9 ? 'checked_in' : 'pending',
+      checkedInAt: i < 9 ? new Date(Date.now() - i * 900000).toISOString() : null,
+    }));
+    return HttpResponse.json({
+      data: {
+        promoter: {
+          id: 'prm-me',
+          name: 'Usuário Demo',
+          slug: 'demo-promoter',
+          tier: 'silver',
+          shareLink: 'http://localhost:5173/guest/demo-promoter',
+        },
+        events: [
+          { id: 'evt-001', title: 'Lollapalooza Brasil 2025', startDate: '2025-03-28T12:00:00-03:00' },
+          { id: 'evt-012', title: 'Ultra Music Festival Brasil', startDate: '2025-05-10T15:00:00-03:00' },
+        ],
+        selectedEvent: eventId ?? 'evt-001',
+        kpis: {
+          totalGuests: guests.length,
+          checkIns: 9,
+          conversionPct: 64.3,
+          rank: 3,
+          totalPromoters: 12,
+        },
+        guests,
+      },
+    });
+  }),
+
+  // ── Guest Lists: Public registration ────────────────────────────────────
+
+  http.get(`${BASE}/guest-lists/public/:slug`, async ({ params }) => {
+    await delay(LAT);
+    const slug = params.slug as string;
+    return HttpResponse.json({
+      data: {
+        id: `gl-pub-${slug}`,
+        title: 'Lollapalooza Brasil 2025',
+        startDate: '2025-03-28T12:00:00-03:00',
+        coverImage: 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&q=80',
+        venue: { name: 'Autódromo de Interlagos', city: 'São Paulo', state: 'SP' },
+        promoter: { name: 'Diego Souza' },
+      },
+    });
+  }),
+
+  http.post(`${BASE}/guest-lists/register`, async ({ request }) => {
+    await delay(LAT);
+    const body = (await request.json()) as { name: string; slug: string };
+    const guestId = `guest-${Date.now()}`;
+    const qrData = encodeURIComponent(`${guestId}:${body.slug}`);
+    return HttpResponse.json({
+      data: {
+        guestId,
+        name: body.name,
+        qrCodeUrl: `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${qrData}`,
+        message: 'Cadastro realizado com sucesso!',
+      },
+    }, { status: 201 });
+  }),
+
+  // ── Admin: Box Office ────────────────────────────────────────────────────
+
+  http.get(`${BASE}/admin/box-office/batches`, async ({ request }) => {
+    await delay(LAT);
+    const url = new URL(request.url);
+    const eventId = url.searchParams.get('eventId') ?? 'evt-001';
+    return HttpResponse.json({
+      data: [
+        { id: `${eventId}-batch-1`, name: '1º Lote — Pista', type: 'normal', price: 39500, available: 180 },
+        { id: `${eventId}-batch-2`, name: 'VIP', type: 'vip', price: 98750, available: 25 },
+        { id: `${eventId}-batch-3`, name: 'Camarote Premium', type: 'camarote', price: 158000, available: 0 },
+      ],
+    });
+  }),
+
+  http.post(`${BASE}/admin/box-office/sessions`, async ({ request }) => {
+    await delay(LAT);
+    const body = (await request.json()) as { eventId: string };
+    return HttpResponse.json({
+      data: {
+        id: `session-${Date.now()}`,
+        eventId: body.eventId,
+        active: true,
+        startedAt: new Date().toISOString(),
+        ticketsSold: 0,
+        revenueCents: 0,
+      },
+    }, { status: 201 });
+  }),
+
+  http.post(`${BASE}/admin/box-office/sessions/:id/end`, async () => {
+    await delay(LAT);
+    return HttpResponse.json({ data: { ended: true, endedAt: new Date().toISOString() } });
+  }),
+
+  http.get(`${BASE}/admin/box-office/sessions/:id/sales`, async () => {
+    await delay(LAT);
+    return HttpResponse.json({ data: [] });
+  }),
+
+  http.post(`${BASE}/admin/box-office/sessions/:id/sell`, async ({ request }) => {
+    await delay(LAT);
+    const body = (await request.json()) as { guestName: string; batchId: string };
+    return HttpResponse.json({
+      data: {
+        id: `sale-${Date.now()}`,
+        guestName: body.guestName,
+        batchName: '1º Lote — Pista',
+        amountCents: 39500,
+        soldAt: new Date().toISOString(),
+      },
+    }, { status: 201 });
+  }),
+
+  // ── Admin: Price Rules ────────────────────────────────────────────────────
+
+  http.get(`${BASE}/admin/price-rules`, async ({ request }) => {
+    await delay(LAT);
+    const url = new URL(request.url);
+    const eventId = url.searchParams.get('eventId') ?? 'evt-001';
+    return HttpResponse.json({
+      data: [
+        {
+          id: 'rule-001', eventId,
+          batchId: `${eventId}-batch-1`, batchName: '1º Lote — Pista',
+          conditionType: 'sold_pct', conditionValue: 80,
+          actionType: 'increase_pct', actionValue: 15,
+          active: true, createdAt: '2025-03-01T10:00:00Z',
+        },
+        {
+          id: 'rule-002', eventId,
+          batchId: `${eventId}-batch-2`, batchName: 'VIP',
+          conditionType: 'time_before', conditionValue: 48,
+          actionType: 'increase_pct', actionValue: 20,
+          active: false, createdAt: '2025-03-02T10:00:00Z',
+        },
+      ],
+    });
+  }),
+
+  http.post(`${BASE}/admin/price-rules`, async ({ request }) => {
+    await delay(LAT);
+    const body = (await request.json()) as Record<string, unknown>;
+    return HttpResponse.json({
+      data: { id: `rule-${Date.now()}`, ...body, active: true, createdAt: new Date().toISOString() },
+    }, { status: 201 });
+  }),
+
+  http.post(`${BASE}/admin/price-rules/:id/toggle`, async ({ params, request }) => {
+    await delay(LAT);
+    const body = (await request.json()) as { active: boolean };
+    return HttpResponse.json({ data: { id: params.id, active: body.active } });
+  }),
+
+  http.post(`${BASE}/admin/price-rules/:id/delete`, async ({ params }) => {
+    await delay(100);
+    return HttpResponse.json({ data: { id: params.id, deleted: true } });
+  }),
+
   http.get(`${BASE}/checkin/recent/:eventId`, async () => {
     await delay(LAT);
 

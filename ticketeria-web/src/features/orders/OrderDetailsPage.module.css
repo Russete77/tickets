@@ -1,0 +1,388 @@
+/* ═══════════════════════════════════════════
+   ORDER DETAILS PAGE
+   ═══════════════════════════════════════════ */
+
+.page {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: var(--tl-space-8) var(--tl-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--tl-space-6);
+}
+
+/* ── Header ── */
+.pageHeader {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tl-space-2);
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tl-space-1);
+  color: var(--tl-text-secondary);
+  font-size: var(--tl-text-sm);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: color var(--tl-duration-fast);
+}
+
+.backLink:hover { color: var(--tl-text-primary); }
+
+.pageTitle {
+  font-size: var(--tl-text-3xl);
+  font-weight: 800;
+  color: var(--tl-text-primary);
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+/* ── Skeleton ── */
+.skeletonGrid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tl-space-4);
+}
+
+/* ── Content ── */
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tl-space-4);
+}
+
+/* ── Card ── */
+.card {
+  background: var(--tl-bg-secondary);
+  border: 1px solid var(--tl-border-default);
+  border-radius: var(--tl-radius-lg);
+  overflow: hidden;
+}
+
+.cardHeader {
+  padding: var(--tl-space-5) var(--tl-space-6);
+  border-bottom: 1px solid var(--tl-border-default);
+}
+
+.cardTitle {
+  font-size: var(--tl-text-md);
+  font-weight: 700;
+  color: var(--tl-text-primary);
+  margin: 0;
+}
+
+.cardBody {
+  padding: var(--tl-space-5) var(--tl-space-6);
+}
+
+/* ── Order ID + Status ── */
+.orderIdRow {
+  display: flex;
+  align-items: center;
+  gap: var(--tl-space-3);
+  flex-wrap: wrap;
+}
+
+.orderId {
+  font-size: var(--tl-text-xl);
+  font-weight: 700;
+  color: var(--tl-text-primary);
+  margin: 0;
+  font-family: monospace;
+}
+
+.orderDate {
+  font-size: var(--tl-text-sm);
+  color: var(--tl-text-tertiary);
+  margin: var(--tl-space-2) 0 0;
+}
+
+/* ── Status badges ── */
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px var(--tl-space-3);
+  border-radius: var(--tl-radius-pill);
+  font-size: var(--tl-text-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.statusPending   { background: rgba(245,158,11,0.15); color: #F59E0B; }
+.statusConfirmed { background: rgba(16,185,129,0.15); color: #10B981; }
+.statusCancelled { background: rgba(239,68,68,0.15);  color: #EF4444; }
+.statusRefunded  { background: rgba(139,92,246,0.15); color: #8B5CF6; }
+
+/* ── Event summary ── */
+.eventSummary {
+  display: flex;
+  gap: var(--tl-space-4);
+  align-items: flex-start;
+}
+
+.eventCover {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: var(--tl-radius-md);
+  flex-shrink: 0;
+}
+
+.eventInfo {
+  flex: 1;
+}
+
+.eventTitle {
+  font-size: var(--tl-text-lg);
+  font-weight: 700;
+  color: var(--tl-text-primary);
+  margin: 0 0 var(--tl-space-2);
+}
+
+.eventMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--tl-space-2);
+  font-size: var(--tl-text-sm);
+  color: var(--tl-text-secondary);
+  margin: 0 0 var(--tl-space-1);
+}
+
+/* ── Tickets list ── */
+.ticketsList {
+  display: flex;
+  flex-direction: column;
+}
+
+.ticketRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--tl-space-4) var(--tl-space-6);
+  border-bottom: 1px solid var(--tl-border-default);
+  gap: var(--tl-space-4);
+}
+
+.ticketRow:last-child { border-bottom: none; }
+
+.ticketInfo {
+  display: flex;
+  align-items: center;
+  gap: var(--tl-space-4);
+}
+
+.ticketQrWrap {
+  width: 60px;
+  height: 60px;
+  background: white;
+  border-radius: var(--tl-radius-sm);
+  padding: 4px;
+  flex-shrink: 0;
+}
+
+.ticketQr {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.ticketDetails {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tl-space-1);
+}
+
+.ticketHolder {
+  font-size: var(--tl-text-md);
+  font-weight: 600;
+  color: var(--tl-text-primary);
+  margin: 0;
+}
+
+.ticketBatch {
+  font-size: var(--tl-text-sm);
+  color: var(--tl-text-secondary);
+  margin: 0;
+}
+
+.batchTypeBadge {
+  display: inline-block;
+  padding: 2px var(--tl-space-2);
+  background: rgba(59,130,246,0.12);
+  color: #3B82F6;
+  border-radius: var(--tl-radius-pill);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.ticketPrice {
+  font-size: var(--tl-text-md);
+  font-weight: 700;
+  color: var(--tl-text-primary);
+  white-space: nowrap;
+}
+
+/* ── Payment ── */
+.paymentGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--tl-space-4);
+}
+
+.paymentItem {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tl-space-1);
+}
+
+.paymentLabel {
+  font-size: var(--tl-text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--tl-text-tertiary);
+}
+
+.paymentValue {
+  font-size: var(--tl-text-md);
+  font-weight: 500;
+  color: var(--tl-text-primary);
+}
+
+.paymentTotal {
+  font-size: var(--tl-text-xl);
+  font-weight: 800;
+  color: var(--tl-brand);
+}
+
+/* ── PIX ── */
+.pixSection {
+  margin-top: var(--tl-space-4);
+  padding: var(--tl-space-4);
+  background: var(--tl-bg-tertiary);
+  border-radius: var(--tl-radius-md);
+  border: 1px solid var(--tl-border-default);
+}
+
+.pixLabel {
+  font-size: var(--tl-text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--tl-text-tertiary);
+  margin: 0 0 var(--tl-space-2);
+}
+
+.pixCodeRow {
+  display: flex;
+  gap: var(--tl-space-3);
+  align-items: center;
+}
+
+.pixCode {
+  flex: 1;
+  font-size: var(--tl-text-xs);
+  font-family: monospace;
+  color: var(--tl-text-secondary);
+  word-break: break-all;
+  line-height: 1.4;
+}
+
+.copyBtn {
+  flex-shrink: 0;
+  padding: var(--tl-space-2) var(--tl-space-4);
+  background: var(--tl-brand-bg);
+  color: var(--tl-text-inverse);
+  border: none;
+  border-radius: var(--tl-radius-md);
+  font-size: var(--tl-text-xs);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ── Actions ── */
+.actions {
+  display: flex;
+  gap: var(--tl-space-3);
+  flex-wrap: wrap;
+}
+
+.downloadBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tl-space-2);
+  padding: var(--tl-space-3) var(--tl-space-5);
+  background: var(--tl-brand-bg);
+  color: var(--tl-text-inverse);
+  border: none;
+  border-radius: var(--tl-radius-md);
+  font-size: var(--tl-text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--tl-duration-fast);
+}
+
+.downloadBtn:hover { background: var(--tl-brand-bg-hover); }
+
+.cancelBtn {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--tl-space-3) var(--tl-space-5);
+  background: transparent;
+  color: #EF4444;
+  border: 1px solid #EF4444;
+  border-radius: var(--tl-radius-md);
+  font-size: var(--tl-text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--tl-duration-fast);
+}
+
+.cancelBtn:hover { background: rgba(239,68,68,0.08); }
+.cancelBtn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* ── Error state ── */
+.errorState {
+  text-align: center;
+  padding: var(--tl-space-20) var(--tl-space-4);
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.errorIcon { font-size: 3rem; margin-bottom: var(--tl-space-4); }
+
+.errorState h1 {
+  font-size: var(--tl-text-2xl);
+  font-weight: 700;
+  color: var(--tl-text-primary);
+  margin-bottom: var(--tl-space-3);
+}
+
+.errorState p {
+  color: var(--tl-text-secondary);
+  margin-bottom: var(--tl-space-6);
+}
+
+.backBtn {
+  padding: var(--tl-space-3) var(--tl-space-6);
+  background: var(--tl-brand-bg);
+  color: var(--tl-text-inverse);
+  border: none;
+  border-radius: var(--tl-radius-md);
+  font-size: var(--tl-text-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+@media (max-width: 600px) {
+  .eventSummary { flex-direction: column; }
+  .ticketRow { flex-direction: column; align-items: flex-start; }
+  .actions { flex-direction: column; }
+  .downloadBtn, .cancelBtn { width: 100%; justify-content: center; }
+}

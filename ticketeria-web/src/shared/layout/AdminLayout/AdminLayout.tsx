@@ -134,6 +134,21 @@ const WaitlistIcon = () => (
   </svg>
 );
 
+const BoxOfficeIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <rect x="2" y="7" width="20" height="14" rx="2" />
+    <path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2" />
+    <line x1="12" y1="12" x2="12" y2="16" />
+    <line x1="10" y1="14" x2="14" y2="14" />
+  </svg>
+);
+
+const PriceRulesIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+  </svg>
+);
+
 const navItems: NavItem[] = [
   { to: '/admin', label: 'Dashboard', icon: <DashboardIcon /> },
   { to: '/admin/events', label: 'Eventos', icon: <EventsIcon /> },
@@ -150,6 +165,8 @@ const navItems: NavItem[] = [
   { to: '/admin/areas', label: 'Áreas', icon: <AreasIcon /> },
   { to: '/admin/courtesies', label: 'Cortesias', icon: <CourtesiesIcon /> },
   { to: '/admin/waitlist', label: 'Lista de Espera', icon: <WaitlistIcon /> },
+  { to: '/admin/box-office', label: 'Bilheteria', icon: <BoxOfficeIcon /> },
+  { to: '/admin/price-rules', label: 'Preço Dinâmico', icon: <PriceRulesIcon /> },
 ];
 
 export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {

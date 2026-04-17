@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Badge } from '@shared/ui/Badge/Badge';
 import { Button } from '@shared/ui/Button/Button';
 import { Icon } from '@shared/ui/Icon/Icon';
 import { formatDate } from '@shared/lib/formatters';
+import { api } from '@shared/lib/api';
+import { useAuthStore } from '@shared/stores/authStore';
 import { Event } from './EventPage';
 import styles from './EventHero.module.css';
 
@@ -11,10 +14,30 @@ interface EventHeroProps {
 }
 
 const EventHero: React.FC<EventHeroProps> = ({ event }) => {
+  const navigate = useNavigate();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const [isFavorite, setIsFavorite] = useState(event.isFavorite);
+  const [isTogglingFav, setIsTogglingFav] = useState(false);
 
-  const handleFavorite = () => {
-    setIsFavorite(!isFavorite);
+  const handleFavorite = async () => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+    // Optimistic update
+    setIsFavorite((prev) => !prev);
+    setIsTogglingFav(true);
+    try {
+      const response = await api.post<{ isFavorited: boolean }>('/v1/favorites/toggle', { eventId: event.id });
+      if (response.data) {
+        setIsFavorite(response.data.isFavorited);
+      }
+    } catch {
+      // Revert on error
+      setIsFavorite((prev) => !prev);
+    } finally {
+      setIsTogglingFav(false);
+    }
   };
 
   const handleShare = () => {
@@ -70,7 +93,8 @@ const EventHero: React.FC<EventHeroProps> = ({ event }) => {
             variant={isFavorite ? 'secondary' : 'ghost'}
             size="md"
             onClick={handleFavorite}
-            className={styles.favoriteButton}
+            disabled={isTogglingFav}
+            className={`${styles.favoriteButton} ${isFavorite ? styles.favoriteActive : ''}`}
           >
             <Icon name={isFavorite ? 'heart-filled' : 'heart'} size={16} />
             {isFavorite ? ' Adicionado' : ' Favoritar'}

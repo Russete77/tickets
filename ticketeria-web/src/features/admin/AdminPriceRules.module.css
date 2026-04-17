@@ -1,0 +1,275 @@
+/* ═══════════════════════════════════════════
+   ADMIN PRICE RULES
+   ═══════════════════════════════════════════ */
+
+/* ── Event selector ── */
+.eventSelect {
+  width: 100%;
+  max-width: 400px;
+  padding: var(--tl-space-2) var(--tl-space-4);
+  border: 1px solid var(--tl-border-default);
+  border-radius: var(--tl-radius-md);
+  font-size: var(--tl-text-sm);
+  color: var(--tl-text-primary);
+  background: var(--tl-bg-tertiary);
+  cursor: pointer;
+}
+
+/* ── Rule count badge ── */
+.ruleCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 20px;
+  padding: 0 var(--tl-space-2);
+  background: var(--tl-bg-surface);
+  border-radius: var(--tl-radius-pill);
+  font-size: var(--tl-text-xs);
+  font-weight: 700;
+  color: var(--tl-text-tertiary);
+  margin-left: var(--tl-space-2);
+}
+
+/* ── Loading ── */
+.loading {
+  padding: var(--tl-space-8);
+  text-align: center;
+  color: var(--tl-text-muted);
+  font-size: var(--tl-text-sm);
+}
+
+/* ── Empty state ── */
+.emptyRules {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--tl-space-12) var(--tl-space-4);
+  text-align: center;
+  gap: var(--tl-space-3);
+}
+
+.emptyIcon { font-size: 2.5rem; }
+
+.emptyTitle {
+  font-size: var(--tl-text-md);
+  font-weight: 700;
+  color: var(--tl-text-primary);
+  margin: 0;
+}
+
+.emptyDesc {
+  font-size: var(--tl-text-sm);
+  color: var(--tl-text-secondary);
+  max-width: 360px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* ── Chips ── */
+.conditionChip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px var(--tl-space-3);
+  background: rgba(59,130,246,0.10);
+  color: #3B82F6;
+  border-radius: var(--tl-radius-pill);
+  font-size: var(--tl-text-xs);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.actionChip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px var(--tl-space-3);
+  border-radius: var(--tl-radius-pill);
+  font-size: var(--tl-text-xs);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.actionIncrease { background: rgba(239,68,68,0.10); color: #EF4444; }
+.actionDecrease { background: rgba(16,185,129,0.10); color: #10B981; }
+
+/* ── Toggle button ── */
+.toggleBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tl-space-2);
+  padding: 4px var(--tl-space-3);
+  border: 1px solid transparent;
+  border-radius: var(--tl-radius-pill);
+  font-size: var(--tl-text-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--tl-duration-fast);
+}
+
+.toggleDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.toggleActive {
+  background: rgba(16,185,129,0.12);
+  color: #10B981;
+  border-color: rgba(16,185,129,0.25);
+}
+
+.toggleActive .toggleDot { background: #10B981; }
+
+.toggleInactive {
+  background: var(--tl-bg-surface);
+  color: var(--tl-text-muted);
+  border-color: var(--tl-border-default);
+}
+
+.toggleInactive .toggleDot { background: var(--tl-text-muted); }
+
+.toggleBtn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* ── Modal ── */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: var(--tl-space-4);
+}
+
+.modal {
+  background: var(--tl-bg-secondary);
+  border: 1px solid var(--tl-border-default);
+  border-radius: var(--tl-radius-xl);
+  width: 100%;
+  max-width: 560px;
+  overflow: hidden;
+  box-shadow: var(--tl-shadow-xl);
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--tl-space-5) var(--tl-space-6);
+  border-bottom: 1px solid var(--tl-border-default);
+}
+
+.modalTitle {
+  font-size: var(--tl-text-md);
+  font-weight: 700;
+  color: var(--tl-text-primary);
+  margin: 0;
+}
+
+.modalClose {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--tl-bg-tertiary);
+  border: 1px solid var(--tl-border-default);
+  border-radius: var(--tl-radius-md);
+  color: var(--tl-text-secondary);
+  cursor: pointer;
+}
+
+.modalBody {
+  padding: var(--tl-space-5) var(--tl-space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--tl-space-4);
+}
+
+/* ── Form fields ── */
+.fieldRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--tl-space-3);
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tl-space-2);
+}
+
+.label {
+  font-size: var(--tl-text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--tl-text-tertiary);
+}
+
+.select,
+.input {
+  width: 100%;
+  padding: var(--tl-space-2) var(--tl-space-3);
+  border: 1px solid var(--tl-border-default);
+  border-radius: var(--tl-radius-md);
+  font-size: var(--tl-text-sm);
+  color: var(--tl-text-primary);
+  background: var(--tl-bg-tertiary);
+  box-sizing: border-box;
+  transition: border-color var(--tl-duration-fast);
+}
+
+.select:focus,
+.input:focus {
+  outline: none;
+  border-color: var(--tl-brand-fg);
+  box-shadow: 0 0 0 3px var(--tl-brand-muted);
+}
+
+/* ── Rule preview ── */
+.rulePreview {
+  padding: var(--tl-space-4);
+  background: var(--tl-bg-tertiary);
+  border-radius: var(--tl-radius-md);
+  border-left: 3px solid var(--tl-brand-fg);
+}
+
+.previewLabel {
+  font-size: var(--tl-text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--tl-text-tertiary);
+  display: block;
+  margin-bottom: var(--tl-space-2);
+}
+
+.previewText {
+  font-size: var(--tl-text-sm);
+  color: var(--tl-text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.previewText strong { color: var(--tl-text-primary); }
+
+/* ── Error ── */
+.errorMsg {
+  font-size: var(--tl-text-sm);
+  color: #EF4444;
+}
+
+/* ── Modal actions ── */
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--tl-space-3);
+}
+
+@media (max-width: 540px) {
+  .fieldRow { grid-template-columns: 1fr; }
+}
