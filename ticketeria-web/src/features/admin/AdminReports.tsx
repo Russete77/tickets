@@ -63,15 +63,15 @@ const AdminReports: React.FC = () => {
           <div className={styles.card}>
             <div className={styles.cardHeader}><h2 className={styles.cardTitle}>Vendas por categoria</h2></div>
             <div className={styles.cardBody}>
-              {isLoading ? Array.from({ length: 5 }).map((_, i) => <div key={i} style={{ height: 36, background: '#F3F4F6', borderRadius: 6 }} />) : (
+              {isLoading ? Array.from({ length: 5 }).map((_, i) => <div key={i} className={styles.skeletonCell} style={{ height: 36, borderRadius: 6 }} />) : (
                 salesByCategory.map((c) => (
                   <div key={c.category}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                      <span style={{ fontSize: 'var(--tl-text-sm)', fontWeight: 600, color: '#374151', textTransform: 'capitalize' }}>{c.category}</span>
-                      <span style={{ fontSize: 'var(--tl-text-sm)', color: '#6B7280' }}>{c.sales.toLocaleString('pt-BR')} vendas · {formatCurrency(c.revenue)}</span>
+                      <span style={{ fontSize: 'var(--tl-text-sm)', fontWeight: 600, color: 'var(--tl-text-secondary)', textTransform: 'capitalize' }}>{c.category}</span>
+                      <span style={{ fontSize: 'var(--tl-text-sm)', color: 'var(--tl-text-tertiary)' }}>{c.sales.toLocaleString('pt-BR')} vendas · {formatCurrency(c.revenue)}</span>
                     </div>
-                    <div style={{ height: 8, background: '#F3F4F6', borderRadius: 4, overflow: 'hidden' }}>
-                      <div style={{ width: `${(c.revenue / maxCatRevenue) * 100}%`, height: '100%', background: BAR_COLORS[c.category] ?? '#6B7280', borderRadius: 4, transition: 'width 0.6s ease' }} />
+                    <div style={{ height: 8, background: 'var(--tl-bg-surface)', borderRadius: 4, overflow: 'hidden' }}>
+                      <div style={{ width: `${(c.revenue / maxCatRevenue) * 100}%`, height: '100%', background: BAR_COLORS[c.category] ?? 'var(--tl-text-tertiary)', borderRadius: 4, transition: 'width 0.6s ease' }} />
                     </div>
                   </div>
                 ))
@@ -83,16 +83,16 @@ const AdminReports: React.FC = () => {
           <div className={styles.card}>
             <div className={styles.cardHeader}><h2 className={styles.cardTitle}>Funil de conversão</h2></div>
             <div className={styles.cardBody}>
-              {isLoading ? Array.from({ length: 4 }).map((_, i) => <div key={i} style={{ height: 48, background: '#F3F4F6', borderRadius: 6 }} />) : (
+              {isLoading ? Array.from({ length: 4 }).map((_, i) => <div key={i} className={styles.skeletonCell} style={{ height: 48, borderRadius: 6 }} />) : (
                 funnel.map((f, i) => (
                   <div key={f.stage} style={{ display: 'flex', alignItems: 'center', gap: 'var(--tl-space-4)' }}>
-                    <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#DBEAFE', color: '#1E40AF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 'var(--tl-text-xs)', flexShrink: 0 }}>{i + 1}</div>
+                    <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(59, 130, 246, 0.15)', color: '#3B82F6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 'var(--tl-text-xs)', flexShrink: 0 }}>{i + 1}</div>
                     <div style={{ flex: 1 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                        <span style={{ fontSize: 'var(--tl-text-sm)', fontWeight: 600, color: '#374151' }}>{f.stage}</span>
-                        <span style={{ fontSize: 'var(--tl-text-sm)', color: '#6B7280' }}>{f.count.toLocaleString('pt-BR')} ({f.pct}%)</span>
+                        <span style={{ fontSize: 'var(--tl-text-sm)', fontWeight: 600, color: 'var(--tl-text-secondary)' }}>{f.stage}</span>
+                        <span style={{ fontSize: 'var(--tl-text-sm)', color: 'var(--tl-text-tertiary)' }}>{f.count.toLocaleString('pt-BR')} ({f.pct}%)</span>
                       </div>
-                      <div style={{ height: 6, background: '#F3F4F6', borderRadius: 3, overflow: 'hidden' }}>
+                      <div style={{ height: 6, background: 'var(--tl-bg-surface)', borderRadius: 3, overflow: 'hidden' }}>
                         <div style={{ width: `${f.pct}%`, height: '100%', background: `hsl(${220 - i * 30}, 80%, 55%)`, borderRadius: 3 }} />
                       </div>
                     </div>
@@ -112,7 +112,7 @@ const AdminReports: React.FC = () => {
                 <thead><tr><th>Estado</th><th>Vendas</th><th>Receita</th><th>Share</th></tr></thead>
                 <tbody>
                   {isLoading ? Array.from({ length: 5 }).map((_, i) => (
-                    <tr key={i}>{Array.from({ length: 4 }).map((__, j) => <td key={j}><div style={{ height: 14, background: '#F3F4F6', borderRadius: 4 }} /></td>)}</tr>
+                    <tr key={i}>{Array.from({ length: 4 }).map((__, j) => <td key={j}><div className={styles.skeletonCell} /></td>)}</tr>
                   )) : salesByState.map((s) => (
                     <tr key={s.state}>
                       <td className={styles.tdBold}>{s.state}</td>
@@ -120,8 +120,8 @@ const AdminReports: React.FC = () => {
                       <td className={styles.tdBold}>{formatCurrency(s.revenue)}</td>
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <div style={{ width: 48, height: 4, background: '#E5E7EB', borderRadius: 2, overflow: 'hidden' }}>
-                            <div style={{ width: `${(s.revenue / maxStateRevenue) * 100}%`, height: '100%', background: '#3B82F6', borderRadius: 2 }} />
+                          <div className={styles.inlineProgressTrack} style={{ width: 48 }}>
+                            <div className={styles.inlineProgressFill} style={{ width: `${(s.revenue / maxStateRevenue) * 100}%` }} />
                           </div>
                           <span className={styles.tdMuted}>{Math.round((s.revenue / maxStateRevenue) * 100)}%</span>
                         </div>
@@ -141,12 +141,12 @@ const AdminReports: React.FC = () => {
                 <thead><tr><th>Organizador</th><th>Eventos</th><th>Receita</th><th>Rating</th></tr></thead>
                 <tbody>
                   {isLoading ? Array.from({ length: 5 }).map((_, i) => (
-                    <tr key={i}>{Array.from({ length: 4 }).map((__, j) => <td key={j}><div style={{ height: 14, background: '#F3F4F6', borderRadius: 4 }} /></td>)}</tr>
+                    <tr key={i}>{Array.from({ length: 4 }).map((__, j) => <td key={j}><div className={styles.skeletonCell} /></td>)}</tr>
                   )) : topOrganizers.map((o) => (
                     <tr key={o.id}>
                       <td>
                         <div className={styles.avatarCell}>
-                          <div className={styles.avatarInitials} style={{ background: '#EDE9FE', color: '#7C3AED' }}>{o.name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()}</div>
+                          <div className={styles.avatarInitials} style={{ background: 'rgba(139, 92, 246, 0.15)', color: '#8B5CF6' }}>{o.name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()}</div>
                           <span className={styles.avatarName}>{o.name}</span>
                         </div>
                       </td>

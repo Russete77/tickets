@@ -106,11 +106,11 @@ const AdminUsers: React.FC = () => {
                 {isLoading ? (
                   Array.from({ length: PAGE_SIZE }).map((_, i) => (
                     <tr key={i}>{Array.from({ length: 9 }).map((__, j) => (
-                      <td key={j}><div style={{ height: 14, background: '#F3F4F6', borderRadius: 4 }} /></td>
+                      <td key={j}><div className={styles.skeletonCell} /></td>
                     ))}</tr>
                   ))
                 ) : users.length === 0 ? (
-                  <tr><td colSpan={9} style={{ textAlign: 'center', padding: '3rem', color: '#9CA3AF' }}>Nenhum usuário encontrado</td></tr>
+                  <tr><td colSpan={9} className={styles.emptyRow} style={{ padding: '3rem' }}>Nenhum usuário encontrado</td></tr>
                 ) : (
                   users.map((u) => {
                     const r = ROLE_MAP[u.role] ?? { label: u.role, cls: styles.badgeGray };
@@ -118,7 +118,7 @@ const AdminUsers: React.FC = () => {
                       <tr key={u.id}>
                         <td>
                           <div className={styles.avatarCell}>
-                            <div className={styles.avatarInitials} style={u.role === 'admin' ? { background: '#FEE2E2', color: '#DC2626' } : u.role === 'organizer' ? { background: '#EDE9FE', color: '#7C3AED' } : undefined}>
+                            <div className={styles.avatarInitials} style={u.role === 'admin' ? { background: 'rgba(239, 68, 68, 0.15)', color: '#EF4444' } : u.role === 'organizer' ? { background: 'rgba(139, 92, 246, 0.15)', color: '#8B5CF6' } : undefined}>
                               {u.name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()}
                             </div>
                             <div>

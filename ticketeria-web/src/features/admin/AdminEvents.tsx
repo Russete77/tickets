@@ -122,12 +122,12 @@ const AdminEvents: React.FC = () => {
                   Array.from({ length: PAGE_SIZE }).map((_, i) => (
                     <tr key={i}>
                       {Array.from({ length: 8 }).map((__, j) => (
-                        <td key={j}><div style={{ height: 14, background: '#F3F4F6', borderRadius: 4, width: j === 0 ? 160 : 80 }} /></td>
+                        <td key={j}><div className={styles.skeletonCell} style={{ width: j === 0 ? 160 : 80 }} /></td>
                       ))}
                     </tr>
                   ))
                 ) : events.length === 0 ? (
-                  <tr><td colSpan={8} style={{ textAlign: 'center', padding: '3rem', color: '#9CA3AF' }}>Nenhum evento encontrado</td></tr>
+                  <tr><td colSpan={8} className={styles.emptyRow} style={{ padding: '3rem' }}>Nenhum evento encontrado</td></tr>
                 ) : (
                   events.map((ev) => {
                     const pct = Math.round((ev.sold / Math.max(ev.totalCapacity, 1)) * 100);
@@ -140,8 +140,8 @@ const AdminEvents: React.FC = () => {
                         <td className={styles.tdMuted}>{ev.venue.city}, {ev.venue.state}</td>
                         <td>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <div style={{ width: 60, height: 4, background: '#E5E7EB', borderRadius: 2, overflow: 'hidden' }}>
-                              <div style={{ width: `${pct}%`, height: '100%', background: pct > 90 ? '#EF4444' : '#3B82F6', borderRadius: 2 }} />
+                            <div className={styles.inlineProgressTrack}>
+                              <div className={`${styles.inlineProgressFill} ${pct > 90 ? styles.inlineProgressFillDanger : ''}`} style={{ width: `${pct}%` }} />
                             </div>
                             <span className={styles.tdMuted}>{pct}%</span>
                           </div>

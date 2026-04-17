@@ -20,14 +20,14 @@
 .pageTitle {
   font-size: var(--tl-text-2xl);
   font-weight: 800;
-  color: #1F2937;
+  color: var(--tl-text-primary);
   letter-spacing: -0.02em;
   margin: 0;
 }
 
 .pageSubtitle {
   font-size: var(--tl-text-sm);
-  color: #6B7280;
+  color: var(--tl-text-tertiary);
   margin: var(--tl-space-1) 0 0;
 }
 
@@ -40,7 +40,7 @@
 
 .progressBar {
   height: 4px;
-  background-color: #E5E7EB;
+  background-color: var(--tl-border-default);
   border-radius: 2px;
   overflow: hidden;
 }
@@ -62,23 +62,23 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background-color: #F3F4F6;
-  border: 2px solid #E5E7EB;
+  background-color: var(--tl-bg-surface);
+  border: 2px solid var(--tl-border-default);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 600;
   font-size: var(--tl-text-sm);
-  color: #6B7280;
+  color: var(--tl-text-tertiary);
   cursor: pointer;
   transition: all var(--tl-duration-fast);
 }
 
 .stepIndicator.active {
   background-color: var(--tl-brand-bg);
-  color: white;
+  color: var(--tl-text-inverse);
   border-color: var(--tl-brand-fg);
-  box-shadow: 0 0 0 4px rgba(0, 255, 102, 0.08);
+  box-shadow: 0 0 0 4px var(--tl-brand-muted);
 }
 
 .stepIndicator.completed {
@@ -93,8 +93,8 @@
 
 /* ── Card ── */
 .card {
-  background: #FFFFFF;
-  border: 1px solid #E5E7EB;
+  background: var(--tl-bg-secondary);
+  border: 1px solid var(--tl-border-default);
   border-radius: var(--tl-radius-lg);
   padding: var(--tl-space-8);
   display: flex;
@@ -128,14 +128,14 @@
 .stepTitle {
   font-size: var(--tl-text-xl);
   font-weight: 700;
-  color: #1F2937;
+  color: var(--tl-text-primary);
   letter-spacing: -0.01em;
   margin: 0;
 }
 
 .stepDescription {
   font-size: var(--tl-text-sm);
-  color: #6B7280;
+  color: var(--tl-text-tertiary);
   margin: 0;
 }
 
@@ -155,7 +155,7 @@
 .label {
   font-size: var(--tl-text-sm);
   font-weight: 500;
-  color: #1F2937;
+  color: var(--tl-text-primary);
   display: flex;
   align-items: center;
   gap: var(--tl-space-1);
@@ -167,43 +167,43 @@
 
 .textarea {
   padding: var(--tl-space-3) var(--tl-space-4);
-  background-color: #F9FAFB;
-  border: 1px solid #E5E7EB;
+  background-color: var(--tl-bg-tertiary);
+  border: 1px solid var(--tl-border-default);
   border-radius: var(--tl-radius-md);
   font-family: inherit;
   font-size: var(--tl-text-md);
-  color: #1F2937;
+  color: var(--tl-text-primary);
   resize: vertical;
   transition: all var(--tl-duration-fast);
 
   &::placeholder {
-    color: #9CA3AF;
+    color: var(--tl-text-muted);
   }
 
   &:focus {
     outline: none;
     border-color: var(--tl-brand-fg);
-    background-color: #FFFFFF;
-    box-shadow: 0 0 0 3px rgba(0, 255, 102, 0.08);
+    background-color: var(--tl-bg-secondary);
+    box-shadow: var(--tl-shadow-focus);
   }
 }
 
 .select {
   padding: var(--tl-space-3) var(--tl-space-4);
-  background-color: #F9FAFB;
-  border: 1px solid #E5E7EB;
+  background-color: var(--tl-bg-tertiary);
+  border: 1px solid var(--tl-border-default);
   border-radius: var(--tl-radius-md);
   font-family: inherit;
   font-size: var(--tl-text-md);
-  color: #1F2937;
+  color: var(--tl-text-primary);
   cursor: pointer;
   transition: all var(--tl-duration-fast);
 
   &:focus {
     outline: none;
     border-color: var(--tl-brand-fg);
-    background-color: #FFFFFF;
-    box-shadow: 0 0 0 3px rgba(0, 255, 102, 0.08);
+    background-color: var(--tl-bg-secondary);
+    box-shadow: var(--tl-shadow-focus);
   }
 
   &:disabled {
@@ -221,7 +221,7 @@
 }
 
 .emptyMessage {
-  color: #9CA3AF;
+  color: var(--tl-text-muted);
   font-size: var(--tl-text-sm);
   text-align: center;
   padding: var(--tl-space-6);
@@ -229,8 +229,8 @@
 }
 
 .batchCard {
-  background-color: #F9FAFB;
-  border: 1px solid #E5E7EB;
+  background-color: var(--tl-bg-tertiary);
+  border: 1px solid var(--tl-border-default);
   border-radius: var(--tl-radius-md);
   padding: var(--tl-space-5);
   display: flex;
@@ -246,7 +246,7 @@
 
 .batchNumber {
   font-weight: 600;
-  color: #1F2937;
+  color: var(--tl-text-primary);
   font-size: var(--tl-text-sm);
 }
 
@@ -254,8 +254,8 @@
   width: 32px;
   height: 32px;
   border-radius: var(--tl-radius-md);
-  border: 1px solid #E5E7EB;
-  background-color: #FFFFFF;
+  border: 1px solid var(--tl-border-default);
+  background-color: var(--tl-bg-secondary);
   color: #EF4444;
   display: flex;
   align-items: center;
@@ -264,7 +264,7 @@
   transition: all var(--tl-duration-fast);
 
   &:hover {
-    background-color: #FEE2E2;
+    background-color: rgba(239, 68, 68, 0.15);
     border-color: #EF4444;
   }
 
@@ -285,7 +285,7 @@
 
 /* ── Media Upload ── */
 .coverImageUpload {
-  border: 2px dashed #E5E7EB;
+  border: 2px dashed var(--tl-border-default);
   border-radius: var(--tl-radius-lg);
   padding: var(--tl-space-6);
   display: flex;
@@ -307,7 +307,7 @@
 
 .coverImageUpload:hover {
   border-color: var(--tl-brand-fg);
-  background-color: rgba(108, 92, 231, 0.02);
+  background-color: var(--tl-brand-muted);
 }
 
 .hiddenInput {
@@ -345,7 +345,7 @@
   transition: all var(--tl-duration-fast);
 
   &:hover {
-    background-color: #dc2626;
+    background-color: var(--tl-error-hover);
     transform: scale(1.1);
   }
 
@@ -362,8 +362,8 @@
 }
 
 .reviewCard {
-  background-color: #F9FAFB;
-  border: 1px solid #E5E7EB;
+  background-color: var(--tl-bg-tertiary);
+  border: 1px solid var(--tl-border-default);
   border-radius: var(--tl-radius-md);
   padding: var(--tl-space-5);
   display: flex;
@@ -374,7 +374,7 @@
 .reviewTitle {
   font-size: var(--tl-text-sm);
   font-weight: 700;
-  color: #1F2937;
+  color: var(--tl-text-primary);
   margin: 0;
   letter-spacing: -0.01em;
 }
@@ -384,7 +384,7 @@
   flex-direction: column;
   gap: var(--tl-space-1);
   padding-bottom: var(--tl-space-2);
-  border-bottom: 1px solid #E5E7EB;
+  border-bottom: 1px solid var(--tl-border-default);
 }
 
 .reviewItem:last-child {
@@ -395,14 +395,14 @@
 .reviewLabel {
   font-size: var(--tl-text-xs);
   font-weight: 600;
-  color: #6B7280;
+  color: var(--tl-text-tertiary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .reviewValue {
   font-size: var(--tl-text-sm);
-  color: #1F2937;
+  color: var(--tl-text-primary);
   font-weight: 500;
 }
 
@@ -412,7 +412,7 @@
   gap: var(--tl-space-3);
   justify-content: space-between;
   padding-top: var(--tl-space-6);
-  border-top: 1px solid #E5E7EB;
+  border-top: 1px solid var(--tl-border-default);
 }
 
 .actions button {

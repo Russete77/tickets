@@ -113,11 +113,11 @@ const AdminOrders: React.FC = () => {
                 {isLoading ? (
                   Array.from({ length: PAGE_SIZE }).map((_, i) => (
                     <tr key={i}>{Array.from({ length: 9 }).map((__, j) => (
-                      <td key={j}><div style={{ height: 14, background: '#F3F4F6', borderRadius: 4 }} /></td>
+                      <td key={j}><div className={styles.skeletonCell} /></td>
                     ))}</tr>
                   ))
                 ) : orders.length === 0 ? (
-                  <tr><td colSpan={9} style={{ textAlign: 'center', padding: '3rem', color: '#9CA3AF' }}>Nenhum pedido encontrado</td></tr>
+                  <tr><td colSpan={9} className={styles.emptyRow} style={{ padding: '3rem' }}>Nenhum pedido encontrado</td></tr>
                 ) : (
                   orders.map((o) => {
                     const s = STATUS_MAP[o.status] ?? { label: o.status, cls: styles.badgeGray };

@@ -5,7 +5,7 @@
 /* ── Period Toggle ── */
 .periodToggle {
   display: flex;
-  background: #F3F4F6;
+  background: var(--tl-bg-surface);
   border-radius: var(--tl-radius-md);
   padding: 3px;
   gap: 2px;
@@ -18,17 +18,17 @@
   border-radius: calc(var(--tl-radius-md) - 2px);
   font-size: var(--tl-text-sm);
   font-weight: 500;
-  color: #6B7280;
+  color: var(--tl-text-tertiary);
   cursor: pointer;
   transition: all var(--tl-duration-fast);
   white-space: nowrap;
 }
 
 .periodBtnActive {
-  background: #FFFFFF;
-  color: #1F2937;
+  background: var(--tl-bg-secondary);
+  color: var(--tl-text-primary);
   font-weight: 600;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--tl-shadow-sm);
 }
 
 /* ── Balance Section ── */
@@ -99,8 +99,8 @@
 }
 
 .balanceSecondaryCard {
-  background: #FFFFFF;
-  border: 1px solid #E5E7EB;
+  background: var(--tl-bg-secondary);
+  border: 1px solid var(--tl-border-default);
   border-radius: var(--tl-radius-lg);
   padding: var(--tl-space-5);
   display: flex;
@@ -111,7 +111,7 @@
 .secondaryLabel {
   font-size: var(--tl-text-xs);
   font-weight: 600;
-  color: #6B7280;
+  color: var(--tl-text-tertiary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: var(--tl-space-2);
@@ -120,21 +120,21 @@
 .secondaryAmount {
   font-size: var(--tl-text-2xl);
   font-weight: 800;
-  color: #1F2937;
+  color: var(--tl-text-primary);
   letter-spacing: -0.02em;
   margin-bottom: var(--tl-space-2);
 }
 
 .secondarySubtext {
   font-size: var(--tl-text-xs);
-  color: #6B7280;
+  color: var(--tl-text-tertiary);
 }
 
 /* ── Modal ── */
 .modalOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--tl-bg-overlay);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -142,9 +142,9 @@
 }
 
 .modal {
-  background: #FFFFFF;
+  background: var(--tl-bg-secondary);
   border-radius: var(--tl-radius-lg);
-  box-shadow: 0 20px 25px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--tl-shadow-xl);
   max-width: 500px;
   width: 90%;
   max-height: 90vh;
@@ -156,13 +156,13 @@
   align-items: center;
   justify-content: space-between;
   padding: var(--tl-space-6);
-  border-bottom: 1px solid #E5E7EB;
+  border-bottom: 1px solid var(--tl-border-default);
 }
 
 .modalTitle {
   font-size: var(--tl-text-lg);
   font-weight: 700;
-  color: #1F2937;
+  color: var(--tl-text-primary);
   margin: 0;
 }
 
@@ -172,18 +172,18 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #F3F4F6;
+  background: var(--tl-bg-surface);
   border: none;
   border-radius: var(--tl-radius-md);
-  color: #6B7280;
+  color: var(--tl-text-tertiary);
   cursor: pointer;
   transition: all var(--tl-duration-fast);
   padding: 0;
 }
 
 .modalCloseBtn:hover {
-  background: #E5E7EB;
-  color: #1F2937;
+  background: var(--tl-border-default);
+  color: var(--tl-text-primary);
 }
 
 .modalBody {
@@ -194,8 +194,8 @@
 }
 
 .infoBox {
-  background: #F9FAFB;
-  border: 1px solid #E5E7EB;
+  background: var(--tl-bg-tertiary);
+  border: 1px solid var(--tl-border-default);
   border-radius: var(--tl-radius-md);
   padding: var(--tl-space-4);
 }
@@ -203,7 +203,7 @@
 .infoLabel {
   font-size: var(--tl-text-xs);
   font-weight: 600;
-  color: #6B7280;
+  color: var(--tl-text-tertiary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin: 0 0 var(--tl-space-2);
@@ -212,7 +212,7 @@
 .infoValue {
   font-size: var(--tl-text-2xl);
   font-weight: 800;
-  color: #1F2937;
+  color: var(--tl-text-primary);
   margin: 0;
 }
 
@@ -225,16 +225,16 @@
 .label {
   font-size: var(--tl-text-sm);
   font-weight: 600;
-  color: #1F2937;
+  color: var(--tl-text-primary);
 }
 
 .input {
   padding: var(--tl-space-3) var(--tl-space-4);
-  border: 1px solid #E5E7EB;
+  border: 1px solid var(--tl-border-default);
   border-radius: var(--tl-radius-md);
   font-size: var(--tl-text-sm);
-  color: #1F2937;
-  background: #FFFFFF;
+  color: var(--tl-text-primary);
+  background: var(--tl-bg-secondary);
   transition: border-color var(--tl-duration-fast), box-shadow var(--tl-duration-fast);
   font-family: inherit;
 }
@@ -242,12 +242,12 @@
 .input:focus {
   outline: none;
   border-color: var(--tl-brand-fg);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  box-shadow: var(--tl-shadow-focus);
 }
 
 .input:disabled {
-  background: #F9FAFB;
-  color: #9CA3AF;
+  background: var(--tl-bg-tertiary);
+  color: var(--tl-text-muted);
   cursor: not-allowed;
 }
 
@@ -256,15 +256,15 @@
   align-items: center;
   gap: var(--tl-space-3);
   padding: var(--tl-space-6);
-  border-top: 1px solid #E5E7EB;
+  border-top: 1px solid var(--tl-border-default);
 }
 
 .btnCancel {
   flex: 1;
   padding: var(--tl-space-3) var(--tl-space-4);
-  background: #FFFFFF;
-  color: #374151;
-  border: 1px solid #E5E7EB;
+  background: var(--tl-bg-secondary);
+  color: var(--tl-text-secondary);
+  border: 1px solid var(--tl-border-default);
   border-radius: var(--tl-radius-md);
   font-size: var(--tl-text-sm);
   font-weight: 600;
@@ -273,14 +273,14 @@
 }
 
 .btnCancel:hover {
-  background: #F9FAFB;
+  background: var(--tl-bg-tertiary);
 }
 
 .btnSubmit {
   flex: 1;
   padding: var(--tl-space-3) var(--tl-space-4);
   background: var(--tl-brand-bg);
-  color: #FFFFFF;
+  color: var(--tl-text-inverse);
   border: none;
   border-radius: var(--tl-radius-md);
   font-size: var(--tl-text-sm);
@@ -290,12 +290,12 @@
 }
 
 .btnSubmit:hover:not(:disabled) {
-  background: #2563EB;
+  background: var(--tl-brand-bg-hover);
   transform: translateY(-1px);
 }
 
 .btnSubmit:disabled {
-  background: #9CA3AF;
+  background: var(--tl-text-muted);
   cursor: not-allowed;
 }
 

@@ -21,21 +21,21 @@
 .pageTitle {
   font-size: var(--tl-text-2xl);
   font-weight: 800;
-  color: var(--tl-text-primary, #1F2937);
+  color: var(--tl-text-primary);
   letter-spacing: -0.02em;
   margin: 0;
 }
 
 .pageSubtitle {
   font-size: var(--tl-text-sm);
-  color: var(--tl-text-primary-muted, #6B7280);
+  color: var(--tl-text-tertiary);
   margin: var(--tl-space-1) 0 0;
 }
 
 /* ── Period toggle ── */
 .periodToggle {
   display: flex;
-  background: #F3F4F6;
+  background: var(--tl-bg-surface);
   border-radius: var(--tl-radius-md);
   padding: 3px;
   gap: 2px;
@@ -48,17 +48,17 @@
   border-radius: calc(var(--tl-radius-md) - 2px);
   font-size: var(--tl-text-sm);
   font-weight: 500;
-  color: #6B7280;
+  color: var(--tl-text-tertiary);
   cursor: pointer;
   transition: all var(--tl-duration-fast);
   white-space: nowrap;
 }
 
 .periodBtnActive {
-  background: #FFFFFF;
-  color: var(--tl-text-primary, #1F2937);
+  background: var(--tl-bg-secondary);
+  color: var(--tl-text-primary);
   font-weight: 600;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--tl-shadow-sm);
 }
 
 /* ── KPI Grid ── */
@@ -69,8 +69,8 @@
 }
 
 .kpiCard {
-  background: var(--tl-bg-surface, #FFFFFF);
-  border: 1px solid var(--admin-border, #E5E7EB);
+  background: var(--tl-bg-secondary);
+  border: 1px solid var(--tl-border-default);
   border-radius: var(--tl-radius-lg);
   padding: var(--tl-space-5);
   display: flex;
@@ -80,7 +80,7 @@
 }
 
 .kpiCard:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--tl-shadow-md);
   transform: translateY(-1px);
 }
 
@@ -97,9 +97,9 @@
 
 /* KPI color variants */
 .kpiColor_blue .kpiIcon   { background: var(--tl-brand-muted); }
-.kpiColor_green .kpiIcon  { background: #D1FAE5; }
-.kpiColor_orange .kpiIcon { background: #FEF3C7; }
-.kpiColor_purple .kpiIcon { background: #EDE9FE; }
+.kpiColor_green .kpiIcon  { background: rgba(16, 185, 129, 0.15); }
+.kpiColor_orange .kpiIcon { background: rgba(245, 158, 11, 0.15); }
+.kpiColor_purple .kpiIcon { background: rgba(139, 92, 246, 0.15); }
 
 .kpiBody {
   flex: 1;
@@ -109,7 +109,7 @@
 .kpiTitle {
   font-size: var(--tl-text-xs);
   font-weight: 600;
-  color: #6B7280;
+  color: var(--tl-text-tertiary);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   margin: 0 0 var(--tl-space-1);
@@ -118,7 +118,7 @@
 .kpiValue {
   font-size: var(--tl-text-2xl);
   font-weight: 800;
-  color: var(--tl-text-primary, #1F2937);
+  color: var(--tl-text-primary);
   letter-spacing: -0.02em;
   margin: 0;
   white-space: nowrap;
@@ -144,8 +144,8 @@
 
 /* ── Card ── */
 .card {
-  background: var(--tl-bg-surface, #FFFFFF);
-  border: 1px solid var(--admin-border, #E5E7EB);
+  background: var(--tl-bg-secondary);
+  border: 1px solid var(--tl-border-default);
   border-radius: var(--tl-radius-lg);
   padding: var(--tl-space-5);
   display: flex;
@@ -162,7 +162,7 @@
 .cardTitle {
   font-size: var(--tl-text-md);
   font-weight: 700;
-  color: var(--tl-text-primary, #1F2937);
+  color: var(--tl-text-primary);
   margin: 0;
 }
 
@@ -213,7 +213,7 @@
 
 .chartLabel {
   font-size: 10px;
-  color: #9CA3AF;
+  color: var(--tl-text-muted);
   white-space: nowrap;
   font-weight: 500;
 }
@@ -235,7 +235,7 @@
   width: 24px;
   font-size: var(--tl-text-sm);
   font-weight: 700;
-  color: #9CA3AF;
+  color: var(--tl-text-muted);
   text-align: right;
   flex-shrink: 0;
   padding-top: 2px;
@@ -249,7 +249,7 @@
 .topEventTitle {
   font-size: var(--tl-text-sm);
   font-weight: 600;
-  color: var(--tl-text-primary, #1F2937);
+  color: var(--tl-text-primary);
   margin: 0 0 var(--tl-space-2);
   white-space: nowrap;
   overflow: hidden;
@@ -258,7 +258,7 @@
 
 .progressBar {
   height: 6px;
-  background: #F3F4F6;
+  background: var(--tl-bg-surface);
   border-radius: var(--tl-radius-pill);
   overflow: hidden;
   margin-bottom: var(--tl-space-1);
@@ -273,7 +273,7 @@
 
 .topEventMeta {
   font-size: var(--tl-text-xs);
-  color: #6B7280;
+  color: var(--tl-text-tertiary);
   margin: 0;
 }
 
@@ -291,7 +291,7 @@
 }
 
 .table thead tr {
-  border-bottom: 1px solid var(--admin-border, #E5E7EB);
+  border-bottom: 1px solid var(--tl-border-default);
 }
 
 .table th {
@@ -299,32 +299,32 @@
   text-align: left;
   font-size: var(--tl-text-xs);
   font-weight: 700;
-  color: #6B7280;
+  color: var(--tl-text-tertiary);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   white-space: nowrap;
 }
 
 .table tbody tr {
-  border-bottom: 1px solid #F9FAFB;
+  border-bottom: 1px solid var(--tl-border-default);
   transition: background var(--tl-duration-fast);
 }
 
 .table tbody tr:hover {
-  background: #F9FAFB;
+  background: var(--tl-bg-tertiary);
 }
 
 .table td {
   padding: var(--tl-space-4);
   font-size: var(--tl-text-sm);
-  color: var(--tl-text-primary, #1F2937);
+  color: var(--tl-text-primary);
   vertical-align: middle;
 }
 
 .tdMono {
   font-family: var(--tl-font-mono);
   font-size: var(--tl-text-xs);
-  color: #6B7280 !important;
+  color: var(--tl-text-tertiary) !important;
 }
 
 .tdTruncate {
@@ -340,7 +340,7 @@
 
 .emptyRow {
   text-align: center;
-  color: #9CA3AF;
+  color: var(--tl-text-muted);
   padding: var(--tl-space-8) !important;
 }
 
@@ -355,18 +355,18 @@
 }
 
 .statusConfirmed {
-  background: #D1FAE5;
-  color: #065F46;
+  background: rgba(16, 185, 129, 0.15);
+  color: #10B981;
 }
 
 .statusPending {
-  background: #FEF3C7;
-  color: #92400E;
+  background: rgba(245, 158, 11, 0.15);
+  color: #F59E0B;
 }
 
 .statusCancelled {
-  background: #FEE2E2;
-  color: #991B1B;
+  background: rgba(239, 68, 68, 0.15);
+  color: #EF4444;
 }
 
 /* ── Responsive ── */

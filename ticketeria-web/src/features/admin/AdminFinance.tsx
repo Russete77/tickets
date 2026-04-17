@@ -222,7 +222,7 @@ const AdminFinance: React.FC = () => {
                     <tr key={i}>
                       {Array.from({ length: 7 }).map((__, j) => (
                         <td key={j}>
-                          <div style={{ height: 14, background: '#F3F4F6', borderRadius: 4 }} />
+                          <div className={sharedStyles.skeletonCell} />
                         </td>
                       ))}
                     </tr>
@@ -244,7 +244,7 @@ const AdminFinance: React.FC = () => {
                           </span>
                         </td>
                         <td className={sharedStyles.tdMuted}>{t.eventName || '-'}</td>
-                        <td className={sharedStyles.tdBold} style={{ color: typeInfo.sign === '+' ? '#059669' : '#DC2626' }}>
+                        <td className={`${sharedStyles.tdBold} ${typeInfo.sign === '+' ? sharedStyles.amountPositive : sharedStyles.amountNegative}`}>
                           {typeInfo.sign}{formatCurrency(t.amount)}
                         </td>
                         <td className={sharedStyles.tdMuted}>{t.paymentMethod}</td>
@@ -284,7 +284,7 @@ const AdminFinance: React.FC = () => {
                     <tr key={i}>
                       {Array.from({ length: 5 }).map((__, j) => (
                         <td key={j}>
-                          <div style={{ height: 14, background: '#F3F4F6', borderRadius: 4 }} />
+                          <div className={sharedStyles.skeletonCell} />
                         </td>
                       ))}
                     </tr>
@@ -341,7 +341,7 @@ const AdminFinance: React.FC = () => {
                     <tr key={i}>
                       {Array.from({ length: 5 }).map((__, j) => (
                         <td key={j}>
-                          <div style={{ height: 14, background: '#F3F4F6', borderRadius: 4 }} />
+                          <div className={sharedStyles.skeletonCell} />
                         </td>
                       ))}
                     </tr>
@@ -357,7 +357,7 @@ const AdminFinance: React.FC = () => {
                       <td className={sharedStyles.tdBold}>{e.ticketsSold.toLocaleString('pt-BR')}</td>
                       <td className={sharedStyles.tdBold}>{formatCurrency(e.grossRevenue)}</td>
                       <td className={sharedStyles.tdMuted}>{formatCurrency(e.platformFee)}</td>
-                      <td className={sharedStyles.tdBold} style={{ color: '#059669' }}>
+                      <td className={`${sharedStyles.tdBold} ${sharedStyles.amountPositive}`}>
                         {formatCurrency(e.netRevenue)}
                       </td>
                     </tr>

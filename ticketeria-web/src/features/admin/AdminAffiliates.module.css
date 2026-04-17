@@ -22,17 +22,17 @@
 .label {
   font-size: var(--tl-text-sm);
   font-weight: 600;
-  color: #374151;
+  color: var(--tl-text-secondary);
 }
 
 .input,
 .select {
   padding: var(--tl-space-2) var(--tl-space-3);
-  border: 1px solid #E5E7EB;
+  border: 1px solid var(--tl-border-default);
   border-radius: var(--tl-radius-md);
   font-size: var(--tl-text-sm);
-  color: #1F2937;
-  background: #FFFFFF;
+  color: var(--tl-text-primary);
+  background: var(--tl-bg-secondary);
   transition: border-color var(--tl-duration-fast), box-shadow var(--tl-duration-fast);
 }
 
@@ -40,7 +40,7 @@
 .select:focus {
   outline: none;
   border-color: var(--tl-brand-fg);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  box-shadow: var(--tl-shadow-focus);
 }
 
 /* ── Top Affiliates List ── */
@@ -57,16 +57,16 @@
   align-items: center;
   gap: var(--tl-space-4);
   padding: var(--tl-space-4);
-  background: #F9FAFB;
+  background: var(--tl-bg-tertiary);
   border-radius: var(--tl-radius-md);
-  border: 1px solid #E5E7EB;
+  border: 1px solid var(--tl-border-default);
   transition: all var(--tl-duration-fast);
 }
 
 .affiliateItem:hover {
-  background: #FFFFFF;
-  border-color: #D1D5DB;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  background: var(--tl-bg-secondary);
+  border-color: var(--tl-border-medium);
+  box-shadow: var(--tl-shadow-sm);
 }
 
 .affiliateRank {
@@ -84,7 +84,7 @@
 .affiliateName {
   font-size: var(--tl-text-sm);
   font-weight: 600;
-  color: #1F2937;
+  color: var(--tl-text-primary);
   margin: 0;
   white-space: nowrap;
   overflow: hidden;
@@ -93,7 +93,7 @@
 
 .affiliateEmail {
   font-size: var(--tl-text-xs);
-  color: #6B7280;
+  color: var(--tl-text-tertiary);
   margin: var(--tl-space-1) 0 0;
 }
 
@@ -110,7 +110,7 @@
 .statLabel {
   font-size: var(--tl-text-xs);
   font-weight: 600;
-  color: #6B7280;
+  color: var(--tl-text-tertiary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin: 0 0 var(--tl-space-1);
@@ -119,7 +119,7 @@
 .statValue {
   font-size: var(--tl-text-md);
   font-weight: 700;
-  color: #1F2937;
+  color: var(--tl-text-primary);
   margin: 0;
 }
 
