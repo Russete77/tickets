@@ -79,6 +79,9 @@ export interface AsaasWallet {
 
 export interface AsaasBalance {
   balance: number;
+  totalBalance?: number;
+  availableBalance?: number;
+  pendingBalance?: number;
 }
 
 export interface AsaasTransfer {
@@ -92,6 +95,7 @@ export interface AsaasTransfer {
 export interface AsaasStatement {
   object: string;
   hasMore: boolean;
+  totalCount?: number;
   limit: number;
   offset: number;
   data: AsaasTransaction[];

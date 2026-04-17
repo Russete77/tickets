@@ -27,7 +27,7 @@ export class FormFieldsService {
           eventId,
           label: data.label,
           type: data.type,
-          options: data.options ? data.options : null,
+          options: data.options ? data.options : undefined,
           required: data.required ?? false,
           sortOrder: data.sortOrder ?? 0,
         },
@@ -87,7 +87,7 @@ export class FormFieldsService {
         data: {
           label: data.label,
           type: data.type,
-          options: data.options !== undefined ? data.options : field.options,
+          options: data.options !== undefined ? data.options : (field.options as any),
           required: data.required,
           sortOrder: data.sortOrder,
         },

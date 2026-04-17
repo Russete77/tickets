@@ -158,7 +158,7 @@ export class PaymentsService {
     event: string,
     payload: unknown,
   ): Promise<void> {
-    await WebhookService.processWebhook(event, payload);
+    await WebhookService.processWebhook(event, payload as any);
   }
 
   /**

@@ -12,7 +12,7 @@ import { CreateFieldInput, UpdateFieldInput, SubmitResponseInput } from './form-
  */
 export const createField = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const eventId = req.params.eventId;
+    const eventId = req.params.eventId as string;
     const data = req.body as CreateFieldInput;
 
     const field = await FormFieldsService.createField(eventId, data);
@@ -32,7 +32,7 @@ export const createField = async (req: Request, res: Response, next: NextFunctio
  */
 export const listFields = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const eventId = req.params.eventId;
+    const eventId = req.params.eventId as string;
 
     const fields = await FormFieldsService.listFields(eventId);
 
@@ -51,7 +51,7 @@ export const listFields = async (req: Request, res: Response, next: NextFunction
  */
 export const updateField = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const fieldId = req.params.id;
+    const fieldId = req.params.id as string;
     const data = req.body as UpdateFieldInput;
 
     const field = await FormFieldsService.updateField(fieldId, data);
@@ -71,7 +71,7 @@ export const updateField = async (req: Request, res: Response, next: NextFunctio
  */
 export const deleteField = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const fieldId = req.params.id;
+    const fieldId = req.params.id as string;
 
     await FormFieldsService.deleteField(fieldId);
 
@@ -90,7 +90,7 @@ export const deleteField = async (req: Request, res: Response, next: NextFunctio
  */
 export const submitResponses = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const ticketId = req.params.ticketId;
+    const ticketId = req.params.ticketId as string;
     const data = req.body as SubmitResponseInput;
 
     const responses = await FormFieldsService.submitResponses(ticketId, data);
@@ -110,7 +110,7 @@ export const submitResponses = async (req: Request, res: Response, next: NextFun
  */
 export const getResponses = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const ticketId = req.params.ticketId;
+    const ticketId = req.params.ticketId as string;
 
     const responses = await FormFieldsService.getResponses(ticketId);
 
@@ -129,7 +129,7 @@ export const getResponses = async (req: Request, res: Response, next: NextFuncti
  */
 export const exportResponses = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const eventId = req.params.eventId;
+    const eventId = req.params.eventId as string;
 
     const responses = await FormFieldsService.getEventResponses(eventId);
 

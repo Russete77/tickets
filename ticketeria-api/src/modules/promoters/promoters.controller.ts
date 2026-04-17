@@ -1,13 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
 import { promotersService } from './promoters.service';
-import {
-  RegisterPromoterInput,
-  ListPromotersInput,
-  UpdatePromoterInput,
-  AssignToEventInput,
-  PromoterIdParams,
-  EventIdParams,
-} from './promoters.validators';
 
 /**
  * Controladores para gerenciamento de promoters
@@ -19,7 +11,7 @@ export class PromotersController {
    * Registrar novo promoter
    */
   static async register(
-    req: Request<unknown, unknown, RegisterPromoterInput>,
+    req: Request,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
@@ -47,12 +39,12 @@ export class PromotersController {
    * Listar promoters com paginação e busca
    */
   static async list(
-    req: Request<unknown, unknown, unknown, ListPromotersInput>,
+    req: Request,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
     try {
-      const pagination = req.query as ListPromotersInput;
+      const pagination = req.query as any;
 
       const result = await promotersService.list(pagination);
 
@@ -71,12 +63,12 @@ export class PromotersController {
    * Obter promoter por ID com stats
    */
   static async getById(
-    req: Request<PromoterIdParams>,
+    req: Request,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
 
       const promoter = await promotersService.getById(id);
 
@@ -94,13 +86,13 @@ export class PromotersController {
    * Atualizar dados do promoter
    */
   static async update(
-    req: Request<PromoterIdParams, unknown, UpdatePromoterInput>,
+    req: Request,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
     try {
       const userId = req.user!.userId;
-      const { id } = req.params;
+      const id = req.params.id as string;
       const { displayName, instagram, whatsapp } = req.body;
 
       const promoter = await promotersService.update(id, userId, {
@@ -123,16 +115,13 @@ export class PromotersController {
    * Atribuir promoter a um evento
    */
   static async assignToEvent(
-    req: Request<
-      PromoterIdParams & EventIdParams,
-      unknown,
-      AssignToEventInput
-    >,
+    req: Request,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
     try {
-      const { id: promoterId, eventId } = req.params;
+      const promoterId = req.params.id as string;
+      const eventId = req.params.eventId as string;
       const { maxGuests } = req.body;
 
       const assignment = await promotersService.assignToEvent(
@@ -155,12 +144,12 @@ export class PromotersController {
    * Obter eventos atribuídos ao promoter
    */
   static async getAssignedEvents(
-    req: Request<PromoterIdParams>,
+    req: Request,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
 
       const events = await promotersService.getAssignedEvents(id);
 
@@ -201,13 +190,13 @@ export class PromotersController {
    * Obter estatísticas do promoter para um evento
    */
   static async getEventStats(
-    req: Request<EventIdParams>,
+    req: Request,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
     try {
       const userId = req.user!.userId;
-      const { eventId } = req.params;
+      const eventId = req.params.eventId as string;
 
       // First, get the promoter by userId to get promoterId
       const dashboard = await promotersService.getMyDashboard(userId);

@@ -122,11 +122,7 @@ export class TicketsService {
     const secret = ticket.totpSecret;
 
     // Gerar URL de autenticação para QR code
-    const keyuri = authenticator.keyuri({
-      issuer: 'Ticketeria',
-      accountName: ticket.holderName,
-      secret,
-    });
+    const keyuri = authenticator.keyuri(ticket.holderName, 'Ticketeria', secret);
 
     // Cache TOTP atual por 2 minutos
     const token = authenticator.generate(secret);
@@ -236,7 +232,7 @@ export class TicketsService {
   async confirmTransfer(transferId: string, userId: string, otpCode: string): Promise<Ticket> {
     const transfer = await prisma.ticketTransfer.findUnique({
       where: { id: transferId },
-      include: { ticket: true },
+      include: { ticket: true, toUser: true },
     });
 
     if (!transfer) {
@@ -274,9 +270,9 @@ export class TicketsService {
         where: { id: transfer.ticketId },
         data: {
           holderId: userId,
-          holderEmail: transfer.toUser?.email,
-          holderCpf: transfer.toUser?.cpf,
-          holderName: transfer.toUser?.name,
+          holderEmail: (transfer as any).toUser?.email,
+          holderCpf: (transfer as any).toUser?.cpf,
+          holderName: (transfer as any).toUser?.name,
           totpSecret: newTotpSecret,
           transferCount: { increment: 1 },
           status: 'transferred',

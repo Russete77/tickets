@@ -12,7 +12,7 @@ export class AffiliatesController {
    * Criar novo link de afiliado
    */
   static async createLink(
-    req: Request<unknown, unknown, CreateLinkInput>,
+    req: Request,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
@@ -36,13 +36,13 @@ export class AffiliatesController {
    * Listar links de afiliado do usuário
    */
   static async getMyLinks(
-    req: Request<unknown, unknown, unknown, GetAffiliateStatsInput>,
+    req: Request,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
     try {
       const userId = req.user!.userId;
-      const pagination = req.query as GetAffiliateStatsInput;
+      const pagination = req.query as unknown as GetAffiliateStatsInput;
 
       const result = await affiliatesService.getMyLinks(userId, pagination);
 
@@ -84,12 +84,12 @@ export class AffiliatesController {
    * Rastrear clique em link de afiliado (público, redireciona)
    */
   static async trackClick(
-    req: Request<{ code: string }>,
+    req: Request,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
     try {
-      const { code } = req.params;
+      const code = req.params.code as string;
 
       // Rastrear clique
       await affiliatesService.trackClick(code);
@@ -98,10 +98,11 @@ export class AffiliatesController {
       const link = await affiliatesService.getByCode(code);
 
       if (!link) {
-        return res.status(404).json({
+        res.status(404).json({
           success: false,
           message: 'Link de afiliado não encontrado',
         });
+        return;
       }
 
       // Redirecionar para a página do evento

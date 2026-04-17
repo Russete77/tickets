@@ -186,9 +186,10 @@ export class BoxOfficeService {
         customer = await prisma.user.create({
           data: {
             email: `door-sale-${Date.now()}@ticketeria.local`,
-            cpf: data.customerCpf,
+            cpf: data.customerCpf || `000${Date.now()}`,
             name: data.customerName,
-            role: 'customer',
+            role: 'consumer',
+            passwordHash: '',
           },
         });
       }

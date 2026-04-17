@@ -48,7 +48,6 @@ export class AreasService {
         name: data.name,
         capacity: data.capacity,
         currentCount: 0,
-        description: data.description || null,
       },
     });
 
@@ -67,7 +66,6 @@ export class AreasService {
       name: area.name,
       capacity: area.capacity,
       currentCount: area.currentCount,
-      description: area.description,
       createdAt: area.createdAt,
     };
   }
@@ -96,7 +94,6 @@ export class AreasService {
       name: a.name,
       capacity: a.capacity,
       currentCount: a.currentCount,
-      description: a.description,
       createdAt: a.createdAt,
     }));
   }
@@ -121,7 +118,6 @@ export class AreasService {
     const updateData: any = {};
     if (data.name) updateData.name = data.name;
     if (data.capacity) updateData.capacity = data.capacity;
-    if (data.description !== undefined) updateData.description = data.description || null;
 
     const updated = await prisma.eventArea.update({
       where: { id: areaId },
@@ -143,7 +139,6 @@ export class AreasService {
       name: updated.name,
       capacity: updated.capacity,
       currentCount: updated.currentCount,
-      description: updated.description,
       createdAt: updated.createdAt,
     };
   }
@@ -226,7 +221,6 @@ export class AreasService {
       name: updated.name,
       capacity: updated.capacity,
       currentCount: updated.currentCount,
-      description: updated.description,
       createdAt: updated.createdAt,
     };
   }

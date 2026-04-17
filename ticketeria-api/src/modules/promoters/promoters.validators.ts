@@ -40,6 +40,11 @@ export const eventIdParamSchema = z.object({
   eventId: z.string().uuid('ID de evento inválido'),
 });
 
+export const assignParamSchema = z.object({
+  id: z.string().uuid('ID de promoter inválido'),
+  eventId: z.string().uuid('ID de evento inválido'),
+});
+
 // Type exports
 export type RegisterPromoterInput = z.infer<typeof registerPromoterSchema>;
 export type ListPromotersInput = z.infer<typeof listPromotersSchema>;

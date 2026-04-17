@@ -22,7 +22,7 @@ export class CertificatesController {
   ): Promise<void> {
     try {
       const userId = req.user!.userId;
-      const { eventId } = req.params;
+      const eventId = req.params.eventId as string;
       const data = req.body as CreateCertificateInput;
 
       const certificate = await CertificatesService.issue(eventId, userId, data);
@@ -44,7 +44,7 @@ export class CertificatesController {
   static async listByEvent(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const userId = req.user!.userId;
-      const { eventId } = req.params;
+      const eventId = req.params.eventId as string;
       const { cursor, limit, direction } = req.query as unknown as ListCertificatesInput;
 
       const result = await CertificatesService.listByEvent(
@@ -74,7 +74,7 @@ export class CertificatesController {
    */
   static async verifyCertificate(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { code } = req.params;
+      const code = req.params.code as string;
 
       const certificate = await CertificatesService.verify(code);
 
@@ -93,7 +93,7 @@ export class CertificatesController {
    */
   static async getCertificateById(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
 
       const certificate = await CertificatesService.getById(id);
 
@@ -112,7 +112,7 @@ export class CertificatesController {
    */
   static async generatePdf(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
 
       const result = await CertificatesService.generatePdf(id);
 

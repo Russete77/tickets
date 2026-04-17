@@ -10,7 +10,7 @@ import { LiveService } from './live.service';
  * Obtém compras recentes para prova social em página de evento
  */
 export const getEventPurchases = async (req: Request, res: Response): Promise<void> => {
-  const { eventId } = req.params;
+  const eventId = req.params.eventId as string;
   const limit = Math.min(parseInt(req.query.limit as string) || 10, 50);
 
   const purchases = await LiveService.getRecentPurchases(eventId, limit);
@@ -41,7 +41,7 @@ export const getGlobalPurchases = async (req: Request, res: Response): Promise<v
  * Obtém contagem de visualizadores online
  */
 export const getEventViewerCount = async (req: Request, res: Response): Promise<void> => {
-  const { eventId } = req.params;
+  const eventId = req.params.eventId as string;
 
   const viewerCount = await LiveService.getOnlineViewerCount(eventId);
 
@@ -59,7 +59,7 @@ export const getEventViewerCount = async (req: Request, res: Response): Promise<
  * Obtém estatísticas completas em tempo real
  */
 export const getEventLiveStats = async (req: Request, res: Response): Promise<void> => {
-  const { eventId } = req.params;
+  const eventId = req.params.eventId as string;
 
   const stats = await LiveService.getEventLiveStats(eventId);
 

@@ -7,11 +7,9 @@ interface StaffMember {
   id: string;
   eventId: string;
   name: string;
-  email: string;
   cpf?: string | null;
   phone?: string | null;
   role: string;
-  description?: string | null;
   checkedIn: boolean;
   checkedInAt?: Date | null;
   createdAt: Date;
@@ -50,11 +48,9 @@ export class StaffService {
       data: {
         eventId,
         name: data.name,
-        email: data.email,
         cpf: data.cpf || null,
         phone: data.phone || null,
-        role: data.role,
-        description: data.description || null,
+        role: data.role as any,
         checkedIn: false,
       },
     });
@@ -72,11 +68,9 @@ export class StaffService {
       id: staff.id,
       eventId: staff.eventId,
       name: staff.name,
-      email: staff.email,
       cpf: staff.cpf,
       phone: staff.phone,
       role: staff.role,
-      description: staff.description,
       checkedIn: staff.checkedIn,
       checkedInAt: staff.checkedInAt,
       createdAt: staff.createdAt,
@@ -105,11 +99,9 @@ export class StaffService {
       id: s.id,
       eventId: s.eventId,
       name: s.name,
-      email: s.email,
       cpf: s.cpf,
       phone: s.phone,
       role: s.role,
-      description: s.description,
       checkedIn: s.checkedIn,
       checkedInAt: s.checkedInAt,
       createdAt: s.createdAt,
@@ -135,11 +127,9 @@ export class StaffService {
     // Preparar dados de update
     const updateData: any = {};
     if (data.name) updateData.name = data.name;
-    if (data.email) updateData.email = data.email;
     if (data.cpf) updateData.cpf = data.cpf;
     if (data.phone) updateData.phone = data.phone;
     if (data.role) updateData.role = data.role;
-    if (data.description !== undefined) updateData.description = data.description || null;
 
     const updated = await prisma.eventStaff.update({
       where: { id: staffId },
@@ -159,11 +149,9 @@ export class StaffService {
       id: updated.id,
       eventId: updated.eventId,
       name: updated.name,
-      email: updated.email,
       cpf: updated.cpf,
       phone: updated.phone,
       role: updated.role,
-      description: updated.description,
       checkedIn: updated.checkedIn,
       checkedInAt: updated.checkedInAt,
       createdAt: updated.createdAt,
@@ -232,11 +220,9 @@ export class StaffService {
       id: updated.id,
       eventId: updated.eventId,
       name: updated.name,
-      email: updated.email,
       cpf: updated.cpf,
       phone: updated.phone,
       role: updated.role,
-      description: updated.description,
       checkedIn: updated.checkedIn,
       checkedInAt: updated.checkedInAt,
       createdAt: updated.createdAt,

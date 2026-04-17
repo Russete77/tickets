@@ -39,7 +39,7 @@ export async function asaasFetch<T = unknown>(
 
   if (!response.ok) {
     try {
-      const errorData = await response.json();
+      const errorData = await response.json() as { errors?: Array<{ message?: string }> };
       throw new Error(
         `Asaas API error: ${response.status} ${response.statusText} - ${errorData.errors?.[0]?.message || JSON.stringify(errorData)}`,
       );

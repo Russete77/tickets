@@ -9,6 +9,7 @@ import {
   assignToEventSchema,
   promoterIdParamSchema,
   eventIdParamSchema,
+  assignParamSchema,
 } from './promoters.validators';
 
 export const promotersRouter = Router();
@@ -67,10 +68,7 @@ promotersRouter.post(
   authenticate,
   authorize('producer', 'admin'),
   validate({
-    params: {
-      id: promoterIdParamSchema.shape.id,
-      eventId: eventIdParamSchema.shape.eventId,
-    },
+    params: assignParamSchema,
     body: assignToEventSchema,
   }),
   PromotersController.assignToEvent,

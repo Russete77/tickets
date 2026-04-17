@@ -39,7 +39,7 @@ export const sellTicketSchema = z.object({
     .int('Quantidade deve ser um número inteiro')
     .min(1, 'Quantidade deve ser maior que 0'),
   paymentMethod: z.enum(['cash', 'card', 'pix'], {
-    errorMap: () => ({ message: 'Método de pagamento inválido (cash, card, pix)' }),
+    error: 'Método de pagamento inválido (cash, card, pix)',
   }),
   customerName: z
     .string()

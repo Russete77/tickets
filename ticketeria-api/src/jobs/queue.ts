@@ -86,38 +86,38 @@ export const cleanupSessionsQueue = new Queue('cleanup-expired-sessions', {
 
 export async function setupRecurringJobs(): Promise<void> {
   // Expira reservas pendentes a cada 1 minuto
-  await expireReservationsQueue.upsertJobScheduler(
-    'expire-reservations-cron',
-    { pattern: '*/1 * * * *' },
-    { name: 'expire-reservations', data: {} },
+  await expireReservationsQueue.add(
+    'expire-reservations',
+    {},
+    { repeat: { pattern: '*/1 * * * *' }, jobId: 'expire-reservations-cron' },
   );
 
   // Verifica lotes agendados a cada 5 minutos
-  await batchScheduleQueue.upsertJobScheduler(
-    'batch-schedule-cron',
-    { pattern: '*/5 * * * *' },
-    { name: 'batch-schedule', data: {} },
+  await batchScheduleQueue.add(
+    'batch-schedule',
+    {},
+    { repeat: { pattern: '*/5 * * * *' }, jobId: 'batch-schedule-cron' },
   );
 
   // Envia pedido de avaliação às 10h
-  await postEventReviewQueue.upsertJobScheduler(
-    'post-event-review-cron',
-    { pattern: '0 10 * * *' },
-    { name: 'post-event-review', data: {} },
+  await postEventReviewQueue.add(
+    'post-event-review',
+    {},
+    { repeat: { pattern: '0 10 * * *' }, jobId: 'post-event-review-cron' },
   );
 
   // Gera relatórios pós-evento às 6h
-  await postEventReportQueue.upsertJobScheduler(
-    'post-event-report-cron',
-    { pattern: '0 6 * * *' },
-    { name: 'post-event-report', data: {} },
+  await postEventReportQueue.add(
+    'post-event-report',
+    {},
+    { repeat: { pattern: '0 6 * * *' }, jobId: 'post-event-report-cron' },
   );
 
   // Limpa sessions expiradas às 3h
-  await cleanupSessionsQueue.upsertJobScheduler(
-    'cleanup-sessions-cron',
-    { pattern: '0 3 * * *' },
-    { name: 'cleanup-sessions', data: {} },
+  await cleanupSessionsQueue.add(
+    'cleanup-sessions',
+    {},
+    { repeat: { pattern: '0 3 * * *' }, jobId: 'cleanup-sessions-cron' },
   );
 
   logger.info('✅ Recurring jobs configurados');

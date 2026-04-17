@@ -1,5 +1,6 @@
 import swaggerUi from 'swagger-ui-express';
 import { Express } from 'express';
+import { env } from './env';
 
 /**
  * OpenAPI 3.0.3 Specification for Ticketeria API
@@ -27,7 +28,7 @@ const openApiSpec = {
       description: 'API v1 - Production',
     },
     {
-      url: 'http://localhost:3000/api/v1',
+      url: `${env.API_BASE_URL}/api/v1`,
       description: 'Development server',
     },
   ],

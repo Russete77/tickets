@@ -32,7 +32,7 @@ export class CheckinController {
    */
   static async getCapacity(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { eventId } = req.params;
+      const eventId = req.params.eventId as string;
 
       const capacity = await CheckinService.getEventCapacity(eventId);
 

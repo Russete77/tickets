@@ -181,7 +181,7 @@ export class FinanceService {
         transferId: transferResponse.id,
         status: transferResponse.status,
         amount: data.amount,
-        scheduledDate: transferResponse.scheduledDate || new Date().toISOString(),
+        scheduledDate: transferResponse.scheduleDate || new Date().toISOString(),
       };
     } catch (error) {
       if (error instanceof BadRequestError) {

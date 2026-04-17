@@ -20,7 +20,7 @@ const router = Router();
 router.post(
   '/:eventId',
   authenticate,
-  authorize(['producer']),
+  authorize('producer'),
   requireEventOwnership,
   validate({ params: eventIdParamSchema, body: createStaffSchema }),
   StaffController.addStaffMember,
@@ -33,7 +33,7 @@ router.post(
 router.get(
   '/:eventId',
   authenticate,
-  authorize(['producer']),
+  authorize('producer'),
   requireEventOwnership,
   validate({ params: eventIdParamSchema }),
   StaffController.listStaff,
@@ -46,7 +46,7 @@ router.get(
 router.patch(
   '/:id',
   authenticate,
-  authorize(['producer']),
+  authorize('producer'),
   validate({ params: staffIdParamSchema, body: updateStaffSchema }),
   StaffController.updateStaff,
 );
@@ -58,7 +58,7 @@ router.patch(
 router.delete(
   '/:id',
   authenticate,
-  authorize(['producer']),
+  authorize('producer'),
   validate({ params: staffIdParamSchema }),
   StaffController.removeStaff,
 );
@@ -81,7 +81,7 @@ router.post(
 router.get(
   '/:eventId/dashboard',
   authenticate,
-  authorize(['producer']),
+  authorize('producer'),
   requireEventOwnership,
   validate({ params: eventIdParamSchema }),
   StaffController.getStaffDashboard,

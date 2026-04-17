@@ -12,7 +12,7 @@ import { CreateInsuranceInput, UpdateInsuranceInput } from './insurance.validato
  */
 export const createInsurance = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const eventId = req.params.eventId;
+    const eventId = req.params.eventId as string;
     const data = req.body as CreateInsuranceInput;
 
     const insurance = await InsuranceService.create(eventId, data);
@@ -32,7 +32,7 @@ export const createInsurance = async (req: Request, res: Response, next: NextFun
  */
 export const getInsurance = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const eventId = req.params.eventId;
+    const eventId = req.params.eventId as string;
 
     const insurance = await InsuranceService.getByEvent(eventId);
 
@@ -51,7 +51,7 @@ export const getInsurance = async (req: Request, res: Response, next: NextFuncti
  */
 export const updateInsurance = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const insuranceId = req.params.id;
+    const insuranceId = req.params.id as string;
     const data = req.body as UpdateInsuranceInput;
 
     const insurance = await InsuranceService.update(insuranceId, data);
@@ -71,7 +71,7 @@ export const updateInsurance = async (req: Request, res: Response, next: NextFun
  */
 export const deleteInsurance = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const insuranceId = req.params.id;
+    const insuranceId = req.params.id as string;
 
     await InsuranceService.delete(insuranceId);
 

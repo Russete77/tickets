@@ -40,13 +40,13 @@ export class AdminController {
    * Listar eventos com paginação
    */
   static async listEvents(
-    req: Request<unknown, unknown, unknown, ListEventsInput>,
+    req: Request,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
     try {
-      const pagination = req.query as ListEventsInput;
-      const filters = pagination.status ? { status: pagination.status as unknown as string } : undefined;
+      const pagination = req.query as unknown as ListEventsInput;
+      const filters = pagination.status ? { status: pagination.status as any } : undefined;
 
       const result = await adminService.listEvents(filters, pagination);
 
@@ -65,14 +65,14 @@ export class AdminController {
    * Moderar evento
    */
   static async moderateEvent(
-    req: Request<EventIdParam, unknown, ModerateEventInput>,
+    req: Request,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
     try {
       const adminId = req.user!.userId;
-      const { id: eventId } = req.params;
-      const { action, reason } = req.body;
+      const eventId = req.params.id as string;
+      const { action, reason } = req.body as ModerateEventInput;
 
       const event = await adminService.moderateEvent(eventId, action, reason, adminId);
 
@@ -90,13 +90,13 @@ export class AdminController {
    * Listar usuários com paginação
    */
   static async listUsers(
-    req: Request<unknown, unknown, unknown, ListUsersInput>,
+    req: Request,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
     try {
-      const pagination = req.query as ListUsersInput;
-      const filters = pagination.role ? { role: pagination.role as unknown as string } : undefined;
+      const pagination = req.query as unknown as ListUsersInput;
+      const filters = pagination.role ? { role: pagination.role as any } : undefined;
 
       const result = await adminService.listUsers(filters, pagination);
 
@@ -115,14 +115,14 @@ export class AdminController {
    * Gerenciar usuário
    */
   static async manageUser(
-    req: Request<UserIdParam, unknown, ManageUserInput>,
+    req: Request,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
     try {
       const adminId = req.user!.userId;
-      const { id: userId } = req.params;
-      const { action, reason } = req.body;
+      const userId = req.params.id as string;
+      const { action, reason } = req.body as ManageUserInput;
 
       const user = await adminService.manageUser(userId, action, reason, adminId);
 

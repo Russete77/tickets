@@ -55,15 +55,19 @@ export class PermissionsService {
     }
 
     // Verificar se já existe uma permissão idêntica
-    const existingPermission = await prisma.permission.findUnique({
-      where: {
-        userId_eventId_resource: {
-          userId,
-          eventId: eventId || null,
-          resource,
-        },
-      },
-    });
+    const existingPermission = eventId
+      ? await prisma.permission.findUnique({
+          where: {
+            userId_eventId_resource: {
+              userId,
+              eventId,
+              resource,
+            },
+          },
+        })
+      : await prisma.permission.findFirst({
+          where: { userId, eventId: null, resource },
+        });
 
     if (existingPermission) {
       throw new ConflictError(
@@ -249,15 +253,15 @@ export class PermissionsService {
     action: string,
   ): Promise<boolean> {
     // Buscar permissão global (sem evento) ou específica do evento
-    const permission = await prisma.permission.findUnique({
-      where: {
-        userId_eventId_resource: {
-          userId,
-          eventId: eventId || null,
-          resource,
-        },
-      },
-    });
+    const permission = eventId
+      ? await prisma.permission.findUnique({
+          where: {
+            userId_eventId_resource: { userId, eventId, resource },
+          },
+        })
+      : await prisma.permission.findFirst({
+          where: { userId, eventId: null, resource },
+        });
 
     if (!permission) {
       return false;

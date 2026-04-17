@@ -196,8 +196,8 @@ export class GuestListsService {
         phone: data.phone || null,
         email: data.email || null,
         plusOnes,
-        listType: data.listType,
-        status: config.autoApprove ? 'confirmed' : 'pending',
+        listType: data.listType as any,
+        status: (config.autoApprove ? 'confirmed' : 'pending') as any,
       },
     });
 
@@ -284,7 +284,7 @@ export class GuestListsService {
     const updated = await prisma.guestEntry.update({
       where: { id: entryId },
       data: {
-        status: data.status || entry.status,
+        status: (data.status || entry.status) as any,
         plusOnes: data.plusOnes !== undefined ? data.plusOnes : entry.plusOnes,
         phone: data.phone !== undefined ? data.phone : entry.phone,
         email: data.email !== undefined ? data.email : entry.email,

@@ -2,7 +2,7 @@ import { prisma } from '../../config/database';
 import { OnboardingService } from './onboarding.service';
 import { FinanceService } from './finance.service';
 import { RegisterProducerInput, GetFinancialSummaryQuery, RequestWithdrawalInput, GetStatementQuery } from './producers.validators';
-import { Producer, User } from '../../generated/prisma/client';
+import { Producer } from '../../generated/prisma/client';
 
 /**
  * Serviço principal de produtores que orquestra os sub-serviços
@@ -27,7 +27,7 @@ export class ProducersService {
   /**
    * Obtém perfil do produtor
    */
-  static async getProfile(userId: string): Promise<Producer & { user: User }> {
+  static async getProfile(userId: string): Promise<Producer & { user: any }> {
     return OnboardingService.getProfile(userId);
   }
 
@@ -97,7 +97,7 @@ export class ProducersService {
     limit: number;
     offset: number;
   }> {
-    const where: { asaasStatus?: string } = {};
+    const where: { asaasStatus?: any } = {};
 
     if (status) {
       where.asaasStatus = status;

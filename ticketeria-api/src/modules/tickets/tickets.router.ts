@@ -34,10 +34,10 @@ router.get('/mine', authenticate, getMyTickets);
 router.get('/history', authenticate, getTicketHistory);
 
 // GET /tickets/:id
-router.get('/:id', authenticate, validate({ params: ticketIdParamSchema }, getTicket));
+router.get('/:id', authenticate, validate({ params: ticketIdParamSchema }), getTicket);
 
 // GET /tickets/:id/qr
-router.get('/:id/qr', authenticate, validate({ params: ticketIdParamSchema }, getTicketQR));
+router.get('/:id/qr', authenticate, validate({ params: ticketIdParamSchema }), getTicketQR);
 
 // POST /tickets/:id/transfer
 router.post(
@@ -60,6 +60,6 @@ router.post(
  */
 
 // POST /tickets/validate-qr
-router.post('/validate-qr', authenticate, validate({ body: validateQRSchema }, validateQR));
+router.post('/validate-qr', authenticate, validate({ body: validateQRSchema }), validateQR);
 
 export default router;

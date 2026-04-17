@@ -3,6 +3,7 @@ import { decrypt, generateTicketHash, generateTotpSecret } from '../../shared/cr
 import { logAudit, AuditActions } from '../../shared/audit';
 import { Order, OrderStatus, Ticket, User } from '../../generated/prisma/client';
 import { AsaasWebhookPayload } from '../../types/asaas.types';
+import { logger } from '../../shared/logger';
 
 type OrderWithRelations = Order & {
   tickets: Ticket[];
@@ -33,7 +34,7 @@ export class WebhookService {
     const { payment } = payload;
 
     if (!payment) {
-      console.warn('Payload de webhook inválido: payment ausente');
+      logger.warn('Payload de webhook inválido: payment ausente');
       return;
     }
 
@@ -57,7 +58,7 @@ export class WebhookService {
     });
 
     if (!order) {
-      console.warn(`Webhook: ordem não encontrada para payment ${payment.id}`);
+      logger.warn({ paymentId: payment.id }, 'Webhook: ordem não encontrada para payment');
       return;
     }
 
@@ -97,7 +98,7 @@ export class WebhookService {
       case 'PAYMENT_BANK_SLIP_VIEWED':
       default:
         // Log apenas
-        console.log(`Evento de webhook não processado: ${event} para ordem ${order.id}`);
+        logger.info({ event, orderId: order.id }, 'Evento de webhook não processado');
     }
   }
 
@@ -247,7 +248,7 @@ export class WebhookService {
   /**
    * Processa reembolso total
    */
-  private static async handlePaymentRefunded(order: OrderWithRelations, payment: unknown): Promise<void> {
+  private static async handlePaymentRefunded(order: OrderWithRelations, payment: Record<string, any>): Promise<void> {
     await prisma.$transaction(async (tx) => {
       // Atualizar status do pedido
       await tx.order.update({
@@ -298,7 +299,7 @@ export class WebhookService {
   /**
    * Processa reembolso parcial
    */
-  private static async handlePaymentPartiallyRefunded(order: OrderWithRelations, payment: unknown): Promise<void> {
+  private static async handlePaymentPartiallyRefunded(order: OrderWithRelations, payment: Record<string, any>): Promise<void> {
     await logAudit({
       action: 'PAYMENT_PARTIALLY_REFUNDED',
       entityType: 'Order',

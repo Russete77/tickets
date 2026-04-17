@@ -277,7 +277,7 @@ export class ReportsService {
     const grossRevenueCents = orders.reduce((sum, order) => sum + order.totalCents, 0);
     const platformFeeCents = orders.reduce((sum, order) => sum + order.platformFeeCents, 0);
     const netRevenueCents = grossRevenueCents - platformFeeCents;
-    const totalTicketsSold = orders.reduce((sum, order) => sum + order.tickets?.length || 0, 0);
+    const totalTicketsSold = await prisma.ticket.count({ where: { eventId, status: { not: 'cancelled' } } });
     const averageTicketPriceCents = totalTicketsSold > 0 ? Math.round(grossRevenueCents / totalTicketsSold) : 0;
 
     // Breakdown por método de pagamento

@@ -450,14 +450,16 @@ export class AuthService {
     const accessToken = jwt.sign(
       accessPayload,
       jwtKeys.privateKey,
-      { algorithm: 'RS256', expiresIn: env.JWT_ACCESS_EXPIRES_IN }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      { algorithm: 'RS256', expiresIn: env.JWT_ACCESS_EXPIRES_IN as any }
     );
 
     // Refresh token: HS256 with symmetric secret (server-side only)
     const refreshToken = jwt.sign(
       refreshPayload,
       env.JWT_REFRESH_SECRET,
-      { expiresIn: env.JWT_REFRESH_EXPIRES_IN }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      { expiresIn: env.JWT_REFRESH_EXPIRES_IN as any }
     );
 
     // Armazenar refresh token em Redis para invalidacao

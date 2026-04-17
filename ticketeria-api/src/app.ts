@@ -14,8 +14,8 @@ import { setupSwagger } from './config/swagger';
 // Routers dos módulos
 import { authRouter } from './modules/auth/auth.router';
 import { usersRouter } from './modules/users/users.router';
-import { eventsRouter } from './modules/events/events.router';
-import { ticketsRouter } from './modules/tickets/tickets.router';
+import eventsRouter from './modules/events/events.router';
+import ticketsRouter from './modules/tickets/tickets.router';
 import { ordersRouter } from './modules/orders/orders.router';
 import { paymentsRouter } from './modules/payments/payments.router';
 import { checkinRouter } from './modules/checkin/checkin.router';
@@ -170,7 +170,7 @@ export function createApp() {
   // Sentry error handler
   // ============================
   if (env.SENTRY_DSN) {
-    app.use(Sentry.setupExpressErrorHandler());
+    Sentry.setupExpressErrorHandler(app);
   }
 
   // ============================

@@ -2,7 +2,6 @@ import { Request, Response, NextFunction } from 'express';
 import { reportsService } from './reports.service';
 import { reportsDataService } from './reports.data.service';
 import { ExcelReportBuilder } from './reports.excel.service';
-import { SalesReportInput, CheckinReportInput, ExportReportInput } from './reports.validators';
 
 /**
  * Controladores para relatórios
@@ -14,14 +13,14 @@ export class ReportsController {
    * Obter relatório de vendas
    */
   static async getSalesReport(
-    req: Request<{ eventId: string }, unknown, unknown, SalesReportInput>,
+    req: Request,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
     try {
       const userId = req.user!.userId;
-      const { eventId } = req.params;
-      const filters = req.query as SalesReportInput;
+      const eventId = req.params.eventId as string;
+      const filters = req.query as any;
 
       const report = await reportsService.getSalesReport(eventId, userId, filters);
 
@@ -39,13 +38,13 @@ export class ReportsController {
    * Obter relatório de checkin
    */
   static async getCheckinReport(
-    req: Request<{ eventId: string }, unknown, unknown, CheckinReportInput>,
+    req: Request,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
     try {
       const userId = req.user!.userId;
-      const { eventId } = req.params;
+      const eventId = req.params.eventId as string;
 
       const report = await reportsService.getCheckinReport(eventId, userId);
 
@@ -63,13 +62,13 @@ export class ReportsController {
    * Obter relatório financeiro
    */
   static async getFinancialReport(
-    req: Request<{ eventId: string }>,
+    req: Request,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
     try {
       const userId = req.user!.userId;
-      const { eventId } = req.params;
+      const eventId = req.params.eventId as string;
 
       const report = await reportsService.getFinancialReport(eventId, userId);
 
@@ -87,19 +86,21 @@ export class ReportsController {
    * Exportar relatório em CSV
    */
   static async exportReport(
-    req: Request<{ type: string; eventId: string }>,
+    req: Request,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
     try {
       const userId = req.user!.userId;
-      const { type, eventId } = req.params;
+      const type = req.params.type as string;
+      const eventId = req.params.eventId as string;
 
       if (!['sales', 'checkin', 'financial'].includes(type)) {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           message: 'Tipo de relatório inválido',
         });
+        return;
       }
 
       const csv = await reportsService.exportCSV(type as 'sales' | 'checkin' | 'financial', eventId, userId);
@@ -117,13 +118,13 @@ export class ReportsController {
    * Exportar relatorio completo em Excel (9 abas)
    */
   static async exportExcel(
-    req: Request<{ eventId: string }>,
+    req: Request,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
     try {
       const userId = req.user!.userId;
-      const { eventId } = req.params;
+      const eventId = req.params.eventId as string;
 
       const data = await reportsDataService.getExcelReportData(eventId, userId);
       const builder = new ExcelReportBuilder(data);

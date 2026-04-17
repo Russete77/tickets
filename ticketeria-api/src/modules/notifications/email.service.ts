@@ -98,12 +98,12 @@ export class EmailService {
    * Log de email para fins de desenvolvimento
    */
   private logEmail(content: EmailContent): void {
-    logger.debug('[EMAIL]', {
+    logger.debug({
       to: content.to,
       subject: content.subject,
       template: content.template,
       timestamp: new Date().toISOString(),
-    });
+    }, '[EMAIL]');
   }
 
   /**

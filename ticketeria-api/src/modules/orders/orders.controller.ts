@@ -27,7 +27,7 @@ export class OrdersController {
           direction: direction as 'forward' | 'backward' | undefined,
         },
         {
-          status,
+          status: status as any,
           eventId,
         },
       );
@@ -48,7 +48,7 @@ export class OrdersController {
   static async getOrderById(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const userId = req.user!.userId;
-      const { id } = req.params;
+      const id = req.params.id as string;
 
       const order = await OrdersService.getOrderById(id, userId);
 
@@ -68,7 +68,7 @@ export class OrdersController {
   static async cancelOrder(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const userId = req.user!.userId;
-      const { id } = req.params;
+      const id = req.params.id as string;
       const ipAddress = req.ip || req.socket.remoteAddress;
       const userAgent = req.get('user-agent');
 

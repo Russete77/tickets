@@ -20,7 +20,7 @@ const router = Router();
 router.post(
   '/:eventId',
   authenticate,
-  authorize(['producer', 'admin']),
+  authorize('producer', 'admin'),
   requireEventOwnership,
   validate({ params: eventIdParamSchema, body: createItemSchema }),
   StoreController.createItem,
@@ -53,7 +53,7 @@ router.get(
 router.patch(
   '/items/:id',
   authenticate,
-  authorize(['producer', 'admin']),
+  authorize('producer', 'admin'),
   validate({ params: itemIdParamSchema, body: updateItemSchema }),
   StoreController.updateItem,
 );
@@ -65,7 +65,7 @@ router.patch(
 router.delete(
   '/items/:id',
   authenticate,
-  authorize(['producer', 'admin']),
+  authorize('producer', 'admin'),
   validate({ params: itemIdParamSchema }),
   StoreController.deleteItem,
 );

@@ -22,7 +22,7 @@ export class CredentialsController {
   ): Promise<void> {
     try {
       const userId = req.user!.userId;
-      const { eventId } = req.params;
+      const eventId = req.params.eventId as string;
       const data = req.body as CreateCredentialInput;
 
       const credential = await CredentialsService.create(eventId, userId, data);
@@ -44,7 +44,7 @@ export class CredentialsController {
   static async listByEvent(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const userId = req.user!.userId;
-      const { eventId } = req.params;
+      const eventId = req.params.eventId as string;
       const { cursor, limit, direction, category } = req.query as unknown as ListCredentialsInput;
 
       const result = await CredentialsService.list(
@@ -75,7 +75,7 @@ export class CredentialsController {
    */
   static async getCredentialById(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
 
       const credential = await CredentialsService.getById(id);
 
@@ -94,7 +94,7 @@ export class CredentialsController {
    */
   static async checkinCredential(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
 
       const credential = await CredentialsService.checkin(id);
 
@@ -119,7 +119,7 @@ export class CredentialsController {
   ): Promise<void> {
     try {
       const userId = req.user!.userId;
-      const { eventId } = req.params;
+      const eventId = req.params.eventId as string;
       const entries = req.body as BulkCreateInput;
 
       const result = await CredentialsService.bulkCreate(eventId, userId, entries);

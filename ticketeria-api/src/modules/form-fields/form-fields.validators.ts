@@ -13,7 +13,7 @@ export const createFieldSchema = z.object({
     .min(1, 'Label obrigatório')
     .max(255, 'Label muito longo'),
   type: z.enum(['text', 'select', 'checkbox', 'radio', 'date', 'file'], {
-    errorMap: () => ({ message: 'Tipo de campo inválido (text, select, checkbox, radio, date, file)' }),
+    error: 'Tipo de campo inválido (text, select, checkbox, radio, date, file)',
   }),
   options: z
     .array(z.string().max(255))

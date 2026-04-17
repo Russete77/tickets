@@ -138,7 +138,7 @@ export function flashSaleQueue() {
           'User in queue (not processed)',
         );
 
-        return res.status(429).json({
+        res.status(429).json({
           success: false,
           error: {
             code: 'QUEUE_FULL',
@@ -147,6 +147,7 @@ export function flashSaleQueue() {
             estimatedWait,
           },
         });
+        return;
       }
 
       // User is within batch, add to request for later cleanup

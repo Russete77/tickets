@@ -45,7 +45,8 @@ export function idempotency(ttlSeconds: number = 86400) {
           logger.debug({ idempotencyKey }, 'Returning cached response for idempotent request');
 
           const response = JSON.parse(cachedResponse);
-          return res.status(response.status || 200).json(response.body);
+          res.status(response.status || 200).json(response.body);
+          return;
         }
       } catch (error) {
         logger.error({ error, idempotencyKey }, 'Error retrieving cached response');

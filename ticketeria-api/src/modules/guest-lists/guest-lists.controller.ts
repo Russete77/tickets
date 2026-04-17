@@ -23,12 +23,12 @@ export class GuestListsController {
    * Criar/atualizar configuração de guest list
    */
   static async createOrUpdateConfig(
-    req: Request<{ eventId: string }, unknown, CreateOrUpdateConfigInput>,
+    req: Request,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
     try {
-      const { eventId } = req.params;
+      const eventId = req.params.eventId as string;
 
       const config = await guestListsService.createOrUpdateConfig(eventId, req.body);
 
@@ -46,12 +46,12 @@ export class GuestListsController {
    * Obter configuração de guest list
    */
   static async getConfig(
-    req: Request<{ eventId: string }>,
+    req: Request,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
     try {
-      const { eventId } = req.params;
+      const eventId = req.params.eventId as string;
 
       const config = await guestListsService.getConfig(eventId);
 
@@ -69,12 +69,12 @@ export class GuestListsController {
    * Adicionar entrada manualmente
    */
   static async addEntry(
-    req: Request<{ eventId: string }, unknown, AddEntryInput>,
+    req: Request,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
     try {
-      const { eventId } = req.params;
+      const eventId = req.params.eventId as string;
 
       const entry = await guestListsService.addEntry(eventId, req.body);
 
@@ -92,12 +92,12 @@ export class GuestListsController {
    * Importar entradas de CSV
    */
   static async importCSV(
-    req: Request<{ eventId: string }, unknown, ImportCSVInput>,
+    req: Request,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
     try {
-      const { eventId } = req.params;
+      const eventId = req.params.eventId as string;
 
       // Obter config para obter guestListId
       const config = await guestListsService.getConfig(eventId);
@@ -122,12 +122,12 @@ export class GuestListsController {
    * Listar entradas com filtros
    */
   static async listEntries(
-    req: Request<{ eventId: string }, unknown, unknown, ListEntriesInput>,
+    req: Request,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
     try {
-      const { eventId } = req.params;
+      const eventId = req.params.eventId as string;
       const pagination = req.query as unknown as ListEntriesInput;
 
       const result = await guestListsService.listEntries(eventId, pagination);
@@ -147,7 +147,7 @@ export class GuestListsController {
    * Atualizar status de entrada
    */
   static async updateEntry(
-    req: Request<{ id: string }, unknown, UpdateEntryInput>,
+    req: Request,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
@@ -156,13 +156,14 @@ export class GuestListsController {
       const eventId = req.body.eventId || req.query.eventId;
 
       if (!eventId) {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           message: 'eventId é obrigatório',
         });
+        return;
       }
 
-      const entry = await guestListsService.updateEntry(id, eventId as string, req.body);
+      const entry = await guestListsService.updateEntry(id as string, eventId as string, req.body);
 
       res.json({
         success: true,
@@ -178,7 +179,7 @@ export class GuestListsController {
    * Remover entrada
    */
   static async removeEntry(
-    req: Request<{ id: string }>,
+    req: Request,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
@@ -187,13 +188,14 @@ export class GuestListsController {
       const eventId = req.query.eventId as string;
 
       if (!eventId) {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           message: 'eventId é obrigatório',
         });
+        return;
       }
 
-      await guestListsService.removeEntry(id, eventId);
+      await guestListsService.removeEntry(id as string, eventId);
 
       res.json({
         success: true,
@@ -209,22 +211,23 @@ export class GuestListsController {
    * Buscar entradas por nome ou CPF
    */
   static async searchEntries(
-    req: Request<{ eventId: string }, unknown, unknown, SearchEntriesInput>,
+    req: Request,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
     try {
-      const { eventId } = req.params;
+      const eventId = req.params.eventId as string;
       const { query } = req.query;
 
       if (!query) {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           message: 'Query é obrigatório',
         });
+        return;
       }
 
-      const entries = await guestListsService.searchEntries(eventId, query as string);
+      const entries = await guestListsService.searchEntries(eventId as string, query as string);
 
       res.json({
         success: true,
@@ -240,12 +243,12 @@ export class GuestListsController {
    * Fazer check-in de convidado
    */
   static async checkinGuest(
-    req: Request<{ eventId: string }, unknown, CheckinGuestInput>,
+    req: Request,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
     try {
-      const { eventId } = req.params;
+      const eventId = req.params.eventId as string;
       const { guestId, operatorId, plusOnesCount } = req.body;
 
       const entry = await guestListsService.checkinGuest(guestId, eventId, operatorId, plusOnesCount);
@@ -264,12 +267,12 @@ export class GuestListsController {
    * Obter estatísticas em tempo real
    */
   static async getStats(
-    req: Request<{ eventId: string }>,
+    req: Request,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
     try {
-      const { eventId } = req.params;
+      const eventId = req.params.eventId as string;
 
       const stats = await guestListsService.getStats(eventId);
 
@@ -287,12 +290,12 @@ export class GuestListsController {
    * Obter relatório completo
    */
   static async getReport(
-    req: Request<{ eventId: string }>,
+    req: Request,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
     try {
-      const { eventId } = req.params;
+      const eventId = req.params.eventId as string;
 
       const report = await guestListsService.getReport(eventId);
 
@@ -310,12 +313,12 @@ export class GuestListsController {
    * Registrar via share link (público)
    */
   static async registerPublic(
-    req: Request<{ shareLink: string }, unknown, PublicRegisterInput>,
+    req: Request,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
     try {
-      const { shareLink } = req.params;
+      const shareLink = req.params.shareLink as string;
 
       const result = await registrationService.registerViaLink(shareLink, req.body);
 
@@ -333,12 +336,12 @@ export class GuestListsController {
    * Obter informações públicas do link (validação e metadata)
    */
   static async getLinkInfo(
-    req: Request<{ shareLink: string }>,
+    req: Request,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
     try {
-      const { shareLink } = req.params;
+      const shareLink = req.params.shareLink as string;
 
       const info = await registrationService.validateShareLink(shareLink);
 

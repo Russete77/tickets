@@ -6,7 +6,8 @@ import { buildCursorPagination, formatPaginatedResponse, PaginatedResponse } fro
 import { CreateEventInput, UpdateEventInput, SearchEventsInput } from './events.validators';
 import { PublishingService } from './publishing.service';
 import { Event, EventStatus, TicketBatch } from '../../generated/prisma/client';
-import { Decimal } from '@prisma/client/runtime/library';
+import { EventCategory } from '../../generated/prisma/enums';
+import { Decimal } from '@prisma/client/runtime/client';
 import crypto from 'crypto';
 
 /**
@@ -68,7 +69,7 @@ export class EventsService {
           slug,
           description: data.description,
           shortDescription: data.shortDescription,
-          category: data.category,
+          category: data.category as EventCategory,
           venueName: data.venueName,
           venueAddress: data.venueAddress,
           venueLat: data.venueLat ? new Decimal(data.venueLat) : undefined,
@@ -97,7 +98,7 @@ export class EventsService {
             name: batch.name,
             priceCents: batch.priceCents,
             quantity: batch.quantity,
-            type: batch.type || 'regular',
+            type: (batch.type || 'regular') as any,
             startsAt: batch.startsAt ? new Date(batch.startsAt) : undefined,
             endsAt: batch.endsAt ? new Date(batch.endsAt) : undefined,
             autoSwitch: batch.autoSwitch ?? true,
@@ -197,7 +198,7 @@ export class EventsService {
       action: AuditActions.EVENT_UPDATED,
       entityType: 'event',
       entityId: eventId,
-      metadata: Object.keys(updateData),
+      metadata: { updatedFields: Object.keys(updateData) },
     });
 
     // Invalidar cache
@@ -269,6 +270,7 @@ export class EventsService {
     const pagination = buildCursorPagination({
       cursor: filters.cursor,
       limit: filters.limit,
+      direction: 'forward',
     });
 
     const where: Record<string, any> = {
@@ -348,6 +350,7 @@ export class EventsService {
     const paginationConfig = buildCursorPagination({
       cursor: pagination.cursor,
       limit: pagination.limit,
+      direction: 'forward',
     });
 
     const events = await prisma.event.findMany({

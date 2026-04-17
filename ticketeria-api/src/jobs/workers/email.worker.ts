@@ -102,7 +102,7 @@ export const emailWorker = new Worker<EmailJobData>(
       html,
     });
 
-    logger.info(`✅ Email enviado: ${template} para ${to}`, { emailId: result.id });
+    logger.info({ emailId: result.id }, `✅ Email enviado: ${template} para ${to}`);
     return { sent: true, to, template, emailId: result.id };
   },
   {

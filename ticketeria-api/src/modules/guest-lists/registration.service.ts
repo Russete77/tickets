@@ -143,7 +143,7 @@ export class RegistrationService {
     });
 
     if (!assignment) {
-      return { valid: false };
+      return { valid: false, requiresCpf: false, requiresPhone: false, spotsAvailable: 0 };
     }
 
     const config = assignment.guestList;
@@ -151,12 +151,12 @@ export class RegistrationService {
 
     // Verificar se está ativo
     if (config.status !== 'active') {
-      return { valid: false };
+      return { valid: false, requiresCpf: false, requiresPhone: false, spotsAvailable: 0 };
     }
 
     // Verificar se passou do horário
     if (config.closesAt && new Date() > config.closesAt) {
-      return { valid: false };
+      return { valid: false, requiresCpf: false, requiresPhone: false, spotsAvailable: 0 };
     }
 
     // Calcular vagas disponíveis
@@ -168,7 +168,7 @@ export class RegistrationService {
     return {
       valid: true,
       promoterName: assignment.promoter.displayName,
-      eventName: event.name,
+      eventName: event.title,
       welcomeMessage: config.welcomeMessage || undefined,
       requiresCpf: config.requiresCpf,
       requiresPhone: config.requiresPhone,

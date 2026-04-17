@@ -105,7 +105,7 @@ export class ProducersController {
       // Buscar produtor para validar
       const producer = await ProducersService.getProfile(userId);
 
-      const statement = await ProducersService.getStatement(producer.id, req.query as unknown as Record<string, unknown>);
+      const statement = await ProducersService.getStatement(producer.id, req.query as unknown as any);
 
       res.json({
         success: true,

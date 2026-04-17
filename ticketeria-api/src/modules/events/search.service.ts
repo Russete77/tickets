@@ -120,7 +120,7 @@ export class SearchService {
           ...event,
           venueLat: event.venue_lat ? parseFloat(event.venue_lat) : null,
           venueLng: event.venue_lng ? parseFloat(event.venue_lng) : null,
-        } as Event,
+        } as unknown as Event,
         distanceKm: parseFloat(event.distance_km),
       }));
 
@@ -152,27 +152,31 @@ export class SearchService {
                 gt: new Date(),
               },
             },
-            filters?.category ? { category: filters.category } : {},
+            filters?.category ? { category: filters.category as any } : {},
             {
               OR: [
                 {
                   title: {
-                    search: searchQuery,
+                    contains: searchQuery,
+                    mode: 'insensitive',
                   },
                 },
                 {
                   shortDescription: {
-                    search: searchQuery,
+                    contains: searchQuery,
+                    mode: 'insensitive',
                   },
                 },
                 {
                   description: {
-                    search: searchQuery,
+                    contains: searchQuery,
+                    mode: 'insensitive',
                   },
                 },
                 {
                   venueName: {
-                    search: searchQuery,
+                    contains: searchQuery,
+                    mode: 'insensitive',
                   },
                 },
               ],
@@ -180,11 +184,7 @@ export class SearchService {
           ],
         },
         orderBy: {
-          _relevance: {
-            fields: ['title', 'shortDescription'],
-            search: searchQuery,
-            sort: 'desc',
-          },
+          startsAt: 'asc',
         },
         take: 50,
       });
@@ -198,7 +198,7 @@ export class SearchService {
           startsAt: {
             gt: new Date(),
           },
-          ...(filters?.category && { category: filters.category }),
+          ...(filters?.category && { category: filters.category as any }),
           OR: [
             {
               title: {

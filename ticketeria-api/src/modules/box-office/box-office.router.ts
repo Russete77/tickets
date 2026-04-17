@@ -75,7 +75,7 @@ router.get(
 router.post(
   '/:eventId/print-ticket/:ticketId',
   authenticate,
-  validate({ params: eventIdParamSchema, ticketIdParamSchema }),
+  validate({ params: ticketIdParamSchema }),
   printTicket,
 );
 

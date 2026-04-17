@@ -67,7 +67,7 @@ export const postEventReportWorker = new Worker<PostEventReportJobData>(
           producer: {
             select: {
               email: true,
-              firstName: true,
+              name: true,
             },
           },
         },
@@ -86,14 +86,14 @@ export const postEventReportWorker = new Worker<PostEventReportJobData>(
             select: {
               id: true,
               status: true,
-              price: true,
-              usedAt: true,
+              priceCents: true,
+              checkedInAt: true,
             },
           });
 
           const soldTickets = allTickets.filter((t) => t.status !== 'cancelled');
           const checkedInCount = allTickets.filter((t) => t.status === 'used').length;
-          const noShowCount = allTickets.filter((t) => t.status === 'issued' && t.usedAt === null).length;
+          const noShowCount = allTickets.filter((t) => t.status === 'active' && t.checkedInAt === null).length;
 
           // Calculate rates
           const checkinRate =
@@ -103,16 +103,16 @@ export const postEventReportWorker = new Worker<PostEventReportJobData>(
               ? Math.round((noShowCount / soldTickets.length) * 100)
               : 0;
 
-          // Calculate revenue (sum of ticket prices)
+          // Calculate revenue (sum of ticket prices in cents)
           const revenue = soldTickets.reduce((sum, ticket) => {
-            return sum + (ticket.price?.toNumber() || 0);
+            return sum + (ticket.priceCents || 0);
           }, 0);
 
           // Find peak check-in hour
           const checkinsByHour: Record<number, number> = {};
           for (const ticket of allTickets) {
-            if (ticket.usedAt) {
-              const hour = new Date(ticket.usedAt).getHours();
+            if (ticket.checkedInAt) {
+              const hour = new Date(ticket.checkedInAt).getHours();
               checkinsByHour[hour] = (checkinsByHour[hour] || 0) + 1;
             }
           }
@@ -167,7 +167,7 @@ export const postEventReportWorker = new Worker<PostEventReportJobData>(
               subject: `📊 Relatório pós-evento: ${event.title}`,
               template: 'post-event-report',
               data: {
-                firstName: event.producer.firstName,
+                firstName: event.producer.name,
                 eventTitle: event.title,
                 totalTickets: report.totalTickets,
                 soldTickets: report.soldTickets,

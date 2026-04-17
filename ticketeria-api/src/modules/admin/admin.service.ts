@@ -4,6 +4,7 @@ import { buildCursorPagination, formatPaginatedResponse, type PaginatedResponse 
 import { logAudit, AuditActions } from '../../shared/audit';
 import { ListEventsInput, ListUsersInput } from './admin.validators';
 import { EventStatus, UserRole } from '../../generated/prisma/client';
+import { logger } from '../../shared/logger';
 
 interface DashboardStats {
   totalUsers: number;
@@ -222,7 +223,7 @@ export class AdminService {
 
     // Nota: Seria necessário adicionar um campo "blocked" no modelo User
     // Para agora, apenas logar a ação
-    console.log(`[ADMIN] User ${action}: ${userId}`, reason ? `- Reason: ${reason}` : '');
+    logger.info({ action, userId, reason }, '[ADMIN] User action');
 
     // Log de auditoria
     await logAudit({

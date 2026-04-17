@@ -32,11 +32,12 @@ export const capacityAlertWorker = new Worker<CapacityAlertJobData>(
           id: true,
           title: true,
           venueCapacity: true,
+          producerId: true,
           producer: {
             select: {
               id: true,
               email: true,
-              firstName: true,
+              name: true,
             },
           },
         },
@@ -72,7 +73,7 @@ export const capacityAlertWorker = new Worker<CapacityAlertJobData>(
               subject: `⚠️ Alerta de Capacidade: ${event.title}`,
               template: 'capacity-warning',
               data: {
-                firstName: event.producer.firstName,
+                firstName: event.producer.name,
                 eventTitle: event.title,
                 capacityPercent,
                 checkedIn: checkedInCount,
@@ -119,7 +120,7 @@ export const capacityAlertWorker = new Worker<CapacityAlertJobData>(
               subject: `🚨 Alerta Crítico: ${event.title} - Capacidade Crítica`,
               template: 'capacity-critical',
               data: {
-                firstName: event.producer.firstName,
+                firstName: event.producer.name,
                 eventTitle: event.title,
                 capacityPercent,
                 checkedIn: checkedInCount,
@@ -155,7 +156,7 @@ export const capacityAlertWorker = new Worker<CapacityAlertJobData>(
         await prisma.event.update({
           where: { id: eventId },
           data: {
-            status: 'at_capacity',
+            status: 'finished',
           },
         });
 
@@ -167,7 +168,7 @@ export const capacityAlertWorker = new Worker<CapacityAlertJobData>(
             subject: `🚨 EVENTO LOTADO: ${event.title}`,
             template: 'capacity-full',
             data: {
-              firstName: event.producer.firstName,
+              firstName: event.producer.name,
               eventTitle: event.title,
               checkedIn: checkedInCount,
               capacity: event.venueCapacity,

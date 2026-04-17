@@ -58,7 +58,7 @@ export class CredentialsService {
         jobTitle: data.jobTitle,
         category: data.category,
         qrCode,
-        customFields: data.customFields,
+        customFields: data.customFields ? JSON.parse(JSON.stringify(data.customFields)) : undefined,
       },
     });
 
@@ -238,7 +238,7 @@ export class CredentialsService {
             jobTitle: entry.jobTitle,
             category: entry.category,
             qrCode,
-            customFields: entry.customFields,
+            customFields: entry.customFields ? JSON.parse(JSON.stringify(entry.customFields)) : undefined,
           },
         });
 

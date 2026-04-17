@@ -61,7 +61,7 @@ export const chargeWalletSchema = z.object({
     })
   ).describe('Itens da compra'),
   tipCents: z.number().int().min(0).default(0).describe('Gorjeta em centavos'),
-  metadata: z.record(z.unknown()).optional().describe('Metadados adicionais'),
+  metadata: z.record(z.string(), z.unknown()).optional().describe('Metadados adicionais'),
 });
 
 export const reverseTransactionSchema = z.object({

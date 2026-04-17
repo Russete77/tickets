@@ -92,11 +92,11 @@ export class PushService {
           channel: 'push',
           title: payload.title,
           body: payload.body,
-          metadata: payload.data || {},
+          metadata: JSON.parse(JSON.stringify(payload.data || {})),
         },
       });
     } catch (error) {
-      logger.error(`Failed to send push to user ${payload.userId}:`, error);
+      logger.error({ error }, `Failed to send push to user ${payload.userId}`);
       throw error; // Let BullMQ retry
     }
   }

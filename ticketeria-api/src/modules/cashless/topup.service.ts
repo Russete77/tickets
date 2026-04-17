@@ -112,7 +112,7 @@ export class TopupService {
         );
       }
 
-      const data = await response.json();
+      const data = await response.json() as Record<string, any>;
 
       // Registrar transação pendente no banco
       await prisma.cashlessTransaction.create({
@@ -124,9 +124,7 @@ export class TopupService {
           balanceAfter: wallet.id as unknown as number, // Será atualizado no webhook
           paymentMethod: paymentMethod as any,
           asaasPaymentId: data.id,
-          metadata: {
-            asaasStatus: data.status,
-          },
+          metadata: JSON.parse(JSON.stringify({ asaasStatus: data.status })),
         },
       });
 

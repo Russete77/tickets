@@ -114,7 +114,7 @@ export class UsersController {
    * Obter histórico de pedidos
    */
   static async getOrderHistory(
-    req: Request<unknown, unknown, unknown, PaginationInput>,
+    req: Request,
     res: Response,
     next: NextFunction
   ): Promise<void> {

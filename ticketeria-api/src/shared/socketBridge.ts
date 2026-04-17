@@ -32,7 +32,7 @@ export function subscribeToSocketBroadcasts(io: any): void {
 
   subscriber.subscribe(CHANNEL, (err) => {
     if (err) {
-      logger.error('Failed to subscribe to socket broadcast channel:', err);
+      logger.error({ err }, 'Failed to subscribe to socket broadcast channel:');
       return;
     }
     logger.info('Subscribed to socket:broadcast channel');
@@ -44,7 +44,7 @@ export function subscribeToSocketBroadcasts(io: any): void {
       io.to(room).emit(event, data);
       logger.debug(`Socket broadcast: ${event} to ${room}`);
     } catch (error) {
-      logger.error('Failed to process socket broadcast:', error);
+      logger.error({ error }, 'Failed to process socket broadcast:');
     }
   });
 }

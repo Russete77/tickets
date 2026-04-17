@@ -24,7 +24,7 @@ export const checkoutSchema = z.object({
     .min(1, 'Pelo menos um item é obrigatório')
     .max(50, 'Máximo 50 itens por compra'),
   paymentMethod: z.enum(['pix', 'credit_card', 'boleto'], {
-    errorMap: () => ({ message: 'Método de pagamento inválido' }),
+    error: 'Método de pagamento inválido',
   }),
   couponCode: z
     .string()

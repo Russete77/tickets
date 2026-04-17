@@ -7,7 +7,7 @@ import { CreateEventInput, UpdateEventInput, SearchEventsInput, NearbyInput } fr
  * Controllers para o módulo de eventos
  */
 
-const eventsService = new EventsService();
+// EventsService uses static methods
 const searchService = new SearchService();
 
 /**
@@ -18,7 +18,7 @@ export const createEvent = async (req: Request, res: Response): Promise<void> =>
   const producerId = req.user!.userId;
   const data = req.body as CreateEventInput;
 
-  const event = await eventsService.create(producerId, data);
+  const event = await EventsService.create(producerId, data);
 
   res.status(201).json({
     success: true,
@@ -32,10 +32,10 @@ export const createEvent = async (req: Request, res: Response): Promise<void> =>
  */
 export const updateEvent = async (req: Request, res: Response): Promise<void> => {
   const producerId = req.user!.userId;
-  const eventId = req.params.id;
+  const eventId = req.params.id as string;
   const data = req.body as UpdateEventInput;
 
-  const event = await eventsService.update(eventId, producerId, data);
+  const event = await EventsService.update(eventId, producerId, data);
 
   res.json({
     success: true,
@@ -48,9 +48,9 @@ export const updateEvent = async (req: Request, res: Response): Promise<void> =>
  * Obtém evento por ID
  */
 export const getEvent = async (req: Request, res: Response): Promise<void> => {
-  const eventId = req.params.id;
+  const eventId = req.params.id as string;
 
-  const event = await eventsService.getById(eventId);
+  const event = await EventsService.getById(eventId);
 
   res.json({
     success: true,
@@ -63,9 +63,9 @@ export const getEvent = async (req: Request, res: Response): Promise<void> => {
  * Obtém evento pela slug (página pública)
  */
 export const getEventBySlug = async (req: Request, res: Response): Promise<void> => {
-  const slug = req.params.slug;
+  const slug = req.params.slug as string;
 
-  const event = await eventsService.getBySlug(slug);
+  const event = await EventsService.getBySlug(slug);
 
   res.json({
     success: true,
@@ -80,7 +80,7 @@ export const getEventBySlug = async (req: Request, res: Response): Promise<void>
 export const searchEvents = async (req: Request, res: Response): Promise<void> => {
   const filters = req.query as unknown as SearchEventsInput;
 
-  const result = await eventsService.search(filters);
+  const result = await EventsService.search(filters);
 
   res.json({
     success: true,
@@ -93,7 +93,7 @@ export const searchEvents = async (req: Request, res: Response): Promise<void> =
  * Obtém eventos deste fim de semana
  */
 export const getWeekendEvents = async (req: Request, res: Response): Promise<void> => {
-  const events = await eventsService.getWeekendEvents();
+  const events = await EventsService.getWeekendEvents();
 
   res.json({
     success: true,
@@ -108,7 +108,7 @@ export const getWeekendEvents = async (req: Request, res: Response): Promise<voi
 export const getTrendingEvents = async (req: Request, res: Response): Promise<void> => {
   const limit = parseInt(req.query.limit as string) || 10;
 
-  const events = await eventsService.getTrendingEvents(limit);
+  const events = await EventsService.getTrendingEvents(limit);
 
   res.json({
     success: true,
@@ -122,9 +122,9 @@ export const getTrendingEvents = async (req: Request, res: Response): Promise<vo
  */
 export const publishEvent = async (req: Request, res: Response): Promise<void> => {
   const producerId = req.user!.userId;
-  const eventId = req.params.id;
+  const eventId = req.params.id as string;
 
-  const event = await eventsService.publish(eventId, producerId);
+  const event = await EventsService.publish(eventId, producerId);
 
   res.json({
     success: true,
@@ -138,9 +138,9 @@ export const publishEvent = async (req: Request, res: Response): Promise<void> =
  */
 export const cancelEvent = async (req: Request, res: Response): Promise<void> => {
   const producerId = req.user!.userId;
-  const eventId = req.params.id;
+  const eventId = req.params.id as string;
 
-  const event = await eventsService.cancel(eventId, producerId);
+  const event = await EventsService.cancel(eventId, producerId);
 
   res.json({
     success: true,
@@ -157,7 +157,7 @@ export const getProducerEvents = async (req: Request, res: Response): Promise<vo
   const cursor = req.query.cursor as string | undefined;
   const limit = parseInt(req.query.limit as string) || 20;
 
-  const result = await eventsService.getProducerEvents(producerId, { cursor, limit });
+  const result = await EventsService.getProducerEvents(producerId, { cursor, limit });
 
   res.json({
     success: true,

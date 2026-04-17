@@ -286,7 +286,7 @@ export class PromotersService {
 
       return {
         eventId: assignment.guestList.event.id,
-        eventName: assignment.guestList.event.name,
+        eventName: assignment.guestList.event.title,
         guestCount,
         checkinCount,
         conversionRate: Math.round(conversionRate * 100) / 100,
@@ -330,7 +330,7 @@ export class PromotersService {
 
         return {
           eventId: assignment.guestList.event.id,
-          eventName: assignment.guestList.event.name,
+          eventName: assignment.guestList.event.title,
           guestCount: assignment.guestCount,
           checkinCount: assignment.checkinCount,
         };
@@ -405,7 +405,7 @@ export class PromotersService {
 
     return {
       eventId: config.event.id,
-      eventName: config.event.name,
+      eventName: config.event.title,
       guestsAdded: assignment.guestCount,
       checkedIn: assignment.checkinCount,
       conversionRate: Math.round(conversionRate * 100) / 100,

@@ -17,14 +17,14 @@ export class CourtesiesController {
    * Solicitar cortesia
    */
   static async requestCourtesy(
-    req: Request<EventIdParams, unknown, RequestCourtesyInput>,
+    req: Request,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
     try {
       const userId = req.user!.userId;
       const userRole = req.user!.role;
-      const { eventId } = req.params;
+      const eventId = req.params.eventId as string;
 
       const courtesy = await courtesiesService.requestCourtesy(
         eventId,
@@ -47,15 +47,15 @@ export class CourtesiesController {
    * Listar cortesias com filtros
    */
   static async listCourtesies(
-    req: Request<EventIdParams, unknown, unknown, ListCourtesiesInput>,
+    req: Request,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
     try {
       const userId = req.user!.userId;
       const userRole = req.user!.role;
-      const { eventId } = req.params;
-      const pagination = req.query as ListCourtesiesInput;
+      const eventId = req.params.eventId as string;
+      const pagination = req.query as unknown as ListCourtesiesInput;
 
       const result = await courtesiesService.listCourtesies(
         eventId,
@@ -79,7 +79,7 @@ export class CourtesiesController {
    * Aprovar cortesia e gerar ingresso
    */
   static async approveCourtesy(
-    req: Request<CourtesyIdParams>,
+    req: Request,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
@@ -88,7 +88,7 @@ export class CourtesiesController {
       const userRole = req.user!.role;
       const { id } = req.params;
 
-      const courtesy = await courtesiesService.approveCourtesy(id, userId, userRole);
+      const courtesy = await courtesiesService.approveCourtesy(id as string, userId, userRole);
 
       res.status(200).json({
         success: true,
@@ -104,7 +104,7 @@ export class CourtesiesController {
    * Rejeitar cortesia
    */
   static async rejectCourtesy(
-    req: Request<CourtesyIdParams>,
+    req: Request,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
@@ -113,7 +113,7 @@ export class CourtesiesController {
       const userRole = req.user!.role;
       const { id } = req.params;
 
-      const courtesy = await courtesiesService.rejectCourtesy(id, userId, userRole);
+      const courtesy = await courtesiesService.rejectCourtesy(id as string, userId, userRole);
 
       res.status(200).json({
         success: true,
@@ -129,7 +129,7 @@ export class CourtesiesController {
    * Revogar cortesia e cancelar ingresso
    */
   static async revokeCourtesy(
-    req: Request<CourtesyIdParams>,
+    req: Request,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
@@ -138,7 +138,7 @@ export class CourtesiesController {
       const userRole = req.user!.role;
       const { id } = req.params;
 
-      const courtesy = await courtesiesService.revokeCourtesy(id, userId, userRole);
+      const courtesy = await courtesiesService.revokeCourtesy(id as string, userId, userRole);
 
       res.status(200).json({
         success: true,
@@ -154,14 +154,14 @@ export class CourtesiesController {
    * Obter relatório de cortesias
    */
   static async getReport(
-    req: Request<EventIdParams>,
+    req: Request,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
     try {
       const userId = req.user!.userId;
       const userRole = req.user!.role;
-      const { eventId } = req.params;
+      const eventId = req.params.eventId as string;
 
       const report = await courtesiesService.getReport(eventId, userId, userRole);
 

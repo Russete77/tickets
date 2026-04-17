@@ -74,6 +74,7 @@ export class FavoritesService {
     const paginationConfig = buildCursorPagination({
       cursor: pagination.cursor,
       limit: pagination.limit,
+      direction: 'forward',
     });
 
     const favorites = await prisma.favorite.findMany({

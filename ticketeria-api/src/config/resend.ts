@@ -53,20 +53,12 @@ export async function sendEmail(options: ResendEmailOptions): Promise<ResendResp
 
     const data = (await response.json()) as ResendResponse;
 
-    logger.info(`Email sent successfully`, {
-      id: data.id,
-      to: options.to,
-      subject: options.subject,
-    });
+    logger.info({ id: data.id, to: options.to, subject: options.subject }, 'Email sent successfully');
 
     return data;
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
-    logger.error(`Failed to send email: ${message}`, {
-      to: options.to,
-      subject: options.subject,
-      error: message,
-    });
+    logger.error({ to: options.to, subject: options.subject, error: message }, `Failed to send email: ${message}`);
 
     // Don't throw - let the app continue even if email fails
     return {

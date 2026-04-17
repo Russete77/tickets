@@ -140,7 +140,7 @@ export const batchScheduleWorker = new Worker<BatchScheduleJobData>(
         // ============================================
         // Notify users who favorited this event
         // ============================================
-        const eventFavoritedBy = await prisma.eventFavorite.findMany({
+        const eventFavoritedBy = await prisma.favorite.findMany({
           where: {
             eventId: exhaustedBatch.eventId,
           },
@@ -149,7 +149,7 @@ export const batchScheduleWorker = new Worker<BatchScheduleJobData>(
             user: {
               select: {
                 email: true,
-                firstName: true,
+                name: true,
               },
             },
           },
@@ -165,7 +165,7 @@ export const batchScheduleWorker = new Worker<BatchScheduleJobData>(
                 subject: `🎟️ Novo lote disponível: ${exhaustedBatch.event.title}`,
                 template: 'new-batch-available',
                 data: {
-                  firstName: favorite.user.firstName,
+                  firstName: favorite.user.name,
                   eventTitle: exhaustedBatch.event.title,
                   batchName: nextBatch.name,
                   eventId: exhaustedBatch.eventId,

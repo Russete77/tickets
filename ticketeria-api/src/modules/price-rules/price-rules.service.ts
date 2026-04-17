@@ -76,7 +76,7 @@ export class PriceRulesService {
     const rule = await prisma.ticketPriceRule.create({
       data: {
         batchId,
-        priceType: data.priceType,
+        priceType: data.priceType as any,
         priceCents: data.priceCents,
         quantity: data.quantity || null,
         requiresDoc: data.requiresDoc,

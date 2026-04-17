@@ -20,7 +20,7 @@ const router = Router();
 router.post(
   '/:eventId',
   authenticate,
-  authorize(['producer']),
+  authorize('producer'),
   requireEventOwnership,
   validate({ params: eventIdParamSchema, body: createAreaSchema }),
   AreasController.createArea,
@@ -44,7 +44,7 @@ router.get(
 router.patch(
   '/:id',
   authenticate,
-  authorize(['producer']),
+  authorize('producer'),
   validate({ params: areaIdParamSchema, body: updateAreaSchema }),
   AreasController.updateArea,
 );
@@ -56,7 +56,7 @@ router.patch(
 router.delete(
   '/:id',
   authenticate,
-  authorize(['producer']),
+  authorize('producer'),
   validate({ params: areaIdParamSchema }),
   AreasController.deleteArea,
 );

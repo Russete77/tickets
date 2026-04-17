@@ -62,8 +62,8 @@ export const postEventReviewWorker = new Worker<PostEventReviewJobData>(
           },
           select: {
             id: true,
-            buyerEmail: true,
-            buyerName: true,
+            holderEmail: true,
+            holderName: true,
             orderId: true,
           },
         });
@@ -76,11 +76,11 @@ export const postEventReviewWorker = new Worker<PostEventReviewJobData>(
             await emailQueue.add(
               'send-email',
               {
-                to: ticket.buyerEmail,
+                to: ticket.holderEmail,
                 subject: `Nos conte sua experiência em ${event.title}! 🎉`,
                 template: 'review-request',
                 data: {
-                  firstName: ticket.buyerName,
+                  firstName: ticket.holderName,
                   eventTitle: event.title,
                   eventSlug: event.slug,
                   ticketId: ticket.id,

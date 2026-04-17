@@ -12,6 +12,9 @@ import {
   resetPasswordSchema,
   verifyEmailSchema,
 } from './auth.validators';
+import { z } from 'zod';
+
+const disable2faSchema = z.object({ password: z.string() });
 
 const router = Router();
 
@@ -120,7 +123,7 @@ router.post(
 router.post(
   '/disable-2fa',
   authenticate,
-  validate({ body: { password: require('zod').z.string() } }),
+  validate({ body: disable2faSchema }),
   AuthController.disable2FA
 );
 

@@ -42,7 +42,7 @@ export class StoreService {
     const item = await prisma.storeItem.create({
       data: {
         eventId,
-        type: data.type,
+        type: data.type as any,
         name: data.name,
         description: data.description || null,
         priceCents,

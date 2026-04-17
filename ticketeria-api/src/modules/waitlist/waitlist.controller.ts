@@ -1,10 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
 import { waitlistService } from './waitlist.service';
-import {
-  JoinWaitlistInput,
-  ListWaitlistInput,
-  EventIdParams,
-} from './waitlist.validators';
 
 /**
  * Controladores para gerenciamento de waitlist
@@ -16,14 +11,14 @@ export class WaitlistController {
    * Entrar na waitlist
    */
   static async joinWaitlist(
-    req: Request<EventIdParams, unknown, JoinWaitlistInput>,
+    req: Request,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
     try {
       const userId = req.user!.userId;
       const userEmail = req.user!.email;
-      const { eventId } = req.params;
+      const eventId = req.params.eventId as string;
 
       const entry = await waitlistService.joinWaitlist(
         eventId,
@@ -46,13 +41,13 @@ export class WaitlistController {
    * Sair da waitlist
    */
   static async leaveWaitlist(
-    req: Request<EventIdParams>,
+    req: Request,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
     try {
       const userId = req.user!.userId;
-      const { eventId } = req.params;
+      const eventId = req.params.eventId as string;
 
       await waitlistService.leaveWaitlist(eventId, userId);
 
@@ -70,15 +65,15 @@ export class WaitlistController {
    * Listar waitlist (produtor)
    */
   static async getWaitlist(
-    req: Request<EventIdParams, unknown, unknown, ListWaitlistInput>,
+    req: Request,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
     try {
       const userId = req.user!.userId;
       const userRole = req.user!.role;
-      const { eventId } = req.params;
-      const pagination = req.query as ListWaitlistInput;
+      const eventId = req.params.eventId as string;
+      const pagination = req.query as any;
 
       const result = await waitlistService.getWaitlist(
         eventId,
@@ -102,12 +97,12 @@ export class WaitlistController {
    * Contagem pública de waitlist
    */
   static async getCount(
-    req: Request<EventIdParams>,
+    req: Request,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
     try {
-      const { eventId } = req.params;
+      const eventId = req.params.eventId as string;
 
       const count = await waitlistService.getCount(eventId);
 

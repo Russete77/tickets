@@ -138,7 +138,7 @@ export class AffiliatesService {
       });
 
       const conversionRevenue = link.conversionCount * 100; // Valor base em centavos
-      totalCommissionEarned += Math.round(conversionRevenue * (link.commissionPercent / 100));
+      totalCommissionEarned += Math.round(conversionRevenue * (Number(link.commissionPercent) / 100));
     }
 
     return {

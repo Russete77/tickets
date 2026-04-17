@@ -251,7 +251,7 @@ export function advancedRateLimit(options: AdvancedRateLimitOptions = {}) {
         const ipCheck = await checkIpBurstLimit(ip, 10, 15);
         if (!ipCheck.allowed) {
           logger.warn({ ip, attempts: ipCheck.attempts }, 'IP burst limit exceeded');
-          return res.status(429).json({
+          res.status(429).json({
             success: false,
             error: {
               code: 'RATE_LIMIT_EXCEEDED',
@@ -259,6 +259,7 @@ export function advancedRateLimit(options: AdvancedRateLimitOptions = {}) {
               retryAfter: ipCheck.resetIn,
             },
           });
+          return;
         }
       }
 
@@ -267,7 +268,7 @@ export function advancedRateLimit(options: AdvancedRateLimitOptions = {}) {
         const cpfCheck = await checkCpfLimit(cpf, options.eventId, 4);
         if (!cpfCheck.allowed) {
           logger.warn({ cpf, eventId: options.eventId }, 'CPF ticket limit exceeded');
-          return res.status(429).json({
+          res.status(429).json({
             success: false,
             error: {
               code: 'CPF_LIMIT_EXCEEDED',
@@ -275,6 +276,7 @@ export function advancedRateLimit(options: AdvancedRateLimitOptions = {}) {
               limit: 4,
             },
           });
+          return;
         }
       }
 
@@ -283,7 +285,7 @@ export function advancedRateLimit(options: AdvancedRateLimitOptions = {}) {
         const deviceCheck = await checkDeviceLimit(deviceFingerprint, 2);
         if (!deviceCheck.allowed) {
           logger.warn({ fingerprint: deviceFingerprint }, 'Device concurrent purchase limit exceeded');
-          return res.status(429).json({
+          res.status(429).json({
             success: false,
             error: {
               code: 'DEVICE_LIMIT_EXCEEDED',
@@ -291,6 +293,7 @@ export function advancedRateLimit(options: AdvancedRateLimitOptions = {}) {
               limit: 2,
             },
           });
+          return;
         }
       }
 
@@ -299,7 +302,7 @@ export function advancedRateLimit(options: AdvancedRateLimitOptions = {}) {
         const cardCheck = await checkCardLimit(cpf, cardToken, 3);
         if (!cardCheck.allowed) {
           logger.warn({ cpf }, 'Card limit exceeded');
-          return res.status(429).json({
+          res.status(429).json({
             success: false,
             error: {
               code: 'CARD_LIMIT_EXCEEDED',
@@ -307,6 +310,7 @@ export function advancedRateLimit(options: AdvancedRateLimitOptions = {}) {
               limit: 3,
             },
           });
+          return;
         }
       }
 

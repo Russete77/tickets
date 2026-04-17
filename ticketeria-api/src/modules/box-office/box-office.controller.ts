@@ -18,7 +18,7 @@ export const openSession = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const eventId = req.params.eventId;
+    const eventId = req.params.eventId as string;
     const userId = req.user!.userId;
     const data = req.body as OpenSessionInput;
 
@@ -43,7 +43,7 @@ export const closeSession = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const sessionId = req.params.sessionId;
+    const sessionId = req.params.sessionId as string;
     const userId = req.user!.userId;
     const data = req.body as CloseSessionInput;
 
@@ -68,7 +68,7 @@ export const sellTicket = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const eventId = req.params.eventId;
+    const eventId = req.params.eventId as string;
     const userId = req.user!.userId;
     const data = req.body as SellTicketInput;
 
@@ -96,7 +96,7 @@ export const getReport = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const eventId = req.params.eventId;
+    const eventId = req.params.eventId as string;
 
     const report = await boxOfficeService.getReport(eventId);
 
@@ -119,7 +119,7 @@ export const printTicket = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const ticketId = req.params.ticketId;
+    const ticketId = req.params.ticketId as string;
 
     const printData = await boxOfficeService.printTicket(ticketId);
 

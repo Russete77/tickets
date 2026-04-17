@@ -29,7 +29,7 @@ export const getMyTickets = async (req: Request, res: Response): Promise<void> =
  */
 export const getTicket = async (req: Request, res: Response): Promise<void> => {
   const userId = req.user!.userId;
-  const ticketId = req.params.id;
+  const ticketId = req.params.id as string;
 
   const ticket = await ticketsService.getTicketById(ticketId, userId);
 
@@ -45,7 +45,7 @@ export const getTicket = async (req: Request, res: Response): Promise<void> => {
  */
 export const getTicketQR = async (req: Request, res: Response): Promise<void> => {
   const userId = req.user!.userId;
-  const ticketId = req.params.id;
+  const ticketId = req.params.id as string;
 
   const qrData = await ticketsService.generateTicketQR(ticketId, userId);
 
@@ -61,7 +61,7 @@ export const getTicketQR = async (req: Request, res: Response): Promise<void> =>
  */
 export const initiateTransfer = async (req: Request, res: Response): Promise<void> => {
   const userId = req.user!.userId;
-  const ticketId = req.params.id;
+  const ticketId = req.params.id as string;
   const data = req.body as TransferTicketInput;
 
   const transfer = await ticketsService.initiateTransfer(ticketId, userId, data);
@@ -79,7 +79,7 @@ export const initiateTransfer = async (req: Request, res: Response): Promise<voi
  */
 export const confirmTransfer = async (req: Request, res: Response): Promise<void> => {
   const userId = req.user!.userId;
-  const transferId = req.params.id;
+  const transferId = req.params.id as string;
   const data = req.body as ConfirmTransferInput;
 
   const ticket = await ticketsService.confirmTransfer(transferId, userId, data.otpCode);

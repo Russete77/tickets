@@ -2,7 +2,7 @@ import { prisma } from '../../config/database';
 import { redis } from '../../config/redis';
 import { BadRequestError, NotFoundError, ConflictError } from '../../shared/errors';
 import { logAudit, AuditActions } from '../../shared/audit';
-import { CheckinResult } from '../../generated/prisma/client';
+
 import { authenticator } from 'otplib';
 import { publishBroadcast } from '../../shared/socketBridge';
 

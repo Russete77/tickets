@@ -19,7 +19,7 @@ export const registerProducerSchema = z.object({
     .describe('Se não fornecido, usará CPF do usuário'),
 
   companyType: z.enum(['MEI', 'ME', 'EPP', 'LTDA', 'SA', 'INDIVIDUAL'], {
-    errorMap: () => ({ message: 'Tipo de empresa inválido. Valores aceitos: MEI, ME, EPP, LTDA, SA, INDIVIDUAL' }),
+    error: 'Tipo de empresa inválido. Valores aceitos: MEI, ME, EPP, LTDA, SA, INDIVIDUAL',
   }),
 
   // Dados de contato (requeridos no Asaas)
@@ -106,7 +106,7 @@ export const registerProducerSchema = z.object({
       .string()
       .max(20, 'Número da conta inválido'),
     accountType: z.enum(['CHECKING', 'SAVINGS'], {
-      errorMap: () => ({ message: 'Tipo de conta inválido' }),
+      error: () => ({ message: 'Tipo de conta inválido' }),
     }),
     accountHolder: z
       .string()

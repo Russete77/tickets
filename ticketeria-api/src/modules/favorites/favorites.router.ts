@@ -24,7 +24,7 @@ favoritesRouter.post(
 
 // GET /favorites
 // Obtém todos os favoritos do usuário
-favoritesRouter.get('/', authenticate, validate({ query: paginationSchema }, getMyFavorites));
+favoritesRouter.get('/', authenticate, validate({ query: paginationSchema }), getMyFavorites);
 
 // GET /favorites/:eventId/check
 // Verifica se um evento é favorito do usuário

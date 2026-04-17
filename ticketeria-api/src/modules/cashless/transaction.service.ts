@@ -116,7 +116,7 @@ export class TransactionService {
             tipCents,
             balanceAfter: updated.balanceCents,
             items,
-            metadata,
+            metadata: metadata ? JSON.parse(JSON.stringify(metadata)) : undefined,
           },
           select: {
             id: true,

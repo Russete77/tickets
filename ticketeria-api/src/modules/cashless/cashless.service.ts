@@ -8,17 +8,17 @@ export interface CashlessConfig {
   eventId: string;
   minTopupCents: number;
   maxTopupCents: number;
-  maxBalanceCents: number;
-  paymentMethods: string[];
-  enableWristbands: boolean;
-  enableCards: boolean;
-  enableMobile: boolean;
-  refundMaxDays: number;
-  isActive: boolean;
+  maxBalanceCents: number; // mapped from maxWalletBalance
+  paymentMethods: string[]; // mapped from tipOptions or []
+  enableWristbands: boolean; // stub
+  enableCards: boolean; // stub
+  enableMobile: boolean; // stub
+  refundMaxDays: number; // mapped from refundDeadlineDays
+  isActive: boolean; // mapped from isEnabled
   walletCount?: number;
   totalVolumeCents?: number;
   createdAt: Date;
-  updatedAt: Date;
+  updatedAt?: Date;
 }
 
 export interface DashboardStats {
@@ -79,40 +79,27 @@ export class CashlessService {
       update: {
         minTopupCents: data.minTopupCents,
         maxTopupCents: data.maxTopupCents,
-        maxBalanceCents: data.maxBalanceCents,
-        paymentMethods: data.paymentMethods,
-        enableWristbands: data.enableWristbands,
-        enableCards: data.enableCards,
-        enableMobile: data.enableMobile,
-        refundMaxDays: data.refundMaxDays,
-        isActive: true,
+        maxWalletBalance: data.maxBalanceCents,
+        refundDeadlineDays: data.refundMaxDays,
+        isEnabled: true,
       },
       create: {
         eventId,
         minTopupCents: data.minTopupCents,
         maxTopupCents: data.maxTopupCents,
-        maxBalanceCents: data.maxBalanceCents,
-        paymentMethods: data.paymentMethods,
-        enableWristbands: data.enableWristbands,
-        enableCards: data.enableCards,
-        enableMobile: data.enableMobile,
-        refundMaxDays: data.refundMaxDays,
-        isActive: true,
+        maxWalletBalance: data.maxBalanceCents,
+        refundDeadlineDays: data.refundMaxDays,
+        isEnabled: true,
       },
       select: {
         id: true,
         eventId: true,
         minTopupCents: true,
         maxTopupCents: true,
-        maxBalanceCents: true,
-        paymentMethods: true,
-        enableWristbands: true,
-        enableCards: true,
-        enableMobile: true,
-        refundMaxDays: true,
-        isActive: true,
+        maxWalletBalance: true,
+        refundDeadlineDays: true,
+        isEnabled: true,
         createdAt: true,
-        updatedAt: true,
       },
     });
 
@@ -120,8 +107,18 @@ export class CashlessService {
     await redis.del(`cashless:config:${eventId}`);
 
     return {
-      ...config,
-      paymentMethods: config.paymentMethods as string[],
+      id: config.id,
+      eventId: config.eventId,
+      minTopupCents: config.minTopupCents,
+      maxTopupCents: config.maxTopupCents,
+      maxBalanceCents: config.maxWalletBalance,
+      paymentMethods: [],
+      enableWristbands: false,
+      enableCards: true,
+      enableMobile: true,
+      refundMaxDays: config.refundDeadlineDays,
+      isActive: config.isEnabled,
+      createdAt: config.createdAt,
     };
   }
 
@@ -142,15 +139,10 @@ export class CashlessService {
         eventId: true,
         minTopupCents: true,
         maxTopupCents: true,
-        maxBalanceCents: true,
-        paymentMethods: true,
-        enableWristbands: true,
-        enableCards: true,
-        enableMobile: true,
-        refundMaxDays: true,
-        isActive: true,
+        maxWalletBalance: true,
+        refundDeadlineDays: true,
+        isEnabled: true,
         createdAt: true,
-        updatedAt: true,
       },
     });
 
@@ -159,8 +151,18 @@ export class CashlessService {
     }
 
     const result: CashlessConfig = {
-      ...config,
-      paymentMethods: config.paymentMethods as string[],
+      id: config.id,
+      eventId: config.eventId,
+      minTopupCents: config.minTopupCents,
+      maxTopupCents: config.maxTopupCents,
+      maxBalanceCents: config.maxWalletBalance,
+      paymentMethods: [],
+      enableWristbands: false,
+      enableCards: true,
+      enableMobile: true,
+      refundMaxDays: config.refundDeadlineDays,
+      isActive: config.isEnabled,
+      createdAt: config.createdAt,
     };
 
     if (includeStats) {
@@ -214,27 +216,18 @@ export class CashlessService {
       data: {
         ...(data.minTopupCents !== undefined && { minTopupCents: data.minTopupCents }),
         ...(data.maxTopupCents !== undefined && { maxTopupCents: data.maxTopupCents }),
-        ...(data.maxBalanceCents !== undefined && { maxBalanceCents: data.maxBalanceCents }),
-        ...(data.paymentMethods && { paymentMethods: data.paymentMethods }),
-        ...(data.enableWristbands !== undefined && { enableWristbands: data.enableWristbands }),
-        ...(data.enableCards !== undefined && { enableCards: data.enableCards }),
-        ...(data.enableMobile !== undefined && { enableMobile: data.enableMobile }),
-        ...(data.refundMaxDays !== undefined && { refundMaxDays: data.refundMaxDays }),
+        ...(data.maxBalanceCents !== undefined && { maxWalletBalance: data.maxBalanceCents }),
+        ...(data.refundMaxDays !== undefined && { refundDeadlineDays: data.refundMaxDays }),
       },
       select: {
         id: true,
         eventId: true,
         minTopupCents: true,
         maxTopupCents: true,
-        maxBalanceCents: true,
-        paymentMethods: true,
-        enableWristbands: true,
-        enableCards: true,
-        enableMobile: true,
-        refundMaxDays: true,
-        isActive: true,
+        maxWalletBalance: true,
+        refundDeadlineDays: true,
+        isEnabled: true,
         createdAt: true,
-        updatedAt: true,
       },
     });
 
@@ -242,8 +235,18 @@ export class CashlessService {
     await redis.del(`cashless:config:${eventId}`);
 
     return {
-      ...config,
-      paymentMethods: config.paymentMethods as string[],
+      id: config.id,
+      eventId: config.eventId,
+      minTopupCents: config.minTopupCents,
+      maxTopupCents: config.maxTopupCents,
+      maxBalanceCents: config.maxWalletBalance,
+      paymentMethods: [],
+      enableWristbands: false,
+      enableCards: true,
+      enableMobile: true,
+      refundMaxDays: config.refundDeadlineDays,
+      isActive: config.isEnabled,
+      createdAt: config.createdAt,
     };
   }
 
@@ -370,7 +373,7 @@ export class CashlessService {
         wallet: { eventId },
         type: 'purchase',
         status: 'tx_completed',
-        items: { not: null },
+        items: { not: undefined },
         ...(startDate || endDate ? { createdAt: dateFilter } : {}),
       },
       select: {

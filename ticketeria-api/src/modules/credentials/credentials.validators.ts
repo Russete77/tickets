@@ -22,7 +22,7 @@ export const createCredentialSchema = z.object({
     .string()
     .max(100, 'Categoria muito longa')
     .optional(),
-  customFields: z.record(z.any()).optional(),
+  customFields: z.record(z.string(), z.any()).optional(),
 });
 
 export const listCredentialsSchema = z.object({
@@ -55,7 +55,7 @@ export const bulkCreateSchema = z.array(
       .string()
       .max(100, 'Categoria muito longa')
       .optional(),
-    customFields: z.record(z.any()).optional(),
+    customFields: z.record(z.string(), z.any()).optional(),
   }),
 );
 
