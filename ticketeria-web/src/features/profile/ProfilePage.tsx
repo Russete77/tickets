@@ -10,6 +10,13 @@ import styles from './ProfilePage.module.css';
 
 type Tab = 'info' | 'security' | 'preferences';
 
+const ROLE_LABEL: Record<string, string> = {
+  admin:    'Admin',
+  promoter: 'Produtor',
+  staff:    'Staff',
+  buyer:    'Comprador',
+};
+
 const ProfilePage: React.FC = () => {
   const { user, setUser } = useAuth();
   const addToast = useToastStore((s) => s.addToast);
@@ -32,13 +39,27 @@ const ProfilePage: React.FC = () => {
     pushNotifications: false,
   });
 
+  // Password strength
+  const getPasswordStrength = (pwd: string): { level: number; label: string; color: string } => {
+    if (!pwd) return { level: 0, label: '', color: '' };
+    let score = 0;
+    if (pwd.length >= 8) score++;
+    if (pwd.length >= 12) score++;
+    if (/[A-Z]/.test(pwd)) score++;
+    if (/[0-9]/.test(pwd)) score++;
+    if (/[^A-Za-z0-9]/.test(pwd)) score++;
+    if (score <= 1) return { level: 1, label: 'Fraca', color: styles.strengthWeak };
+    if (score <= 3) return { level: 2, label: 'Média', color: styles.strengthMedium };
+    return { level: 3, label: 'Forte', color: styles.strengthStrong };
+  };
+
+  const strength = getPasswordStrength(newPassword);
+
   const handleToggle = async (key: string, value: boolean) => {
-    // Optimistic update
     setPreferences((prev) => ({ ...prev, [key]: value }));
     try {
       await api.patch('/v1/users/me/preferences', { [key]: value });
     } catch {
-      // Revert on failure
       setPreferences((prev) => ({ ...prev, [key]: !value }));
       addToast({ type: 'error', message: 'Erro ao salvar preferência' });
     }
@@ -59,7 +80,6 @@ const ProfilePage: React.FC = () => {
     try {
       const payload: Record<string, unknown> = { name, phone };
       if (avatarFile) payload.avatarFileName = avatarFile.name;
-
       const response = await api.patch<typeof user>('/v1/users/me', payload);
       if (response.error) {
         addToast({ type: 'error', message: response.error });
@@ -101,25 +121,52 @@ const ProfilePage: React.FC = () => {
     }
   };
 
-  const tabs: { id: Tab; label: string }[] = [
-    { id: 'info', label: 'Informações pessoais' },
-    { id: 'security', label: 'Segurança' },
-    { id: 'preferences', label: 'Preferências' },
+  const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
+    {
+      id: 'info',
+      label: 'Informacoes',
+      icon: (
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+      ),
+    },
+    {
+      id: 'security',
+      label: 'Seguranca',
+      icon: (
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+      ),
+    },
+    {
+      id: 'preferences',
+      label: 'Preferencias',
+      icon: (
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M12 2v2M12 20v2M20 12h2M2 12h2M19.07 19.07l-1.41-1.41M4.93 19.07l1.41-1.41"/>
+        </svg>
+      ),
+    },
   ];
 
   return (
     <PublicLayout>
       <div className={styles.page}>
+        {/* ── Hero header ── */}
         <div className={styles.hero}>
-          <div className={styles.avatarSection}>
-            <div className={styles.avatarWrapper}>
+          <div className={styles.heroInner}>
+            <div className={styles.avatarWrap}>
               <Avatar
                 src={avatarPreview ?? user?.avatar}
                 name={user?.name ?? ''}
                 size="xl"
               />
-              <label className={styles.avatarEdit} aria-label="Alterar foto">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <label className={styles.avatarEdit} aria-label="Alterar foto" title="Alterar foto">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
                   <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
                 </svg>
@@ -131,32 +178,45 @@ const ProfilePage: React.FC = () => {
                 />
               </label>
             </div>
-            <div className={styles.userSummary}>
-              <h1 className={styles.userName}>{user?.name}</h1>
-              <p className={styles.userEmail}>{user?.email}</p>
-              <span className={styles.roleBadge}>{user?.role}</span>
+
+            <div className={styles.heroInfo}>
+              <h1 className={styles.heroName}>{user?.name}</h1>
+              <p className={styles.heroEmail}>{user?.email}</p>
+              <span className={styles.heroBadge}>
+                {ROLE_LABEL[user?.role ?? ''] ?? user?.role}
+              </span>
             </div>
           </div>
-        </div>
 
-        <div className={styles.body}>
-          <div className={styles.sidebar}>
+          {/* Tab pills inside hero */}
+          <div className={styles.tabRow}>
             {tabs.map((tab) => (
               <button
                 key={tab.id}
-                className={`${styles.sidebarTab} ${activeTab === tab.id ? styles.sidebarTabActive : ''}`}
+                className={`${styles.tabPill} ${activeTab === tab.id ? styles.tabPillActive : ''}`}
                 onClick={() => setActiveTab(tab.id)}
               >
+                {tab.icon}
                 {tab.label}
               </button>
             ))}
           </div>
+        </div>
 
-          <div className={styles.content}>
-            {activeTab === 'info' && (
-              <section className={styles.section}>
-                <h2 className={styles.sectionTitle}>Informações pessoais</h2>
-                <form onSubmit={handleSaveInfo} className={styles.form}>
+        {/* ── Content ── */}
+        <div className={styles.content}>
+          {/* INFO TAB */}
+          {activeTab === 'info' && (
+            <div className={styles.card}>
+              <div className={styles.cardHeader}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--tl-brand)" strokeWidth="2">
+                  <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+                <h2 className={styles.cardTitle}>Informacoes pessoais</h2>
+              </div>
+              <form onSubmit={handleSaveInfo} className={styles.form}>
+                <div className={styles.formGrid}>
                   <div className={styles.field}>
                     <label className={styles.label}>Nome completo</label>
                     <Input
@@ -167,16 +227,6 @@ const ProfilePage: React.FC = () => {
                     />
                   </div>
                   <div className={styles.field}>
-                    <label className={styles.label}>E-mail</label>
-                    <Input
-                      type="email"
-                      value={user?.email ?? ''}
-                      disabled
-                      placeholder="seu@email.com"
-                    />
-                    <span className={styles.hint}>O e-mail não pode ser alterado</span>
-                  </div>
-                  <div className={styles.field}>
                     <label className={styles.label}>Telefone</label>
                     <Input
                       type="tel"
@@ -185,91 +235,152 @@ const ProfilePage: React.FC = () => {
                       placeholder="(00) 00000-0000"
                     />
                   </div>
+                </div>
+                <div className={styles.field}>
+                  <label className={styles.label}>
+                    E-mail
+                    <span className={styles.lockBadge}>
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <rect x="3" y="11" width="18" height="11" rx="2"/>
+                        <path d="M7 11V7a5 5 0 0110 0v4"/>
+                      </svg>
+                      Nao editavel
+                    </span>
+                  </label>
+                  <Input
+                    type="email"
+                    value={user?.email ?? ''}
+                    disabled
+                    placeholder="seu@email.com"
+                  />
+                </div>
+                <div className={styles.formActions}>
                   <Button type="submit" variant="primary" loading={infoLoading}>
-                    Salvar alterações
+                    Salvar alteracoes
                   </Button>
-                </form>
-              </section>
-            )}
+                </div>
+              </form>
+            </div>
+          )}
 
-            {activeTab === 'security' && (
-              <section className={styles.section}>
-                <h2 className={styles.sectionTitle}>Alterar senha</h2>
-                <form onSubmit={handleSaveSecurity} className={styles.form}>
-                  <div className={styles.field}>
-                    <label className={styles.label}>Senha atual</label>
-                    <Input
-                      type="password"
-                      value={currentPassword}
-                      onChange={(e) => setCurrentPassword(e.target.value)}
-                      placeholder="••••••••"
-                      autoComplete="current-password"
-                    />
-                  </div>
-                  <div className={styles.field}>
-                    <label className={styles.label}>Nova senha</label>
-                    <Input
-                      type="password"
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      placeholder="Mínimo 8 caracteres"
-                      autoComplete="new-password"
-                    />
-                  </div>
-                  <div className={styles.field}>
-                    <label className={styles.label}>Confirmar nova senha</label>
-                    <Input
-                      type="password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder="Repita a nova senha"
-                      autoComplete="new-password"
-                    />
-                  </div>
+          {/* SECURITY TAB */}
+          {activeTab === 'security' && (
+            <div className={styles.card}>
+              <div className={styles.cardHeader}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--tl-brand)" strokeWidth="2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+                <h2 className={styles.cardTitle}>Alterar senha</h2>
+              </div>
+              <form onSubmit={handleSaveSecurity} className={styles.form}>
+                <div className={styles.field}>
+                  <label className={styles.label}>Senha atual</label>
+                  <Input
+                    type="password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    placeholder="••••••••"
+                    autoComplete="current-password"
+                  />
+                </div>
+                <div className={styles.field}>
+                  <label className={styles.label}>Nova senha</label>
+                  <Input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Minimo 8 caracteres"
+                    autoComplete="new-password"
+                  />
+                  {newPassword && (
+                    <div className={styles.strengthWrap}>
+                      <div className={styles.strengthBar}>
+                        {[1, 2, 3].map((lvl) => (
+                          <div
+                            key={lvl}
+                            className={`${styles.strengthSegment} ${lvl <= strength.level ? strength.color : ''}`}
+                          />
+                        ))}
+                      </div>
+                      <span className={`${styles.strengthLabel} ${strength.color}`}>{strength.label}</span>
+                    </div>
+                  )}
+                </div>
+                <div className={styles.field}>
+                  <label className={styles.label}>Confirmar nova senha</label>
+                  <Input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Repita a nova senha"
+                    autoComplete="new-password"
+                  />
+                  {confirmPassword && newPassword !== confirmPassword && (
+                    <span className={styles.mismatch}>As senhas nao conferem</span>
+                  )}
+                </div>
+                <div className={styles.formActions}>
                   <Button type="submit" variant="primary" loading={securityLoading}>
                     Alterar senha
                   </Button>
-                </form>
-              </section>
-            )}
-
-            {activeTab === 'preferences' && (
-              <section className={styles.section}>
-                <h2 className={styles.sectionTitle}>Preferências de notificação</h2>
-                <div className={styles.preferencesList}>
-                  <label className={styles.toggle}>
-                    <div className={styles.toggleInfo}>
-                      <span className={styles.toggleLabel}>Notificações por e-mail</span>
-                      <span className={styles.toggleDesc}>Receba atualizações sobre seus pedidos e eventos</span>
-                    </div>
-                    <div
-                      className={`${styles.toggleSwitch} ${preferences.emailNotifications ? styles.toggleOn : ''}`}
-                      role="switch"
-                      aria-checked={preferences.emailNotifications}
-                      onClick={() => handleToggle('emailNotifications', !preferences.emailNotifications)}
-                    >
-                      <div className={styles.toggleThumb} />
-                    </div>
-                  </label>
-
-                  <label className={styles.toggle}>
-                    <div className={styles.toggleInfo}>
-                      <span className={styles.toggleLabel}>Notificações push</span>
-                      <span className={styles.toggleDesc}>Alertas no navegador sobre eventos próximos</span>
-                    </div>
-                    <div
-                      className={`${styles.toggleSwitch} ${preferences.pushNotifications ? styles.toggleOn : ''}`}
-                      role="switch"
-                      aria-checked={preferences.pushNotifications}
-                      onClick={() => handleToggle('pushNotifications', !preferences.pushNotifications)}
-                    >
-                      <div className={styles.toggleThumb} />
-                    </div>
-                  </label>
                 </div>
-              </section>
-            )}
-          </div>
+              </form>
+            </div>
+          )}
+
+          {/* PREFERENCES TAB */}
+          {activeTab === 'preferences' && (
+            <div className={styles.card}>
+              <div className={styles.cardHeader}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--tl-brand)" strokeWidth="2">
+                  <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/>
+                </svg>
+                <h2 className={styles.cardTitle}>Preferencias de notificacao</h2>
+              </div>
+              <div className={styles.prefList}>
+                <div className={styles.prefItem}>
+                  <div className={styles.prefIcon}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                      <polyline points="22,6 12,13 2,6"/>
+                    </svg>
+                  </div>
+                  <div className={styles.prefInfo}>
+                    <span className={styles.prefLabel}>Notificacoes por e-mail</span>
+                    <span className={styles.prefDesc}>Receba atualizacoes sobre seus pedidos e eventos</span>
+                  </div>
+                  <button
+                    className={`${styles.toggle} ${preferences.emailNotifications ? styles.toggleOn : ''}`}
+                    role="switch"
+                    aria-checked={preferences.emailNotifications}
+                    onClick={() => handleToggle('emailNotifications', !preferences.emailNotifications)}
+                  >
+                    <span className={styles.toggleThumb} />
+                  </button>
+                </div>
+
+                <div className={styles.prefItem}>
+                  <div className={styles.prefIcon}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/>
+                    </svg>
+                  </div>
+                  <div className={styles.prefInfo}>
+                    <span className={styles.prefLabel}>Notificacoes push</span>
+                    <span className={styles.prefDesc}>Alertas no navegador sobre eventos proximos</span>
+                  </div>
+                  <button
+                    className={`${styles.toggle} ${preferences.pushNotifications ? styles.toggleOn : ''}`}
+                    role="switch"
+                    aria-checked={preferences.pushNotifications}
+                    onClick={() => handleToggle('pushNotifications', !preferences.pushNotifications)}
+                  >
+                    <span className={styles.toggleThumb} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </PublicLayout>

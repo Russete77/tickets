@@ -1,90 +1,185 @@
+/* ── Card shell ── */
 .card {
-  display: flex;
-  background-color: var(--tl-bg-surface);
+  background: var(--tl-bg-surface);
   border: 1px solid var(--tl-border-default);
-  border-radius: var(--tl-radius-lg);
+  border-radius: var(--tl-radius-xl);
   overflow: hidden;
-  position: relative;
-  transition: box-shadow var(--tl-duration-fast);
+  display: flex;
+  flex-direction: column;
+  transition: transform var(--tl-duration-fast), box-shadow var(--tl-duration-fast);
 }
 
 .card:hover {
-  box-shadow: var(--tl-shadow-md);
+  transform: translateY(-3px);
+  box-shadow: var(--tl-shadow-lg);
 }
 
 .cardInactive {
-  opacity: 0.6;
+  opacity: 0.55;
+  filter: grayscale(0.4);
 }
 
-.imageCol {
-  width: 100px;
+.cardInactive:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* ── Cover image ── */
+.coverWrap {
+  position: relative;
+  height: 160px;
+  overflow: hidden;
   flex-shrink: 0;
 }
 
-.image {
+.cover {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform var(--tl-duration-slow);
 }
 
-.body {
-  flex: 1;
-  padding: var(--tl-space-4);
-  display: flex;
-  flex-direction: column;
-  gap: var(--tl-space-3);
-  min-width: 0;
+.card:hover .cover {
+  transform: scale(1.04);
 }
 
-.topRow {
-  display: flex;
-  align-items: center;
-  gap: var(--tl-space-2);
-  flex-wrap: wrap;
+.coverOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.15) 0%,
+    rgba(0, 0, 0, 0.55) 100%
+  );
 }
 
-.batchPill {
+/* ── Batch badge ── */
+.batchBadge {
+  position: absolute;
+  top: var(--tl-space-3);
+  left: var(--tl-space-3);
   font-size: var(--tl-text-xs);
-  font-weight: 600;
-  padding: 2px var(--tl-space-2);
-  border-radius: var(--tl-radius-sm);
+  font-weight: 700;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  padding: 3px var(--tl-space-3);
+  border-radius: var(--tl-radius-pill);
+  backdrop-filter: blur(8px);
 }
 
 .batchNormal {
-  background-color: rgba(0, 255, 102, 0.10);
-  color: var(--tl-brand);
+  background: rgba(0, 255, 102, 0.2);
+  color: #00FF66;
+  border: 1px solid rgba(0, 255, 102, 0.35);
 }
 
 .batchVip {
-  background-color: rgba(255, 165, 2, 0.15);
-  color: var(--tl-warning);
+  background: rgba(255, 184, 0, 0.2);
+  color: #FFB800;
+  border: 1px solid rgba(255, 184, 0, 0.35);
 }
 
 .batchBackstage {
-  background-color: rgba(0, 214, 143, 0.15);
-  color: var(--tl-success);
+  background: rgba(0, 122, 255, 0.2);
+  color: #4DA6FF;
+  border: 1px solid rgba(0, 122, 255, 0.35);
 }
 
 .batchCamarote {
-  background-color: rgba(255, 71, 87, 0.15);
-  color: var(--tl-error);
+  background: rgba(255, 59, 48, 0.2);
+  color: #FF6B6B;
+  border: 1px solid rgba(255, 59, 48, 0.35);
+}
+
+/* ── Status badge ── */
+.statusBadge {
+  position: absolute;
+  top: var(--tl-space-3);
+  right: var(--tl-space-3);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--tl-text-xs);
+  font-weight: 600;
+  padding: 3px var(--tl-space-3);
+  border-radius: var(--tl-radius-pill);
+  backdrop-filter: blur(8px);
+}
+
+.statusActive {
+  background: rgba(0, 0, 0, 0.5);
+  color: #00FF66;
+  border: 1px solid rgba(0, 255, 102, 0.3);
+}
+
+.statusUsed {
+  background: rgba(0, 0, 0, 0.5);
+  color: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.statusCancelled {
+  background: rgba(0, 0, 0, 0.5);
+  color: #FF6B6B;
+  border: 1px solid rgba(255, 59, 48, 0.3);
+}
+
+.statusExpired {
+  background: rgba(0, 0, 0, 0.5);
+  color: #FFB800;
+  border: 1px solid rgba(255, 184, 0, 0.3);
+}
+
+/* Status dot pulse */
+.statusDot {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--tl-radius-full);
+  flex-shrink: 0;
+}
+
+.dotActive {
+  background: #00FF66;
+  box-shadow: 0 0 6px rgba(0, 255, 102, 0.8);
+  animation: pulseDot 2s ease-in-out infinite;
+}
+
+.dotUsed,
+.dotCancelled,
+.dotExpired {
+  background: currentColor;
+}
+
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; box-shadow: 0 0 6px rgba(0, 255, 102, 0.8); }
+  50%       { opacity: 0.7; box-shadow: 0 0 12px rgba(0, 255, 102, 0.4); }
+}
+
+/* ── Card body ── */
+.body {
+  padding: var(--tl-space-4) var(--tl-space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--tl-space-3);
+  flex: 1;
 }
 
 .title {
   font-size: var(--tl-text-md);
   font-weight: 700;
   color: var(--tl-text-primary);
-  white-space: nowrap;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-.meta {
+/* ── Meta ── */
+.metaList {
   display: flex;
   flex-direction: column;
-  gap: var(--tl-space-1);
+  gap: var(--tl-space-1-5);
 }
 
 .metaItem {
@@ -95,55 +190,87 @@
   color: var(--tl-text-secondary);
 }
 
+.metaItem svg {
+  flex-shrink: 0;
+  color: var(--tl-text-tertiary);
+}
+
+/* ── Tear effect ── */
+.tear {
+  height: 1px;
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--tl-border-default) 0px,
+    var(--tl-border-default) 6px,
+    transparent 6px,
+    transparent 12px
+  );
+  margin: var(--tl-space-1) 0;
+}
+
+/* ── Footer ── */
 .footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: var(--tl-space-3);
   margin-top: auto;
 }
 
-.holder {
-  font-size: var(--tl-text-xs);
-  color: var(--tl-text-secondary);
-}
-
-.qrButton {
+.holderInfo {
   display: flex;
   align-items: center;
   gap: var(--tl-space-2);
+  min-width: 0;
+}
+
+.holderAvatar {
+  width: 26px;
+  height: 26px;
+  border-radius: var(--tl-radius-full);
+  background: var(--tl-brand-muted);
+  color: var(--tl-brand);
+  font-size: var(--tl-text-xs);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.holderName {
+  font-size: var(--tl-text-xs);
+  color: var(--tl-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── QR button ── */
+.qrBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--tl-space-1-5);
   padding: var(--tl-space-2) var(--tl-space-3);
-  background-color: var(--tl-brand);
-  border: none;
+  background: var(--tl-brand-muted);
+  border: 1px solid rgba(0, 255, 102, 0.25);
   border-radius: var(--tl-radius-md);
   font-size: var(--tl-text-xs);
   font-weight: 600;
-  color: white;
+  color: var(--tl-brand);
   cursor: pointer;
-  transition: background-color var(--tl-duration-fast);
   white-space: nowrap;
+  flex-shrink: 0;
+  transition: background var(--tl-duration-fast), border-color var(--tl-duration-fast), transform var(--tl-duration-fast);
 }
 
-.qrButton:hover {
-  background-color: var(--tl-brand-hover);
+.qrBtn:hover {
+  background: rgba(0, 255, 102, 0.18);
+  border-color: rgba(0, 255, 102, 0.5);
+  transform: translateY(-1px);
 }
 
-/* Tear perforation effect */
-.perforation {
-  position: absolute;
-  left: 96px;
-  top: 0;
-  bottom: 0;
-  width: 4px;
-  background-image: radial-gradient(
-    circle,
-    var(--tl-bg-primary) 50%,
-    transparent 50%
-  );
-  background-size: 4px 8px;
-  background-repeat: repeat-y;
-}
-
-/* Modal meta */
+/* ── Modal meta ── */
 .modalMeta {
   padding: var(--tl-space-4);
   text-align: center;
@@ -160,10 +287,4 @@
 .modalBatch {
   font-size: var(--tl-text-sm);
   color: var(--tl-text-secondary);
-}
-
-@media (min-width: 480px) {
-  .imageCol {
-    width: 140px;
-  }
 }

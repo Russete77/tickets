@@ -12,8 +12,6 @@ import PaymentForm, { PaymentMethod } from './PaymentForm';
 import PixQR from './PixQR';
 import styles from './CheckoutFlow.module.css';
 
-type Step = 'holder' | 'coupon' | 'payment' | 'review' | 'pix';
-
 interface HolderInfo {
   name: string;
   cpf: string;
@@ -28,20 +26,13 @@ interface PixData {
   orderId: string;
 }
 
-const STEPS: { id: Step; label: string }[] = [
-  { id: 'holder', label: 'Titular' },
-  { id: 'coupon', label: 'Cupom' },
-  { id: 'payment', label: 'Pagamento' },
-  { id: 'review', label: 'Revisão' },
-];
-
 const CheckoutFlow: React.FC = () => {
   const { user } = useAuth();
   const { items, getTotal, clear } = useCartStore();
   const addToast = useToastStore((s) => s.addToast);
   const navigate = useNavigate();
 
-  const SESSION_DURATION = 10 * 60 * 1000; // 10 minutes in ms
+  const SESSION_DURATION = 10 * 60 * 1000;
   const expiresAtRef = useRef<number>(Date.now() + SESSION_DURATION);
   const [timeLeft, setTimeLeft] = useState<number>(SESSION_DURATION);
 
@@ -74,10 +65,10 @@ const CheckoutFlow: React.FC = () => {
       ? styles.timerWarning
       : styles.timerNormal;
 
-  const [step, setStep] = useState<Step>('holder');
   const [loading, setLoading] = useState(false);
   const [couponCode, setCouponCode] = useState('');
   const [couponDiscount, setCouponDiscount] = useState(0);
+  const [couponApplied, setCouponApplied] = useState(false);
   const [couponLoading, setCouponLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('pix');
   const [pixData, setPixData] = useState<PixData | null>(null);
@@ -88,11 +79,17 @@ const CheckoutFlow: React.FC = () => {
     phone: '',
   });
 
-  if (items.length === 0 && step !== 'pix') {
+  if (items.length === 0 && !pixData) {
     return (
       <PublicLayout>
         <div className={styles.empty}>
+          <div className={styles.emptyIcon}>
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+            </svg>
+          </div>
           <h2>Seu carrinho está vazio</h2>
+          <p>Adicione ingressos para continuar com o checkout</p>
           <Button variant="primary" onClick={() => navigate('/')}>
             Explorar eventos
           </Button>
@@ -100,8 +97,6 @@ const CheckoutFlow: React.FC = () => {
       </PublicLayout>
     );
   }
-
-  const stepIndex = STEPS.findIndex((s) => s.id === step);
 
   const applyCoupon = async () => {
     if (!couponCode.trim()) return;
@@ -113,8 +108,10 @@ const CheckoutFlow: React.FC = () => {
       });
       if (response.error) {
         addToast({ type: 'error', message: 'Cupom inválido ou expirado' });
+        setCouponApplied(false);
       } else {
         setCouponDiscount(response.data!.discount);
+        setCouponApplied(true);
         addToast({ type: 'success', message: 'Cupom aplicado com sucesso!' });
       }
     } catch {
@@ -125,6 +122,10 @@ const CheckoutFlow: React.FC = () => {
   };
 
   const handlePlaceOrder = async () => {
+    if (!holderInfo.name.trim() || !holderInfo.cpf.trim() || !holderInfo.email.trim()) {
+      addToast({ type: 'error', message: 'Preencha todos os dados do titular' });
+      return;
+    }
     setLoading(true);
     try {
       const response = await api.post<PixData>('/v1/orders', {
@@ -139,7 +140,6 @@ const CheckoutFlow: React.FC = () => {
       }
       if (paymentMethod === 'pix' && response.data) {
         setPixData(response.data);
-        setStep('pix');
       } else {
         clear();
         addToast({ type: 'success', message: 'Pedido realizado com sucesso!' });
@@ -152,175 +152,164 @@ const CheckoutFlow: React.FC = () => {
     }
   };
 
+  if (pixData) {
+    return (
+      <PublicLayout>
+        <div className={styles.pixPage}>
+          <div className={styles.pixCard}>
+            <div className={styles.pixHeader}>
+              <div className={styles.pixIconWrap}>
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="var(--tl-brand)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+              <h2 className={styles.pixTitle}>Pague com PIX</h2>
+              <p className={styles.pixSubtitle}>Escaneie o QR Code com seu app do banco</p>
+            </div>
+            <PixQR
+              pixCode={pixData.pixCode}
+              amount={pixData.amount}
+              expiresAt={pixData.expiresAt}
+            />
+            <p className={styles.pixNote}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              Após o pagamento, seus ingressos serão enviados para <strong>{holderInfo.email}</strong>
+            </p>
+          </div>
+        </div>
+      </PublicLayout>
+    );
+  }
+
   return (
     <PublicLayout>
       <div className={styles.page}>
-        {step !== 'pix' && (
-          <div className={styles.stepBar}>
-            {STEPS.map((s, idx) => (
-              <React.Fragment key={s.id}>
-                <div className={`${styles.stepItem} ${idx <= stepIndex ? styles.stepActive : ''}`}>
-                  <div className={styles.stepDot}>
-                    {idx < stepIndex ? (
-                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                        <path d="M2 7l4 4 6-6" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-                      </svg>
-                    ) : (
-                      <span>{idx + 1}</span>
-                    )}
-                  </div>
-                  <span className={styles.stepLabel}>{s.label}</span>
-                </div>
-                {idx < STEPS.length - 1 && (
-                  <div className={`${styles.stepConnector} ${idx < stepIndex ? styles.stepConnectorDone : ''}`} />
-                )}
-              </React.Fragment>
-            ))}
-          </div>
-        )}
+        {/* Timer banner */}
+        <div className={`${styles.timer} ${timerClass}`}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
+          </svg>
+          <span>Sua reserva expira em <strong>{formatTime(timeLeft)}</strong></span>
+        </div>
 
-        {step !== 'pix' && (
-          <div className={`${styles.timer} ${timerClass}`}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="10" />
-              <polyline points="12 6 12 12 16 14" />
-            </svg>
-            Tempo restante: <strong>{formatTime(timeLeft)}</strong>
-          </div>
-        )}
-
-        <div className={styles.content}>
-          <div className={styles.mainArea}>
-            {step === 'holder' && (
-              <section className={styles.section}>
+        <div className={styles.layout}>
+          {/* ── LEFT / MAIN ── */}
+          <div className={styles.main}>
+            {/* Section 1 — Titular */}
+            <section className={styles.section}>
+              <div className={styles.sectionHeader}>
+                <div className={styles.sectionNum}>1</div>
                 <h2 className={styles.sectionTitle}>Dados do titular</h2>
-                <div className={styles.form}>
-                  <div className={styles.field}>
-                    <label className={styles.label}>Nome completo</label>
-                    <Input
-                      type="text"
-                      value={holderInfo.name}
-                      onChange={(e) => setHolderInfo((p) => ({ ...p, name: e.target.value }))}
-                      placeholder="Nome como no documento"
-                    />
-                  </div>
-                  <div className={styles.row}>
-                    <div className={styles.field}>
-                      <label className={styles.label}>CPF</label>
-                      <Input
-                        type="text"
-                        value={holderInfo.cpf}
-                        onChange={(e) => setHolderInfo((p) => ({ ...p, cpf: e.target.value }))}
-                        placeholder="000.000.000-00"
-                        inputMode="numeric"
-                      />
-                    </div>
-                    <div className={styles.field}>
-                      <label className={styles.label}>Telefone</label>
-                      <Input
-                        type="tel"
-                        value={holderInfo.phone}
-                        onChange={(e) => setHolderInfo((p) => ({ ...p, phone: e.target.value }))}
-                        placeholder="(00) 00000-0000"
-                      />
-                    </div>
-                  </div>
-                  <div className={styles.field}>
-                    <label className={styles.label}>E-mail</label>
-                    <Input
-                      type="email"
-                      value={holderInfo.email}
-                      onChange={(e) => setHolderInfo((p) => ({ ...p, email: e.target.value }))}
-                      placeholder="seu@email.com"
-                    />
-                  </div>
-                </div>
-                <Button variant="primary" onClick={() => setStep('coupon')}>
-                  Continuar
-                </Button>
-              </section>
-            )}
-
-            {step === 'coupon' && (
-              <section className={styles.section}>
-                <h2 className={styles.sectionTitle}>Cupom de desconto</h2>
-                <div className={styles.couponRow}>
+              </div>
+              <div className={styles.holderGrid}>
+                <div className={styles.fieldFull}>
+                  <label className={styles.label}>Nome completo</label>
                   <Input
                     type="text"
-                    value={couponCode}
-                    onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                    placeholder="Digite seu cupom"
+                    value={holderInfo.name}
+                    onChange={(e) => setHolderInfo((p) => ({ ...p, name: e.target.value }))}
+                    placeholder="Nome como no documento"
                   />
-                  <Button variant="outline" onClick={applyCoupon} loading={couponLoading}>
-                    Aplicar
-                  </Button>
                 </div>
-                {couponDiscount > 0 && (
-                  <p className={styles.couponSuccess}>
-                    Desconto de {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(couponDiscount)} aplicado!
-                  </p>
-                )}
-                <div className={styles.navButtons}>
-                  <Button variant="ghost" onClick={() => setStep('holder')}>Voltar</Button>
-                  <Button variant="primary" onClick={() => setStep('payment')}>Continuar</Button>
+                <div className={styles.field}>
+                  <label className={styles.label}>CPF</label>
+                  <Input
+                    type="text"
+                    value={holderInfo.cpf}
+                    onChange={(e) => setHolderInfo((p) => ({ ...p, cpf: e.target.value }))}
+                    placeholder="000.000.000-00"
+                    inputMode="numeric"
+                  />
                 </div>
-              </section>
-            )}
+                <div className={styles.field}>
+                  <label className={styles.label}>Telefone</label>
+                  <Input
+                    type="tel"
+                    value={holderInfo.phone}
+                    onChange={(e) => setHolderInfo((p) => ({ ...p, phone: e.target.value }))}
+                    placeholder="(00) 00000-0000"
+                  />
+                </div>
+                <div className={styles.fieldFull}>
+                  <label className={styles.label}>E-mail</label>
+                  <Input
+                    type="email"
+                    value={holderInfo.email}
+                    onChange={(e) => setHolderInfo((p) => ({ ...p, email: e.target.value }))}
+                    placeholder="seu@email.com"
+                  />
+                </div>
+              </div>
+            </section>
 
-            {step === 'payment' && (
-              <section className={styles.section}>
-                <PaymentForm
-                  selectedMethod={paymentMethod}
-                  onMethodChange={setPaymentMethod}
+            {/* Section 2 — Cupom */}
+            <section className={styles.section}>
+              <div className={styles.sectionHeader}>
+                <div className={styles.sectionNum}>2</div>
+                <h2 className={styles.sectionTitle}>Cupom de desconto</h2>
+              </div>
+              <div className={styles.couponRow}>
+                <Input
+                  type="text"
+                  value={couponCode}
+                  onChange={(e) => {
+                    setCouponCode(e.target.value.toUpperCase());
+                    setCouponApplied(false);
+                  }}
+                  placeholder="Digite seu cupom (opcional)"
                 />
-                <div className={styles.navButtons}>
-                  <Button variant="ghost" onClick={() => setStep('coupon')}>Voltar</Button>
-                  <Button variant="primary" onClick={() => setStep('review')}>Continuar</Button>
+                <Button
+                  variant="outline"
+                  onClick={applyCoupon}
+                  loading={couponLoading}
+                  disabled={couponApplied}
+                >
+                  {couponApplied ? 'Aplicado' : 'Aplicar'}
+                </Button>
+              </div>
+              {couponApplied && couponDiscount > 0 && (
+                <div className={styles.couponSuccess}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M20 6L9 17l-5-5"/>
+                  </svg>
+                  Desconto de {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(couponDiscount)} aplicado!
                 </div>
-              </section>
-            )}
+              )}
+            </section>
 
-            {step === 'review' && (
-              <section className={styles.section}>
-                <h2 className={styles.sectionTitle}>Revisão do pedido</h2>
-                <div className={styles.reviewBlock}>
-                  <h3 className={styles.reviewLabel}>Titular</h3>
-                  <p className={styles.reviewValue}>{holderInfo.name}</p>
-                  <p className={styles.reviewValue}>{holderInfo.email}</p>
-                </div>
-                <div className={styles.reviewBlock}>
-                  <h3 className={styles.reviewLabel}>Pagamento</h3>
-                  <p className={styles.reviewValue}>
-                    {paymentMethod === 'pix' ? 'PIX' : paymentMethod === 'credit_card' ? 'Cartão de crédito' : 'Boleto'}
-                  </p>
-                </div>
-                <div className={styles.navButtons}>
-                  <Button variant="ghost" onClick={() => setStep('payment')}>Voltar</Button>
-                  <Button variant="primary" loading={loading} onClick={handlePlaceOrder}>
-                    Finalizar pedido
-                  </Button>
-                </div>
-              </section>
-            )}
+            {/* Section 3 — Pagamento */}
+            <section className={styles.section}>
+              <div className={styles.sectionHeader}>
+                <div className={styles.sectionNum}>3</div>
+                <h2 className={styles.sectionTitle}>Forma de pagamento</h2>
+              </div>
+              <PaymentForm
+                selectedMethod={paymentMethod}
+                onMethodChange={setPaymentMethod}
+              />
+            </section>
 
-            {step === 'pix' && pixData && (
-              <section className={styles.section}>
-                <h2 className={styles.sectionTitle}>Pague com PIX</h2>
-                <PixQR
-                  pixCode={pixData.pixCode}
-                  amount={pixData.amount}
-                  expiresAt={pixData.expiresAt}
-                />
-                <p className={styles.pixNote}>
-                  Após o pagamento, seus ingressos serão enviados para {holderInfo.email}
-                </p>
-              </section>
-            )}
+            {/* Submit button */}
+            <Button
+              variant="primary"
+              loading={loading}
+              onClick={handlePlaceOrder}
+              className={styles.submitBtn}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              Finalizar Pedido
+            </Button>
           </div>
 
-          <div className={styles.sidebar}>
+          {/* ── RIGHT / SIDEBAR ── */}
+          <aside className={styles.sidebar}>
             <OrderSummary couponDiscount={couponDiscount} />
-          </div>
+          </aside>
         </div>
       </div>
     </PublicLayout>
