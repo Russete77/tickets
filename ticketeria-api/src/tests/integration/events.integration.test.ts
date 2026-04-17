@@ -8,6 +8,8 @@ import {
   cleanupTestData,
 } from './helpers';
 
+const hasDatabase = !!(process.env.TEST_DATABASE_URL || process.env.DATABASE_URL);
+
 let prisma: PrismaClient;
 let client: ReturnType<typeof createTestClient>;
 let producerAccessToken: string;
@@ -15,7 +17,7 @@ let producerId: string;
 let consumerAccessToken: string;
 let consumerId: string;
 
-describe('Events Integration Tests', () => {
+describe.skipIf(!hasDatabase)('Events Integration Tests', () => {
   beforeAll(async () => {
     // Skip if no database configured
     const databaseUrl = process.env.TEST_DATABASE_URL || process.env.DATABASE_URL;

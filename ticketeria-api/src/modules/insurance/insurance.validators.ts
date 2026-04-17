@@ -5,9 +5,9 @@ import { z } from 'zod';
  */
 
 /**
- * Schema para criação de seguro de evento
+ * Base schema for insurance fields (without refinement, so .partial() works)
  */
-export const createInsuranceSchema = z.object({
+const baseInsuranceSchema = z.object({
   provider: z
     .string()
     .min(3, 'Nome do provedor deve ter pelo menos 3 caracteres')
@@ -26,7 +26,12 @@ export const createInsuranceSchema = z.object({
     .min(0, 'Prêmio não pode ser negativo'),
   startsAt: z.coerce.date(),
   endsAt: z.coerce.date(),
-}).refine((data) => data.endsAt > data.startsAt, {
+});
+
+/**
+ * Schema para criação de seguro de evento
+ */
+export const createInsuranceSchema = baseInsuranceSchema.refine((data) => data.endsAt > data.startsAt, {
   message: 'Data de término deve ser após data de início',
   path: ['endsAt'],
 });
@@ -34,7 +39,7 @@ export const createInsuranceSchema = z.object({
 /**
  * Schema para atualização de seguro
  */
-export const updateInsuranceSchema = createInsuranceSchema.partial();
+export const updateInsuranceSchema = baseInsuranceSchema.partial();
 
 /**
  * Schema para parâmetro de ID de evento

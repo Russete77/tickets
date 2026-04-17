@@ -22,47 +22,139 @@ export const mockPrisma = {
     create: vi.fn(),
     update: vi.fn(),
     delete: vi.fn(),
+    count: vi.fn(),
+    updateMany: vi.fn(),
+    deleteMany: vi.fn(),
   },
   event: {
     findUnique: vi.fn(),
     findMany: vi.fn(),
+    findFirst: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
     delete: vi.fn(),
+    count: vi.fn(),
+    updateMany: vi.fn(),
+    deleteMany: vi.fn(),
+    aggregate: vi.fn(),
+    groupBy: vi.fn(),
   },
   ticketBatch: {
     findUnique: vi.fn(),
     findMany: vi.fn(),
+    findFirst: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
     delete: vi.fn(),
+    count: vi.fn(),
+    updateMany: vi.fn(),
+    deleteMany: vi.fn(),
   },
   order: {
     findUnique: vi.fn(),
     findMany: vi.fn(),
+    findFirst: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
     delete: vi.fn(),
+    count: vi.fn(),
+    updateMany: vi.fn(),
+    deleteMany: vi.fn(),
+    aggregate: vi.fn(),
+    groupBy: vi.fn(),
   },
   ticket: {
     findUnique: vi.fn(),
     findMany: vi.fn(),
+    findFirst: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
     delete: vi.fn(),
+    count: vi.fn(),
+    updateMany: vi.fn(),
+    deleteMany: vi.fn(),
+    aggregate: vi.fn(),
+    groupBy: vi.fn(),
   },
   ticketTransfer: {
     findUnique: vi.fn(),
     findMany: vi.fn(),
+    findFirst: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
     delete: vi.fn(),
+    count: vi.fn(),
+    updateMany: vi.fn(),
+    deleteMany: vi.fn(),
   },
   auditLog: {
     create: vi.fn(),
     findMany: vi.fn(),
+    findFirst: vi.fn(),
+    count: vi.fn(),
   },
-  $transaction: vi.fn((callback) => callback(mockPrisma)),
+  checkinLog: {
+    create: vi.fn(),
+    findMany: vi.fn(),
+    findFirst: vi.fn(),
+    count: vi.fn(),
+    groupBy: vi.fn(),
+  },
+  favorite: {
+    findUnique: vi.fn(),
+    findFirst: vi.fn(),
+    findMany: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+    delete: vi.fn(),
+    count: vi.fn(),
+    deleteMany: vi.fn(),
+  },
+  notification: {
+    create: vi.fn(),
+    findMany: vi.fn(),
+    findFirst: vi.fn(),
+    count: vi.fn(),
+    updateMany: vi.fn(),
+  },
+  guestEntry: {
+    findMany: vi.fn(),
+    findFirst: vi.fn(),
+    count: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+  },
+  cashlessWallet: {
+    findUnique: vi.fn(),
+    findFirst: vi.fn(),
+    findMany: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+    aggregate: vi.fn(),
+  },
+  cashlessTransaction: {
+    findMany: vi.fn(),
+    findFirst: vi.fn(),
+    create: vi.fn(),
+    count: vi.fn(),
+  },
+  eventReview: {
+    findUnique: vi.fn(),
+    findMany: vi.fn(),
+    findFirst: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+    delete: vi.fn(),
+    count: vi.fn(),
+    aggregate: vi.fn(),
+  },
+  $transaction: vi.fn((callbackOrArray: any) => {
+    if (typeof callbackOrArray === 'function') {
+      return callbackOrArray(mockPrisma);
+    }
+    // Array of promises
+    return Promise.all(callbackOrArray);
+  }),
 };
 
 /**
@@ -200,10 +292,12 @@ vi.mock('jsonwebtoken', () => ({
 vi.mock('otplib', () => ({
   authenticator: {
     generateSecret: vi.fn(() => 'test-secret'),
+    generate: vi.fn(() => '123456'),
     check: vi.fn((code: string, secret: string) => code === '123456'),
     keyuri: vi.fn((accountName: string, issuer: string, secret: string) =>
       `otpauth://totp/${issuer}:${accountName}?secret=${secret}&issuer=${issuer}`
     ),
+    options: {},
   },
 }));
 

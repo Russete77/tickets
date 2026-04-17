@@ -2,10 +2,12 @@ import { describe, it, expect, beforeAll, afterAll, afterEach } from 'vitest';
 import { PrismaClient } from '../../generated/prisma/client';
 import { createTestClient, createTestPrisma, createTestUser, cleanupTestData } from './helpers';
 
+const hasDatabase = !!(process.env.TEST_DATABASE_URL || process.env.DATABASE_URL);
+
 let prisma: PrismaClient;
 let client: ReturnType<typeof createTestClient>;
 
-describe('Auth Integration Tests', () => {
+describe.skipIf(!hasDatabase)('Auth Integration Tests', () => {
   beforeAll(async () => {
     // Skip if no database configured
     const databaseUrl = process.env.TEST_DATABASE_URL || process.env.DATABASE_URL;

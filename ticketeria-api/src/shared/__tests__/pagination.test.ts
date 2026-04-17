@@ -139,15 +139,16 @@ describe('Pagination Module', () => {
     });
 
     it('should set correct cursors', () => {
-      const id1 = uuidv4();
-      const id2 = uuidv4();
-      const id3 = uuidv4();
-      const items = [{ id: id1 }, { id: id2 }, { id: id3 }];
+      // Create 21 items to trigger hasMore, so nextCursor is set
+      const ids = Array.from({ length: 21 }, () => uuidv4());
+      const items = ids.map((id) => ({ id }));
 
       const result = formatPaginatedResponse(items, 20);
 
-      expect(result.pagination.prevCursor).toBe(id1);
-      expect(result.pagination.nextCursor).toBe(id3);
+      // prevCursor is the first item of the returned page
+      expect(result.pagination.prevCursor).toBe(ids[0]);
+      // nextCursor is the last item of the returned page (item at index 19)
+      expect(result.pagination.nextCursor).toBe(ids[19]);
     });
 
     it('should handle empty items', () => {

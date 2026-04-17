@@ -34,18 +34,18 @@ describe('OrdersService', () => {
 
     it('should filter orders by status', async () => {
       const user = createMockUser();
-      const orders = [createMockOrder({ userId: user.id, status: OrderStatus.completed })];
+      const orders = [createMockOrder({ userId: user.id, status: OrderStatus.paid })];
 
       vi.mocked(prisma.order.findMany).mockResolvedValueOnce(orders);
 
       const result = await OrdersService.getMyOrders(
         user.id,
         { limit: 20, direction: 'forward' },
-        { status: OrderStatus.completed }
+        { status: OrderStatus.paid }
       );
 
       const call = vi.mocked(prisma.order.findMany).mock.calls[0];
-      expect(call[0].where).toHaveProperty('status', OrderStatus.completed);
+      expect(call[0].where).toHaveProperty('status', OrderStatus.paid);
     });
 
     it('should filter orders by event', async () => {
@@ -157,7 +157,9 @@ describe('OrdersService', () => {
       vi.mocked(prisma.order.update).mockResolvedValueOnce({
         ...order,
         status: OrderStatus.cancelled,
+        tickets: [], // Include tickets array to avoid length error
       } as any);
+      vi.mocked(prisma.ticket.updateMany).mockResolvedValueOnce({ count: 0 } as any);
 
       const result = await OrdersService.cancelOrder(order.id, user.id);
 
@@ -178,7 +180,7 @@ describe('OrdersService', () => {
 
     it('should throw BadRequestError when order is not pending', async () => {
       const user = createMockUser();
-      const order = createMockOrder({ userId: user.id, status: OrderStatus.completed });
+      const order = createMockOrder({ userId: user.id, status: OrderStatus.paid });
 
       vi.mocked(prisma.order.findUnique).mockResolvedValueOnce(order as any);
 
@@ -205,7 +207,9 @@ describe('OrdersService', () => {
       vi.mocked(prisma.order.update).mockResolvedValueOnce({
         ...order,
         status: OrderStatus.cancelled,
+        tickets: [],
       } as any);
+      vi.mocked(prisma.ticket.updateMany).mockResolvedValueOnce({ count: 0 } as any);
 
       await OrdersService.cancelOrder(order.id, user.id);
 
@@ -213,18 +217,21 @@ describe('OrdersService', () => {
     });
   });
 
-  describe('getOrderStats', () => {
-    it('should return order statistics for user', async () => {
-      const user = createMockUser();
+  describe('getEventSalesStats', () => {
+    it('should return order statistics for an event', async () => {
+      const event = createMockEvent();
 
-      vi.mocked(prisma.order.groupBy).mockResolvedValueOnce([
-        { status: OrderStatus.completed, _count: { id: 5 } },
-        { status: OrderStatus.pending, _count: { id: 2 } },
-      ] as any);
+      vi.mocked(prisma.order.aggregate)
+        .mockResolvedValueOnce({ _count: 5, _sum: { totalCents: 50000 } } as any)
+        .mockResolvedValueOnce({ _count: 3, _sum: { totalCents: 30000 } } as any);
+      vi.mocked(prisma.ticket.count)
+        .mockResolvedValueOnce(8)
+        .mockResolvedValueOnce(8);
 
-      const result = await (OrdersService as any).getOrderStats(user.id);
+      const result = await OrdersService.getEventSalesStats(event.id);
 
       expect(result).toBeDefined();
+      expect(result.totalOrders).toBeDefined();
     });
   });
 });

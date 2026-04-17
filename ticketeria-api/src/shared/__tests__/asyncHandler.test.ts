@@ -11,9 +11,9 @@ describe('AsyncHandler', () => {
     const wrappedHandler = asyncHandler(handler);
 
     const req = {} as Request;
-    const res = {
-      json: vi.fn().mockReturnValue(res),
-    } as any;
+    const resMock = { json: vi.fn() };
+    resMock.json.mockReturnValue(resMock);
+    const res = resMock as any;
     const next = vi.fn();
 
     await new Promise((resolve) => {
@@ -119,9 +119,9 @@ describe('AsyncHandler', () => {
     const wrappedHandler = asyncHandler(handler);
 
     const req = {} as Request;
-    const res = {
-      status: vi.fn().mockReturnValue(res),
-    } as any;
+    const resMock2 = { status: vi.fn() };
+    resMock2.status.mockReturnValue(resMock2);
+    const res = resMock2 as any;
     const next = vi.fn();
 
     await new Promise((resolve) => {
