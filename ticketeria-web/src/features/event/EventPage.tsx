@@ -198,7 +198,13 @@ const EventPage: React.FC = () => {
           </div>
 
           <div className={styles.sidebar}>
-            <BatchSelector batches={event.batches} />
+            <BatchSelector
+              batches={event.batches}
+              eventId={event.id}
+              eventSlug={event.slug}
+              eventTitle={event.title}
+              eventCover={event.coverImage}
+            />
             <ShareButtons eventTitle={event.title} eventSlug={event.slug} />
             {event.venue.coordinates && (
               <EventMap

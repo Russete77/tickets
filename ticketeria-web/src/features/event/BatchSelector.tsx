@@ -3,10 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { Batch } from './EventPage';
 import { Icon } from '@shared/ui/Icon/Icon';
 import { formatCurrency } from '@shared/lib/formatters';
+import { useCartStore } from '@shared/stores/cartStore';
 import styles from './BatchSelector.module.css';
 
 interface BatchSelectorProps {
   batches: Batch[];
+  eventId: string;
+  eventSlug: string;
+  eventTitle: string;
+  eventCover: string;
 }
 
 const BATCH_TYPE_LABELS: Record<string, string> = {
@@ -16,8 +21,15 @@ const BATCH_TYPE_LABELS: Record<string, string> = {
   camarote: 'Camarote',
 };
 
-const BatchSelector: React.FC<BatchSelectorProps> = ({ batches }) => {
+const BatchSelector: React.FC<BatchSelectorProps> = ({
+  batches,
+  eventId,
+  eventSlug,
+  eventTitle,
+  eventCover,
+}) => {
   const navigate = useNavigate();
+  const { addItem, clear } = useCartStore();
   const [quantities, setQuantities] = useState<Record<string, number>>({});
 
   const safeBatches = batches ?? [];
@@ -37,15 +49,26 @@ const BatchSelector: React.FC<BatchSelectorProps> = ({ batches }) => {
   }, 0);
 
   const handleCheckout = () => {
-    const selectedItems = safeBatches
-      .filter((b) => (quantities[b.id] ?? 0) > 0)
-      .map((b) => ({ batchId: b.id, quantity: quantities[b.id] }));
+    const selected = safeBatches.filter((b) => (quantities[b.id] ?? 0) > 0);
+    if (selected.length === 0) return;
 
-    if (selectedItems.length === 0) return;
+    // Clear previous cart and add selected items
+    clear();
+    selected.forEach((batch) => {
+      addItem({
+        batchId: batch.id,
+        eventId,
+        eventSlug,
+        eventTitle,
+        eventCover,
+        batchName: batch.name,
+        batchType: batch.type as 'normal' | 'vip' | 'backstage' | 'camarote',
+        price: batch.price,
+        quantity: quantities[batch.id],
+      });
+    });
 
-    const params = new URLSearchParams();
-    params.set('items', JSON.stringify(selectedItems));
-    navigate(`/checkout?${params.toString()}`);
+    navigate('/checkout');
   };
 
   return (
