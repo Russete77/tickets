@@ -343,7 +343,7 @@ export interface MockUser {
   email: string;
   cpf: string;
   phone: string;
-  role: 'user' | 'admin';
+  role: 'user' | 'admin' | 'organizer';
   createdAt: string;
 }
 
@@ -356,6 +356,24 @@ const MOCK_USERS: MockUser[] = [
     phone: '11999999999',
     role: 'admin',
     createdAt: '2024-01-01T00:00:00Z',
+  },
+  {
+    id: 'usr-002',
+    name: 'Produtor Exemplo',
+    email: 'produtor@example.com',
+    cpf: '11111111111',
+    phone: '11988888888',
+    role: 'organizer',
+    createdAt: '2024-01-15T00:00:00Z',
+  },
+  {
+    id: 'usr-003',
+    name: 'Usuario Exemplo',
+    email: 'usuario@example.com',
+    cpf: '22222222222',
+    phone: '11977777777',
+    role: 'user',
+    createdAt: '2024-02-01T00:00:00Z',
   },
 ];
 
