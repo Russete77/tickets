@@ -39,7 +39,7 @@
 }
 
 .balanceCard {
-  background: linear-gradient(135deg, var(--tl-brand) 0%, #2563EB 100%);
+  background: linear-gradient(135deg, var(--tl-brand-bg) 0%, #2563EB 100%);
   border-radius: var(--tl-radius-lg);
   padding: var(--tl-space-6);
   color: #FFFFFF;
@@ -241,7 +241,7 @@
 
 .input:focus {
   outline: none;
-  border-color: var(--tl-brand);
+  border-color: var(--tl-brand-fg);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
@@ -279,7 +279,7 @@
 .btnSubmit {
   flex: 1;
   padding: var(--tl-space-3) var(--tl-space-4);
-  background: var(--tl-brand);
+  background: var(--tl-brand-bg);
   color: #FFFFFF;
   border: none;
   border-radius: var(--tl-radius-md);

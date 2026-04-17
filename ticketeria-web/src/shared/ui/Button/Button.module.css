@@ -39,17 +39,17 @@
 /* ── Variants ── */
 
 .variant-primary {
-  background-color: var(--tl-brand);
+  background-color: var(--tl-brand-bg);
   color: var(--tl-brand-dark);
 
   &:hover:not(:disabled) {
-    background-color: var(--tl-brand-hover);
+    background-color: var(--tl-brand-bg-hover);
     box-shadow: var(--tl-shadow-glow);
   }
 
   &:active:not(:disabled) {
     transform: scale(0.97);
-    background-color: var(--tl-brand-active);
+    background-color: var(--tl-brand-bg-active);
   }
 }
 
@@ -70,11 +70,11 @@
 
 .variant-outline {
   background-color: transparent;
-  color: var(--tl-brand);
-  border: 2px solid var(--tl-brand);
+  color: var(--tl-brand-fg);
+  border: 2px solid var(--tl-brand-fg);
 
   &:hover:not(:disabled) {
-    background-color: var(--tl-brand);
+    background-color: var(--tl-brand-bg);
     color: var(--tl-brand-dark);
     box-shadow: var(--tl-shadow-glow);
   }

@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '@shared/hooks/useAuth';
+import { useTheme } from '@shared/hooks/useTheme';
 import { Avatar } from '@shared/ui/Avatar/Avatar';
 import { Icon } from '@shared/ui/Icon/Icon';
+import { ThemeToggle } from '@shared/ui/ThemeToggle/ThemeToggle';
 import styles from './AdminLayout.module.css';
 
 interface NavItem {
@@ -89,6 +91,7 @@ const navItems: NavItem[] = [
 
 export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   const { user, logout } = useAuth();
+  const { theme } = useTheme();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -98,7 +101,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   };
 
   return (
-    <div className={styles.layout} data-layout="admin">
+    <div className={styles.layout} data-layout="admin" data-theme={theme}>
       <button
         className={styles.mobileOverlay}
         onClick={() => setSidebarOpen(false)}
@@ -112,7 +115,10 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
             <Icon name="ticket" size={20} className={styles.brandIcon} />
             <span className={styles.brandText}>Tickety</span>
           </div>
-          <span className={styles.brandBadge}>Admin</span>
+          <div className={styles.sidebarHeaderRight}>
+            <span className={styles.brandBadge}>Admin</span>
+            <ThemeToggle />
+          </div>
         </div>
 
         <nav className={styles.sidebarNav}>
@@ -163,6 +169,9 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
               <line x1="3" y1="18" x2="21" y2="18" />
             </svg>
           </button>
+          <div className={styles.topBarActions}>
+            <ThemeToggle />
+          </div>
         </header>
 
         <main className={styles.main}>{children}</main>

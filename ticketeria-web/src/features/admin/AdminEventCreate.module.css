@@ -47,7 +47,7 @@
 
 .progressFill {
   height: 100%;
-  background: linear-gradient(to right, var(--tl-brand), #5BB7DB);
+  background: linear-gradient(to right, var(--tl-brand-bg), #5BB7DB);
   transition: width 0.3s ease;
   border-radius: 2px;
 }
@@ -75,9 +75,9 @@
 }
 
 .stepIndicator.active {
-  background-color: var(--tl-brand);
+  background-color: var(--tl-brand-bg);
   color: white;
-  border-color: var(--tl-brand);
+  border-color: var(--tl-brand-fg);
   box-shadow: 0 0 0 4px rgba(0, 255, 102, 0.08);
 }
 
@@ -88,7 +88,7 @@
 }
 
 .stepIndicator:hover:not(.active) {
-  border-color: var(--tl-brand);
+  border-color: var(--tl-brand-fg);
 }
 
 /* ── Card ── */
@@ -182,7 +182,7 @@
 
   &:focus {
     outline: none;
-    border-color: var(--tl-brand);
+    border-color: var(--tl-brand-fg);
     background-color: #FFFFFF;
     box-shadow: 0 0 0 3px rgba(0, 255, 102, 0.08);
   }
@@ -201,7 +201,7 @@
 
   &:focus {
     outline: none;
-    border-color: var(--tl-brand);
+    border-color: var(--tl-brand-fg);
     background-color: #FFFFFF;
     box-shadow: 0 0 0 3px rgba(0, 255, 102, 0.08);
   }
@@ -306,7 +306,7 @@
 }
 
 .coverImageUpload:hover {
-  border-color: var(--tl-brand);
+  border-color: var(--tl-brand-fg);
   background-color: rgba(108, 92, 231, 0.02);
 }
 

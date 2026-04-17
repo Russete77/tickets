@@ -33,7 +33,7 @@
 
 .variant-brand {
   background-color: var(--tl-brand-muted);
-  color: var(--tl-brand);
+  color: var(--tl-brand-fg);
 }
 
 .variant-success {
@@ -59,8 +59,8 @@
 /* ── Ticket Status Variants ── */
 
 .variant-available {
-  background-color: rgba(0, 255, 102, 0.12);
-  color: var(--tl-ticket-available);
+  background-color: var(--tl-brand-muted);
+  color: var(--tl-brand-fg);
 }
 
 .variant-few-left {

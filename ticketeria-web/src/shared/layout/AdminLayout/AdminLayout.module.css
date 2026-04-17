@@ -58,10 +58,16 @@
   font-size: var(--tl-text-xl);
 }
 
+.sidebarHeaderRight {
+  display: flex;
+  align-items: center;
+  gap: var(--tl-space-2);
+}
+
 .brandText {
   font-size: var(--tl-text-lg);
   font-weight: 700;
-  color: var(--tl-brand);
+  color: var(--tl-brand-fg);
   letter-spacing: -0.02em;
 }
 
@@ -70,7 +76,7 @@
   font-weight: 600;
   padding: 2px var(--tl-space-2);
   background-color: var(--tl-brand-muted);
-  color: var(--tl-brand);
+  color: var(--tl-brand-fg);
   border-radius: var(--tl-radius-sm);
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -104,12 +110,12 @@
 
 .navItem:hover {
   background-color: var(--tl-brand-muted);
-  color: var(--tl-brand);
+  color: var(--tl-brand-fg);
 }
 
 .navItemActive {
   background-color: var(--tl-brand-muted);
-  color: var(--tl-brand);
+  color: var(--tl-brand-fg);
   font-weight: 600;
 }
 

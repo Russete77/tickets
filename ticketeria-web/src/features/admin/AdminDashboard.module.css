@@ -169,7 +169,7 @@
 .cardLink {
   font-size: var(--tl-text-sm);
   font-weight: 600;
-  color: var(--tl-brand, var(--tl-brand));
+  color: var(--tl-brand-fg);
   background: none;
   border: none;
   cursor: pointer;
@@ -205,7 +205,7 @@
 
 .chartBar {
   width: 100%;
-  background: linear-gradient(to top, var(--tl-brand), #60A5FA);
+  background: linear-gradient(to top, var(--tl-brand-bg), #60A5FA);
   border-radius: 4px 4px 0 0;
   min-height: 4px;
   transition: height var(--tl-duration-normal);
@@ -266,7 +266,7 @@
 
 .progressFill {
   height: 100%;
-  background: linear-gradient(to right, var(--tl-brand), #60A5FA);
+  background: linear-gradient(to right, var(--tl-brand-bg), #60A5FA);
   border-radius: var(--tl-radius-pill);
   transition: width 0.5s ease;
 }

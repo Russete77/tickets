@@ -42,7 +42,7 @@
   height: 25%;
   min-width: 8px;
   min-height: 8px;
-  background-color: var(--tl-brand);
+  background-color: var(--tl-brand-bg);
   border-radius: var(--tl-radius-full);
   border: 2px solid var(--tl-bg-secondary);
 }

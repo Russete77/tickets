@@ -160,6 +160,13 @@
   --tl-shadow-inner: inset 0 1px 1px rgba(255, 255, 255, 0.05);
   --tl-shadow-focus: 0 0 0 2px #00FF66;
 
+  /* Brand variants for dark mode (neon green works here) */
+  --tl-brand-fg:        #00FF66;
+  --tl-brand-bg:        #00FF66;
+  --tl-brand-bg-hover:  #00E65C;
+  --tl-brand-bg-active: #00CC52;
+  --tl-brand-surface:   rgba(0, 255, 102, 0.08);
+
   /* Scrollbar */
   --tl-scrollbar-track: transparent;
   --tl-scrollbar-thumb: rgba(255, 255, 255, 0.15);
@@ -213,6 +220,17 @@
   --tl-shadow-inner: inset 0 1px 2px rgba(0, 0, 0, 0.05);
   --tl-shadow-focus: 0 0 0 3px rgba(0, 128, 58, 0.25);
 
+  /* Brand overrides for light mode (WCAG AA contrast on white) */
+  --tl-brand-fg:        #059669;  /* emerald-600 — for text on light bg */
+  --tl-brand-bg:        #059669;  /* for button backgrounds */
+  --tl-brand-bg-hover:  #047857;  /* emerald-700 */
+  --tl-brand-bg-active: #065F46;  /* emerald-800 */
+  --tl-brand-surface:   #ECFDF5;  /* emerald-50 — for light tinted backgrounds */
+  --tl-brand-muted:     rgba(5, 150, 105, 0.10);
+  --tl-shadow-glow:     0 0 20px rgba(5, 150, 105, 0.15);
+  --tl-shadow-glow-strong: 0 0 40px rgba(5, 150, 105, 0.25);
+  --tl-shadow-focus:    0 0 0 2px #059669;
+
   /* Scrollbar */
   --tl-scrollbar-track: #F5F5F5;
   --tl-scrollbar-thumb: #D4D4D4;
@@ -244,8 +262,58 @@
   --tl-admin-table-hover:    #F5F5F5;
 }
 
-/* Admin em dark mode (toggle) */
+/* Admin em dark mode (toggle) — re-applies dark base tokens + admin dark overrides */
 [data-layout="admin"][data-theme="dark"] {
+  /* Base dark mode tokens (override the light ones set by [data-layout="admin"]) */
+  --tl-bg-primary:     #0A0A0A;
+  --tl-bg-secondary:   #121212;
+  --tl-bg-tertiary:    #1A1A1A;
+  --tl-bg-elevated:    #222222;
+  --tl-bg-surface:     #2A2A2A;
+  --tl-bg-overlay:     rgba(0, 0, 0, 0.60);
+  --tl-bg-glass:       rgba(10, 10, 10, 0.96);
+  --tl-bg-glass-light: rgba(255, 255, 255, 0.08);
+
+  --tl-text-primary:   #FFFFFF;
+  --tl-text-secondary: rgba(255, 255, 255, 0.70);
+  --tl-text-tertiary:  rgba(255, 255, 255, 0.45);
+  --tl-text-muted:     rgba(255, 255, 255, 0.30);
+  --tl-text-accent:    #00FF66;
+  --tl-text-inverse:   #121212;
+
+  --tl-border-default: rgba(255, 255, 255, 0.08);
+  --tl-border-medium:  rgba(255, 255, 255, 0.12);
+  --tl-border-strong:  rgba(255, 255, 255, 0.20);
+  --tl-border-focus:   rgba(255, 255, 255, 0.40);
+  --tl-border-accent:  #00FF66;
+
+  --tl-shadow-sm:    0 2px 8px rgba(0, 0, 0, 0.3);
+  --tl-shadow-md:    0 4px 16px rgba(0, 0, 0, 0.4);
+  --tl-shadow-lg:    0 10px 30px rgba(0, 0, 0, 0.5);
+  --tl-shadow-xl:    0 20px 50px rgba(0, 0, 0, 0.8);
+  --tl-shadow-glow:  0 0 20px rgba(0, 255, 102, 0.3);
+  --tl-shadow-glow-strong: 0 0 40px rgba(0, 255, 102, 0.6);
+  --tl-shadow-inner: inset 0 1px 1px rgba(255, 255, 255, 0.05);
+  --tl-shadow-focus: 0 0 0 2px #00FF66;
+
+  --tl-scrollbar-track: transparent;
+  --tl-scrollbar-thumb: rgba(255, 255, 255, 0.15);
+  --tl-scrollbar-hover: rgba(255, 255, 255, 0.25);
+
+  --tl-shimmer-from: #1A1A1A;
+  --tl-shimmer-to:   #2A2A2A;
+
+  /* Brand variants (neon green for dark) */
+  --tl-brand-fg:        #00FF66;
+  --tl-brand-bg:        #00FF66;
+  --tl-brand-bg-hover:  #00E65C;
+  --tl-brand-bg-active: #00CC52;
+  --tl-brand-surface:   rgba(0, 255, 102, 0.08);
+  --tl-brand-muted:     rgba(0, 255, 102, 0.15);
+
+  color-scheme: dark;
+
+  /* Admin-specific dark tokens */
   --tl-admin-sidebar-bg:     #141414;
   --tl-admin-sidebar-active: rgba(0, 255, 102, 0.08);
   --tl-admin-sidebar-text:   rgba(255, 255, 255, 0.60);

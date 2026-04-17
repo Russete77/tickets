@@ -104,7 +104,7 @@
   top: var(--tl-space-2);
   left: var(--tl-space-2);
   background-color: var(--tl-brand-muted);
-  color: var(--tl-brand);
+  color: var(--tl-brand-fg);
   padding: 2px var(--tl-space-2);
   border-radius: var(--tl-radius-xs);
   font-size: var(--tl-text-xs);
@@ -151,7 +151,7 @@
 .eventPrice {
   font-size: var(--tl-text-base);
   font-weight: 700;
-  color: var(--tl-brand);
+  color: var(--tl-brand-fg);
 }
 
 @media (max-width: 768px) {

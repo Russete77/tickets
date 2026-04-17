@@ -94,7 +94,7 @@
 
 .searchInput:focus {
   outline: none;
-  border-color: var(--tl-brand);
+  border-color: var(--tl-brand-fg);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
   background: #FFFFFF;
 }
@@ -112,7 +112,7 @@
 
 .filterSelect:focus {
   outline: none;
-  border-color: var(--tl-brand);
+  border-color: var(--tl-brand-fg);
 }
 
 /* ── CTA button ── */
@@ -121,7 +121,7 @@
   align-items: center;
   gap: var(--tl-space-2);
   padding: var(--tl-space-2) var(--tl-space-5);
-  background: var(--tl-brand);
+  background: var(--tl-brand-bg);
   color: #FFFFFF;
   border: none;
   border-radius: var(--tl-radius-md);
@@ -272,7 +272,7 @@
 
 .pageBtn:hover:not(:disabled) { background: #F3F4F6; }
 .pageBtn:disabled { opacity: 0.4; cursor: not-allowed; }
-.pageBtnActive { background: var(--tl-brand); color: #FFFFFF; border-color: var(--tl-brand); font-weight: 600; }
+.pageBtnActive { background: var(--tl-brand-bg); color: #FFFFFF; border-color: var(--tl-brand-fg); font-weight: 600; }
 .pageBtnActive:hover { background: #2563EB; }
 
 /* ── Empty ── */

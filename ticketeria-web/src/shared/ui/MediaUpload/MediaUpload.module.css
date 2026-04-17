@@ -24,7 +24,7 @@
   justify-content: center;
 
   &:hover {
-    border-color: var(--tl-brand);
+    border-color: var(--tl-brand-fg);
     background-color: var(--tl-brand-muted);
   }
 }
@@ -45,7 +45,7 @@
 }
 
 .icon {
-  color: var(--tl-brand);
+  color: var(--tl-brand-fg);
   opacity: 0.7;
 }
 
@@ -65,7 +65,7 @@
 .browseButton {
   pointer-events: auto;
   padding: var(--tl-space-2) var(--tl-space-6);
-  background-color: var(--tl-brand);
+  background-color: var(--tl-brand-bg);
   color: var(--tl-brand-dark);
   border: none;
   border-radius: var(--tl-radius-pill);
@@ -237,7 +237,7 @@
 
 .progressBar {
   height: 100%;
-  background: linear-gradient(to right, var(--tl-brand), var(--tl-brand-hover));
+  background: linear-gradient(to right, var(--tl-brand-bg), var(--tl-brand-bg-hover));
   transition: width 0.3s ease;
   width: 0%;
 }
