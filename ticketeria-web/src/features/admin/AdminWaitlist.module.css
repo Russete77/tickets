@@ -1,0 +1,57 @@
+/* ── AdminWaitlist specific styles ── */
+
+.eventSelect {
+  width: 100%;
+  max-width: 480px;
+  padding: var(--tl-space-2) var(--tl-space-4);
+  border: 1px solid var(--tl-border-default);
+  border-radius: var(--tl-radius-md);
+  font-size: var(--tl-text-sm);
+  color: var(--tl-text-primary);
+  background: var(--tl-bg-tertiary);
+  cursor: pointer;
+}
+
+.eventSelect:focus {
+  outline: none;
+  border-color: var(--tl-brand-fg);
+  box-shadow: 0 0 0 3px var(--tl-brand-muted);
+}
+
+.loading {
+  padding: var(--tl-space-8);
+  text-align: center;
+  color: var(--tl-text-muted);
+  font-size: var(--tl-text-sm);
+}
+
+/* ── Notify batch row ── */
+.notifyRow {
+  display: flex;
+  align-items: center;
+  gap: var(--tl-space-2);
+}
+
+.batchInput {
+  width: 64px;
+  padding: var(--tl-space-2) var(--tl-space-3);
+  border: 1px solid var(--tl-border-default);
+  border-radius: var(--tl-radius-md);
+  font-size: var(--tl-text-sm);
+  color: var(--tl-text-primary);
+  background: var(--tl-bg-tertiary);
+  text-align: center;
+  transition: border-color var(--tl-duration-fast);
+}
+
+.batchInput:focus {
+  outline: none;
+  border-color: var(--tl-brand-fg);
+  box-shadow: 0 0 0 3px var(--tl-brand-muted);
+}
+
+/* ── Position number ── */
+.position {
+  font-weight: 700;
+  color: var(--tl-text-secondary);
+}

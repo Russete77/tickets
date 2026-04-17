@@ -27,9 +27,22 @@ const AdminAffiliates  = lazy(() => import('@features/admin/AdminAffiliates'));
 const AdminGuestLists  = lazy(() => import('@features/admin/AdminGuestLists'));
 const AdminPromoters   = lazy(() => import('@features/admin/AdminPromoters'));
 const AdminCheckinDashboard = lazy(() => import('@features/admin/AdminCheckinDashboard'));
+const AdminStaff      = lazy(() => import('@features/admin/AdminStaff'));
+const AdminAreas      = lazy(() => import('@features/admin/AdminAreas'));
+const AdminCourtesies = lazy(() => import('@features/admin/AdminCourtesies'));
+const AdminWaitlist   = lazy(() => import('@features/admin/AdminWaitlist'));
+const AdminBoxOffice  = lazy(() => import('@features/admin/AdminBoxOffice'));
+const AdminPriceRules = lazy(() => import('@features/admin/AdminPriceRules'));
 
 // User pages
 const WalletPage = lazy(() => import('@features/wallet/WalletPage'));
+const OrderDetailsPage = lazy(() => import('@features/orders/OrderDetailsPage'));
+
+// Promoter pages
+const PromoterDashboardPage = lazy(() => import('@features/promoter/PromoterDashboardPage'));
+
+// Public pages (no auth required)
+const GuestRegistrationPage = lazy(() => import('@features/guest-registration/GuestRegistrationPage'));
 
 const PageLoader: React.FC = () => (
   <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
@@ -68,11 +81,16 @@ const router = createBrowserRouter([
   { path: '/forgot-password', element: wrap(<GuestRoute><ForgotPasswordPage /></GuestRoute>) },
   { path: '/reset-password/:userId/:token', element: wrap(<GuestRoute><ResetPasswordPage /></GuestRoute>) },
 
+  // ── Public guest registration (no auth) ──
+  { path: '/guest/:slug', element: wrap(<GuestRegistrationPage />) },
+
   // ── Protected user routes ──
-  { path: '/checkout', element: wrap(<ProtectedRoute><CheckoutFlow /></ProtectedRoute>) },
-  { path: '/tickets',  element: wrap(<ProtectedRoute><MyTicketsPage /></ProtectedRoute>) },
-  { path: '/profile',  element: wrap(<ProtectedRoute><ProfilePage /></ProtectedRoute>) },
-  { path: '/wallet',   element: wrap(<ProtectedRoute><WalletPage /></ProtectedRoute>) },
+  { path: '/checkout',          element: wrap(<ProtectedRoute><CheckoutFlow /></ProtectedRoute>) },
+  { path: '/tickets',           element: wrap(<ProtectedRoute><MyTicketsPage /></ProtectedRoute>) },
+  { path: '/orders/:orderId',   element: wrap(<ProtectedRoute><OrderDetailsPage /></ProtectedRoute>) },
+  { path: '/profile',           element: wrap(<ProtectedRoute><ProfilePage /></ProtectedRoute>) },
+  { path: '/wallet',            element: wrap(<ProtectedRoute><WalletPage /></ProtectedRoute>) },
+  { path: '/promoter',          element: wrap(<ProtectedRoute><PromoterDashboardPage /></ProtectedRoute>) },
 
   // ── Check-in route (standalone, no layout) ──
   { path: '/checkin', element: wrap(<CheckinPage />) },
@@ -89,6 +107,12 @@ const router = createBrowserRouter([
   { path: '/admin/guest-lists', element: adminWrap(<AdminGuestLists />) },
   { path: '/admin/promoters',   element: adminWrap(<AdminPromoters />) },
   { path: '/admin/checkin',     element: adminWrap(<AdminCheckinDashboard />) },
+  { path: '/admin/staff',       element: adminWrap(<AdminStaff />) },
+  { path: '/admin/areas',       element: adminWrap(<AdminAreas />) },
+  { path: '/admin/courtesies',  element: adminWrap(<AdminCourtesies />) },
+  { path: '/admin/waitlist',    element: adminWrap(<AdminWaitlist />) },
+  { path: '/admin/box-office',  element: adminWrap(<AdminBoxOffice />) },
+  { path: '/admin/price-rules', element: adminWrap(<AdminPriceRules />) },
 
   // ── Catch-all ──
   { path: '*', element: <Navigate to="/" replace /> },

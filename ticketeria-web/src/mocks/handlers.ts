@@ -860,6 +860,124 @@ export const handlers = [
     });
   }),
 
+  // ── Admin: Staff ────────────────────────────────────────────────────────
+
+  http.get(`${BASE}/staff`, async ({ request }) => {
+    await delay(LAT);
+    const url = new URL(request.url);
+    const eventId = url.searchParams.get('eventId') ?? 'evt-001';
+    const staff = [
+      { id: 'stf-001', eventId, name: 'Ana Lima', role: 'hostess', phone: '(11) 99001-1001', shiftStart: '17:00', shiftEnd: '23:00', checkedIn: true,  checkInsPerformed: 142 },
+      { id: 'stf-002', eventId, name: 'Carlos Mota', role: 'security', phone: '(11) 99002-2002', shiftStart: '16:00', shiftEnd: '00:00', checkedIn: true,  checkInsPerformed: 0 },
+      { id: 'stf-003', eventId, name: 'Beatriz Souza', role: 'bar', phone: '(11) 99003-3003', shiftStart: '18:00', shiftEnd: '02:00', checkedIn: false, checkInsPerformed: 0 },
+      { id: 'stf-004', eventId, name: 'Diego Costa', role: 'coordinator', phone: '(11) 99004-4004', shiftStart: '15:00', shiftEnd: '23:00', checkedIn: true,  checkInsPerformed: 89 },
+      { id: 'stf-005', eventId, name: 'Érica Mendes', role: 'custom', phone: '(11) 99005-5005', shiftStart: '20:00', shiftEnd: '04:00', checkedIn: false, checkInsPerformed: 0 },
+    ];
+    return HttpResponse.json({ data: staff });
+  }),
+
+  http.post(`${BASE}/staff`, async ({ request }) => {
+    await delay(LAT);
+    const body = (await request.json()) as Record<string, unknown>;
+    return HttpResponse.json({
+      data: { id: `stf-${Date.now()}`, ...body, checkedIn: false, checkInsPerformed: 0 },
+    }, { status: 201 });
+  }),
+
+  http.delete(`${BASE}/staff/:id`, async () => {
+    await delay(LAT);
+    return HttpResponse.json({ data: { success: true } });
+  }),
+
+  // ── Admin: Areas ─────────────────────────────────────────────────────────
+
+  http.get(`${BASE}/areas`, async ({ request }) => {
+    await delay(LAT);
+    const url = new URL(request.url);
+    const eventId = url.searchParams.get('eventId') ?? 'evt-001';
+    const areas = [
+      { id: 'area-001', eventId, name: 'Pista Principal', capacity: 5000, occupancy: 3800 },
+      { id: 'area-002', eventId, name: 'Camarote VIP', capacity: 500, occupancy: 470 },
+      { id: 'area-003', eventId, name: 'Área Bar', capacity: 1000, occupancy: 620 },
+      { id: 'area-004', eventId, name: 'Backstage', capacity: 200, occupancy: 45 },
+    ];
+    return HttpResponse.json({ data: areas });
+  }),
+
+  http.post(`${BASE}/areas`, async ({ request }) => {
+    await delay(LAT);
+    const body = (await request.json()) as Record<string, unknown>;
+    return HttpResponse.json({
+      data: { id: `area-${Date.now()}`, ...body, occupancy: 0 },
+    }, { status: 201 });
+  }),
+
+  http.put(`${BASE}/areas/:id`, async ({ request }) => {
+    await delay(LAT);
+    const body = (await request.json()) as Record<string, unknown>;
+    return HttpResponse.json({ data: body });
+  }),
+
+  http.delete(`${BASE}/areas/:id`, async () => {
+    await delay(LAT);
+    return HttpResponse.json({ data: { success: true } });
+  }),
+
+  // ── Admin: Courtesies ────────────────────────────────────────────────────
+
+  http.get(`${BASE}/courtesies`, async ({ request }) => {
+    await delay(LAT);
+    const url = new URL(request.url);
+    const eventId = url.searchParams.get('eventId') ?? 'evt-001';
+    const courtesies = [
+      { id: 'crt-001', eventId, guestName: 'Marcos Vinicius', email: 'marcos@agency.com', batchType: 'vip',       notes: 'Parceiro comercial', status: 'approved', createdAt: '2025-04-01T10:00:00Z' },
+      { id: 'crt-002', eventId, guestName: 'Fernanda Rocha',  email: 'fernanda@press.com', batchType: 'press',     notes: 'Jornalista convidada', status: 'pending',  createdAt: '2025-04-02T11:00:00Z' },
+      { id: 'crt-003', eventId, guestName: 'DJ Alok',         email: 'alok@team.com',      batchType: 'artista',   notes: 'Headliner',           status: 'used',     createdAt: '2025-03-28T08:00:00Z' },
+      { id: 'crt-004', eventId, guestName: 'Patrocinador XYZ', email: 'vip@xyz.com',       batchType: 'camarote',  notes: 'Cota patrocínio',     status: 'approved', createdAt: '2025-04-05T14:00:00Z' },
+      { id: 'crt-005', eventId, guestName: 'Lucas Backstage', email: 'lucas@crew.com',     batchType: 'backstage', notes: 'Equipe de produção',  status: 'pending',  createdAt: '2025-04-06T09:00:00Z' },
+    ];
+    return HttpResponse.json({ data: courtesies });
+  }),
+
+  http.post(`${BASE}/courtesies`, async ({ request }) => {
+    await delay(LAT);
+    const body = (await request.json()) as Record<string, unknown>;
+    return HttpResponse.json({
+      data: { id: `crt-${Date.now()}`, ...body, status: 'pending', createdAt: new Date().toISOString() },
+    }, { status: 201 });
+  }),
+
+  http.patch(`${BASE}/courtesies/:id/approve`, async ({ params }) => {
+    await delay(LAT);
+    return HttpResponse.json({ data: { id: params.id, status: 'approved' } });
+  }),
+
+  http.delete(`${BASE}/courtesies/:id`, async () => {
+    await delay(LAT);
+    return HttpResponse.json({ data: { success: true } });
+  }),
+
+  // ── Admin: Waitlist ──────────────────────────────────────────────────────
+
+  http.get(`${BASE}/waitlist`, async ({ request }) => {
+    await delay(LAT);
+    const url = new URL(request.url);
+    const eventId = url.searchParams.get('eventId') ?? 'evt-001';
+    const entries = [
+      { id: 'wl-001', eventId, position: 1, name: 'João Espera',   email: 'joao@email.com',   phone: '(11) 99101-0001', batchPreference: 'Pista',   status: 'notified',  joinedAt: '2025-03-20T08:00:00Z' },
+      { id: 'wl-002', eventId, position: 2, name: 'Maria Fila',    email: 'maria@email.com',  phone: '(11) 99102-0002', batchPreference: 'VIP',     status: 'purchased', joinedAt: '2025-03-21T09:00:00Z' },
+      { id: 'wl-003', eventId, position: 3, name: 'Carlos Next',   email: 'carlos@email.com', phone: '(11) 99103-0003', batchPreference: 'Pista',   status: 'waiting',   joinedAt: '2025-03-22T10:00:00Z' },
+      { id: 'wl-004', eventId, position: 4, name: 'Ana Aguarda',   email: 'ana@email.com',    phone: '(11) 99104-0004', batchPreference: 'Camarote',status: 'waiting',   joinedAt: '2025-03-23T11:00:00Z' },
+      { id: 'wl-005', eventId, position: 5, name: 'Pedro Waiting', email: 'pedro@email.com',  phone: '(11) 99105-0005', batchPreference: 'Pista',   status: 'notified',  joinedAt: '2025-03-24T12:00:00Z' },
+    ];
+    return HttpResponse.json({ data: entries });
+  }),
+
+  http.post(`${BASE}/waitlist/notify`, async () => {
+    await delay(LAT);
+    return HttpResponse.json({ data: { notified: true, message: 'Notificações enviadas com sucesso' } });
+  }),
+
   http.get(`${BASE}/checkin/recent/:eventId`, async () => {
     await delay(LAT);
 

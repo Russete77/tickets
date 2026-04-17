@@ -1,0 +1,213 @@
+/* ── AdminAreas specific styles ── */
+
+.eventSelect {
+  width: 100%;
+  max-width: 480px;
+  padding: var(--tl-space-2) var(--tl-space-4);
+  border: 1px solid var(--tl-border-default);
+  border-radius: var(--tl-radius-md);
+  font-size: var(--tl-text-sm);
+  color: var(--tl-text-primary);
+  background: var(--tl-bg-tertiary);
+  cursor: pointer;
+}
+
+.eventSelect:focus {
+  outline: none;
+  border-color: var(--tl-brand-fg);
+  box-shadow: 0 0 0 3px var(--tl-brand-muted);
+}
+
+.loading,
+.empty {
+  padding: var(--tl-space-8);
+  text-align: center;
+  color: var(--tl-text-muted);
+  font-size: var(--tl-text-sm);
+}
+
+/* ── Areas Grid ── */
+.areasGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--tl-space-4);
+}
+
+/* ── Area Card ── */
+.areaCard {
+  background: var(--tl-bg-tertiary);
+  border: 1px solid var(--tl-border-default);
+  border-radius: var(--tl-radius-lg);
+  padding: var(--tl-space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--tl-space-3);
+  transition: box-shadow var(--tl-duration-fast), transform var(--tl-duration-fast);
+}
+
+.areaCard:hover {
+  box-shadow: var(--tl-shadow-md);
+  transform: translateY(-2px);
+}
+
+.areaCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.areaName {
+  font-size: var(--tl-text-md);
+  font-weight: 700;
+  color: var(--tl-text-primary);
+  margin: 0;
+}
+
+.areaStats {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.occupancyLabel {
+  font-size: var(--tl-text-sm);
+  color: var(--tl-text-secondary);
+}
+
+.pctBadge {
+  font-size: var(--tl-text-xs);
+  font-weight: 700;
+  padding: 2px var(--tl-space-2);
+  border-radius: var(--tl-radius-pill);
+}
+
+.pctBlue   { background: rgba(59, 130, 246, 0.15); color: #3B82F6; }
+.pctYellow { background: rgba(245, 158, 11, 0.15); color: #F59E0B; }
+.pctRed    { background: rgba(239, 68, 68, 0.15);  color: #EF4444; }
+
+/* ── Progress Bar ── */
+.progressTrack {
+  width: 100%;
+  height: 8px;
+  background: var(--tl-bg-surface);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.barBlue   { background: #3B82F6; }
+.barYellow { background: #F59E0B; }
+.barRed    { background: #EF4444; }
+
+.capacityInfo {
+  font-size: var(--tl-text-xs);
+  color: var(--tl-text-muted);
+  margin: 0;
+}
+
+/* ── Modal ── */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: var(--tl-space-4);
+}
+
+.modal {
+  background: var(--tl-bg-secondary);
+  border: 1px solid var(--tl-border-default);
+  border-radius: var(--tl-radius-xl);
+  width: 100%;
+  max-width: 440px;
+  box-shadow: var(--tl-shadow-xl);
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--tl-space-5) var(--tl-space-6);
+  border-bottom: 1px solid var(--tl-border-default);
+}
+
+.modalTitle {
+  font-size: var(--tl-text-md);
+  font-weight: 700;
+  color: var(--tl-text-primary);
+  margin: 0;
+}
+
+.modalClose {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: var(--tl-bg-tertiary);
+  border-radius: var(--tl-radius-md);
+  color: var(--tl-text-tertiary);
+  cursor: pointer;
+  transition: background var(--tl-duration-fast), color var(--tl-duration-fast);
+}
+
+.modalClose:hover {
+  background: var(--tl-bg-surface);
+  color: var(--tl-text-primary);
+}
+
+.modalBody {
+  padding: var(--tl-space-6);
+}
+
+/* ── Form ── */
+.formStack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tl-space-4);
+}
+
+.formField {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tl-space-1);
+}
+
+.label {
+  font-size: var(--tl-text-sm);
+  font-weight: 600;
+  color: var(--tl-text-secondary);
+}
+
+.input {
+  padding: var(--tl-space-2) var(--tl-space-3);
+  border: 1px solid var(--tl-border-default);
+  border-radius: var(--tl-radius-md);
+  font-size: var(--tl-text-sm);
+  color: var(--tl-text-primary);
+  background: var(--tl-bg-tertiary);
+  transition: border-color var(--tl-duration-fast), box-shadow var(--tl-duration-fast);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--tl-brand-fg);
+  box-shadow: 0 0 0 3px var(--tl-brand-muted);
+  background: var(--tl-bg-secondary);
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--tl-space-3);
+  padding-top: var(--tl-space-2);
+}

@@ -100,6 +100,40 @@ const PromotersIcon = () => (
   </svg>
 );
 
+const StaffIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2" />
+    <circle cx="9" cy="7" r="4" />
+    <line x1="19" y1="8" x2="19" y2="14" />
+    <line x1="22" y1="11" x2="16" y2="11" />
+  </svg>
+);
+
+const AreasIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <rect x="3" y="3" width="18" height="18" rx="2" />
+    <line x1="3" y1="9" x2="21" y2="9" />
+    <line x1="9" y1="21" x2="9" y2="9" />
+  </svg>
+);
+
+const CourtesiesIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 000-7.78z" />
+  </svg>
+);
+
+const WaitlistIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <line x1="8" y1="6" x2="21" y2="6" />
+    <line x1="8" y1="12" x2="21" y2="12" />
+    <line x1="8" y1="18" x2="21" y2="18" />
+    <line x1="3" y1="6" x2="3.01" y2="6" />
+    <line x1="3" y1="12" x2="3.01" y2="12" />
+    <line x1="3" y1="18" x2="3.01" y2="18" />
+  </svg>
+);
+
 const navItems: NavItem[] = [
   { to: '/admin', label: 'Dashboard', icon: <DashboardIcon /> },
   { to: '/admin/events', label: 'Eventos', icon: <EventsIcon /> },
@@ -112,6 +146,10 @@ const navItems: NavItem[] = [
   { to: '/admin/guest-lists', label: 'Listas de Convidados', icon: <GuestListsIcon /> },
   { to: '/admin/promoters', label: 'Promoters', icon: <PromotersIcon /> },
   { to: '/admin/checkin', label: 'Check-in', icon: <CheckinIcon /> },
+  { to: '/admin/staff', label: 'Staff', icon: <StaffIcon /> },
+  { to: '/admin/areas', label: 'Áreas', icon: <AreasIcon /> },
+  { to: '/admin/courtesies', label: 'Cortesias', icon: <CourtesiesIcon /> },
+  { to: '/admin/waitlist', label: 'Lista de Espera', icon: <WaitlistIcon /> },
 ];
 
 export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
