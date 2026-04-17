@@ -72,6 +72,13 @@ const AffiliatesIcon = () => (
   </svg>
 );
 
+const CheckinIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M9 11l3 3L22 4" />
+    <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
+  </svg>
+);
+
 const CreateEventIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
@@ -104,6 +111,7 @@ const navItems: NavItem[] = [
   { to: '/admin/affiliates', label: 'Afiliados', icon: <AffiliatesIcon /> },
   { to: '/admin/guest-lists', label: 'Listas de Convidados', icon: <GuestListsIcon /> },
   { to: '/admin/promoters', label: 'Promoters', icon: <PromotersIcon /> },
+  { to: '/admin/checkin', label: 'Check-in', icon: <CheckinIcon /> },
 ];
 
 export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
