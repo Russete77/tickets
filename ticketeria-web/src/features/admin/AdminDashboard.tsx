@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { AdminLayout } from '@shared/layout/AdminLayout/AdminLayout';
 import { api } from '@shared/lib/api';
@@ -93,6 +94,7 @@ const statusLabel: Record<string, { label: string; cls: string }> = {
 
 // ── Page ──────────────────────────────────────────
 const AdminDashboard: React.FC = () => {
+  const navigate = useNavigate();
   const [period, setPeriod] = useState<'7d' | '30d' | '90d'>('30d');
 
   const { data: stats, isLoading } = useQuery({
@@ -220,7 +222,7 @@ const AdminDashboard: React.FC = () => {
         <div className={styles.card}>
           <div className={styles.cardHeader}>
             <h2 className={styles.cardTitle}>Pedidos Recentes</h2>
-            <button className={styles.cardLink}>Ver todos</button>
+            <button className={styles.cardLink} onClick={() => navigate('/admin/tickets')}>Ver todos</button>
           </div>
           {isLoading ? (
             <Skeleton width="100%" height="250px" borderRadius="8px" />

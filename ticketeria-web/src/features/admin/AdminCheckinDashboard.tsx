@@ -48,17 +48,10 @@ interface RecentCheckin {
   status: 'valid' | 'invalid' | 'warning';
 }
 
-interface MockEvent {
+interface EventOption {
   id: string;
-  label: string;
+  title: string;
 }
-
-const MOCK_EVENTS: MockEvent[] = [
-  { id: 'evt-001', label: 'Lollapalooza Brasil 2025' },
-  { id: 'evt-012', label: 'Ultra Music Festival Brasil' },
-  { id: 'evt-003', label: 'Rock in Rio 2025' },
-  { id: 'evt-002', label: 'Coldplay Tour 2025' },
-];
 
 // ── Helpers ───────────────────────────────────────
 
@@ -136,8 +129,26 @@ const HourlyChart: React.FC<{ data: HourlyPoint[] }> = ({ data }) => {
 
 // ── Page ──────────────────────────────────────────
 const AdminCheckinDashboard: React.FC = () => {
-  const [selectedEvent, setSelectedEvent] = useState<string>(MOCK_EVENTS[0].id);
+  const [selectedEvent, setSelectedEvent] = useState<string>('');
   const [liveFeed, setLiveFeed] = useState<RecentCheckin[]>([]);
+
+  // ── Events query ──
+  const { data: eventsData } = useQuery({
+    queryKey: ['admin-events-checkin'],
+    queryFn: async () => {
+      const res = await api.get<{ events: EventOption[]; total: number }>('/v1/admin/events?limit=100');
+      return res.data!;
+    },
+  });
+
+  const eventOptions = eventsData?.events ?? [];
+
+  // Set default selected event once data loads
+  React.useEffect(() => {
+    if (eventOptions.length > 0 && !selectedEvent) {
+      setSelectedEvent(eventOptions[0].id);
+    }
+  }, [eventOptions, selectedEvent]);
 
   // ── Stats query ──
   const { data: stats, isLoading: statsLoading } = useQuery({
@@ -240,8 +251,11 @@ const AdminCheckinDashboard: React.FC = () => {
               value={selectedEvent}
               onChange={(e) => setSelectedEvent(e.target.value)}
             >
-              {MOCK_EVENTS.map((ev) => (
-                <option key={ev.id} value={ev.id}>{ev.label}</option>
+              {eventOptions.length === 0 && (
+                <option value="">Carregando eventos...</option>
+              )}
+              {eventOptions.map((ev) => (
+                <option key={ev.id} value={ev.id}>{ev.title}</option>
               ))}
             </select>
           </div>

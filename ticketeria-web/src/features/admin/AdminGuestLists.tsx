@@ -203,6 +203,7 @@ interface EntriesPanelProps {
 }
 
 const EntriesPanel: React.FC<EntriesPanelProps> = ({ list, onBack }) => {
+  const qc = useQueryClient();
   const [showAdd, setShowAdd] = useState(false);
   const [search, setSearch] = useState('');
 
@@ -264,7 +265,28 @@ const EntriesPanel: React.FC<EntriesPanelProps> = ({ list, onBack }) => {
                 <line x1="12" y1="3" x2="12" y2="15" />
               </svg>
               Importar CSV
-              <input type="file" accept=".csv" style={{ display: 'none' }} onChange={() => {}} />
+              <input
+                type="file"
+                accept=".csv"
+                style={{ display: 'none' }}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  const reader = new FileReader();
+                  reader.onload = async (event) => {
+                    const text = event.target?.result as string;
+                    const lines = text.split('\n').slice(1); // skip header
+                    for (const line of lines) {
+                      const [name, cpf, email, phone] = line.split(',').map(s => s.trim());
+                      if (name) {
+                        await api.post(`/v1/guest-lists/${list.id}/entries`, { name, cpf, email, phone });
+                      }
+                    }
+                    qc.invalidateQueries({ queryKey: ['guest-list-entries', list.id] });
+                  };
+                  reader.readAsText(file);
+                }}
+              />
             </label>
             <button className={shared.btnPrimary} onClick={() => setShowAdd(true)}>
               + Adicionar

@@ -768,6 +768,95 @@ export const handlers = [
     });
   }),
 
+  // ── Admin: Delete Evento ─────────────────────────────────────────────────
+
+  http.delete(`${BASE}/events/:id`, async ({ params }) => {
+    await delay(LAT);
+    return HttpResponse.json({ data: { id: params.id, deleted: true } });
+  }),
+
+  // ── Admin: Toggle User Status ─────────────────────────────────────────────
+
+  http.patch(`${BASE}/admin/users/:id/toggle-status`, async ({ params }) => {
+    await delay(LAT);
+    return HttpResponse.json({ data: { id: params.id, status: 'toggled' } });
+  }),
+
+  // ── Admin: Finance Payouts POST (create new payout request) ─────────────
+
+  http.post(`${BASE}/admin/finance/payouts`, async ({ request }) => {
+    await delay(LAT);
+    const body = (await request.json()) as { amount: number; method: string };
+    return HttpResponse.json({
+      data: {
+        id: `payout-${Date.now()}`,
+        amount: body.amount,
+        method: body.method,
+        status: 'pending',
+        requestedAt: new Date().toISOString(),
+      },
+    }, { status: 201 });
+  }),
+
+  // ── Admin: Affiliates ────────────────────────────────────────────────────
+
+  http.get(`${BASE}/admin/affiliates`, async () => {
+    await delay(LAT);
+    return HttpResponse.json({
+      data: {
+        links: [
+          { id: '1', code: 'aff-tech-2024-001', eventId: 'evt-1', eventTitle: 'TechConf 2024', commissionPercentage: 10, clicks: 245, conversions: 18, totalEarned: 890.50, status: 'active', createdAt: '2024-03-15' },
+          { id: '2', code: 'aff-music-fest-02', eventId: 'evt-2', eventTitle: 'Music Festival 2024', commissionPercentage: 8, clicks: 512, conversions: 42, totalEarned: 1250.75, status: 'active', createdAt: '2024-02-20' },
+          { id: '3', code: 'aff-workshop-001', eventId: 'evt-3', eventTitle: 'UX Workshop Series', commissionPercentage: 12, clicks: 89, conversions: 5, totalEarned: 240.00, status: 'inactive', createdAt: '2024-01-10' },
+        ],
+        topAffiliates: [
+          { id: 'aff-1', name: 'João Silva', email: 'joao.silva@example.com', totalSales: 5200.00, totalCommission: 520.00, conversionRate: 7.8, rank: 1 },
+          { id: 'aff-2', name: 'Maria Santos', email: 'maria.santos@example.com', totalSales: 3800.00, totalCommission: 380.00, conversionRate: 6.5, rank: 2 },
+          { id: 'aff-3', name: 'Pedro Oliveira', email: 'pedro.oliveira@example.com', totalSales: 2900.00, totalCommission: 232.00, conversionRate: 5.2, rank: 3 },
+          { id: 'aff-4', name: 'Ana Costa', email: 'ana.costa@example.com', totalSales: 1800.00, totalCommission: 162.00, conversionRate: 4.1, rank: 4 },
+          { id: 'aff-5', name: 'Carlos Martins', email: 'carlos.martins@example.com', totalSales: 1200.00, totalCommission: 96.00, conversionRate: 3.8, rank: 5 },
+        ],
+        commissionHistory: [
+          { id: 'comm-1', date: '2024-04-08', affiliateName: 'João Silva', affiliateEmail: 'joao.silva@example.com', eventTitle: 'TechConf 2024', saleAmount: 299.90, commissionPercentage: 10, commissionValue: 29.99, status: 'paid' },
+          { id: 'comm-2', date: '2024-04-07', affiliateName: 'Maria Santos', affiliateEmail: 'maria.santos@example.com', eventTitle: 'Music Festival 2024', saleAmount: 189.90, commissionPercentage: 8, commissionValue: 15.19, status: 'paid' },
+          { id: 'comm-3', date: '2024-04-06', affiliateName: 'Pedro Oliveira', affiliateEmail: 'pedro.oliveira@example.com', eventTitle: 'TechConf 2024', saleAmount: 449.90, commissionPercentage: 10, commissionValue: 44.99, status: 'pending' },
+          { id: 'comm-4', date: '2024-04-05', affiliateName: 'Ana Costa', affiliateEmail: 'ana.costa@example.com', eventTitle: 'UX Workshop Series', saleAmount: 99.90, commissionPercentage: 12, commissionValue: 11.99, status: 'pending' },
+        ],
+        stats: {
+          totalAffiliates: 5,
+          totalClicks: 846,
+          totalConversions: 65,
+          totalCommissionsCents: 4518,
+        },
+      },
+    });
+  }),
+
+  http.post(`${BASE}/admin/affiliates`, async ({ request }) => {
+    await delay(LAT);
+    const body = (await request.json()) as { eventId: string; commissionPct: number };
+    const code = `aff-${body.eventId}-${Date.now().toString(36)}`;
+    return HttpResponse.json({
+      data: {
+        id: `aff-link-${Date.now()}`,
+        code,
+        eventId: body.eventId,
+        eventTitle: 'Evento',
+        commissionPercentage: body.commissionPct,
+        clicks: 0,
+        conversions: 0,
+        totalEarned: 0,
+        status: 'active',
+        createdAt: new Date().toISOString(),
+      },
+    }, { status: 201 });
+  }),
+
+  http.patch(`${BASE}/admin/affiliates/:id/deactivate`, async ({ params }) => {
+    await delay(LAT);
+    return HttpResponse.json({ data: { id: params.id, status: 'inactive' } });
+  }),
+
   // ── Admin: Criar Evento ─────────────────────────────────────────────────
 
   http.post(`${BASE}/events`, async ({ request }) => {

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { AdminLayout } from '@shared/layout/AdminLayout/AdminLayout';
 import { api } from '@shared/lib/api';
 import { formatDate } from '@shared/lib/formatters';
+import { downloadCSV } from '@shared/lib/csvExport';
 import styles from './admin.shared.module.css';
 
 interface AdminUser {
@@ -27,6 +28,7 @@ const ROLE_MAP: Record<AdminUser['role'], { label: string; cls: string }> = {
 const PAGE_SIZE = 10;
 
 const AdminUsers: React.FC = () => {
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [page, setPage] = useState(1);
@@ -44,6 +46,37 @@ const AdminUsers: React.FC = () => {
   const total = data?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
+  const handleExport = () => {
+    downloadCSV(
+      users.map((u) => ({
+        ID: u.id,
+        Nome: u.name,
+        Email: u.email,
+        Telefone: u.phone,
+        Perfil: ROLE_MAP[u.role]?.label ?? u.role,
+        Ingressos: u.ticketsBought,
+        'Total Gasto': u.totalSpent,
+        Cadastro: formatDate(u.createdAt),
+        'Último Acesso': formatDate(u.lastLogin),
+        Status: u.status,
+      })),
+      'usuarios',
+    );
+  };
+
+  const handleViewProfile = (u: AdminUser) => {
+    alert(
+      `Perfil do usuário\n\nNome: ${u.name}\nEmail: ${u.email}\nTelefone: ${u.phone}\nPerfil: ${ROLE_MAP[u.role]?.label ?? u.role}\nIngressos: ${u.ticketsBought}\nStatus: ${u.status === 'active' ? 'Ativo' : 'Suspenso'}`,
+    );
+  };
+
+  const handleToggleStatus = async (u: AdminUser) => {
+    const action = u.status === 'active' ? 'suspender' : 'reativar';
+    if (!window.confirm(`Deseja ${action} o usuário "${u.name}"?`)) return;
+    await api.patch(`/v1/admin/users/${u.id}/toggle-status`);
+    queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+  };
+
   return (
     <AdminLayout>
       <div className={styles.page}>
@@ -52,7 +85,7 @@ const AdminUsers: React.FC = () => {
             <h1 className={styles.pageTitle}>Usuários</h1>
             <p className={styles.pageSubtitle}>{total} usuários cadastrados</p>
           </div>
-          <button className={styles.btnSecondary}>
+          <button className={styles.btnSecondary} onClick={handleExport}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
             </svg>
@@ -142,10 +175,18 @@ const AdminUsers: React.FC = () => {
                         </td>
                         <td>
                           <div className={styles.actions}>
-                            <button className={styles.actionBtn} title="Ver perfil">
+                            <button
+                              className={styles.actionBtn}
+                              title="Ver perfil"
+                              onClick={() => handleViewProfile(u)}
+                            >
                               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                             </button>
-                            <button className={`${styles.actionBtn} ${u.status === 'active' ? styles.actionBtnDanger : ''}`} title={u.status === 'active' ? 'Suspender' : 'Reativar'}>
+                            <button
+                              className={`${styles.actionBtn} ${u.status === 'active' ? styles.actionBtnDanger : ''}`}
+                              title={u.status === 'active' ? 'Suspender' : 'Reativar'}
+                              onClick={() => handleToggleStatus(u)}
+                            >
                               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
                             </button>
                           </div>

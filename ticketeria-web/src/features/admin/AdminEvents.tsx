@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { AdminLayout } from '@shared/layout/AdminLayout/AdminLayout';
 import { api } from '@shared/lib/api';
 import { formatDate, formatCurrency } from '@shared/lib/formatters';
+import { downloadCSV } from '@shared/lib/csvExport';
 import styles from './admin.shared.module.css';
 
 interface AdminEvent {
@@ -30,6 +31,7 @@ const PAGE_SIZE = 8;
 
 const AdminEvents: React.FC = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [page, setPage] = useState(1);
@@ -46,6 +48,31 @@ const AdminEvents: React.FC = () => {
   const events = data?.events ?? [];
   const total = data?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+  const handleExport = () => {
+    downloadCSV(
+      events.map((ev) => ({
+        ID: ev.id,
+        Título: ev.title,
+        Categoria: ev.category,
+        Data: formatDate(ev.startDate),
+        Cidade: ev.venue.city,
+        Estado: ev.venue.state,
+        'Preço mín.': formatCurrency(ev.currentBatchPrice),
+        Vendidos: ev.sold,
+        Capacidade: ev.totalCapacity,
+        Status: ev.status,
+        Organizador: ev.organizer,
+      })),
+      'eventos',
+    );
+  };
+
+  const handleDelete = async (id: string, title: string) => {
+    if (!window.confirm(`Excluir o evento "${title}"? Esta ação não pode ser desfeita.`)) return;
+    await api.delete(`/v1/events/${id}`);
+    queryClient.invalidateQueries({ queryKey: ['admin-events'] });
+  };
 
   return (
     <AdminLayout>
@@ -95,7 +122,7 @@ const AdminEvents: React.FC = () => {
                 <option value="ended">Encerrados</option>
               </select>
             </div>
-            <button className={styles.btnSecondary}>
+            <button className={styles.btnSecondary} onClick={handleExport}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
               </svg>
@@ -150,13 +177,25 @@ const AdminEvents: React.FC = () => {
                         <td><span className={`${styles.badge} ${s.cls}`}>{s.label}</span></td>
                         <td>
                           <div className={styles.actions}>
-                            <button className={styles.actionBtn} title="Ver">
+                            <button
+                              className={styles.actionBtn}
+                              title="Ver"
+                              onClick={() => window.open(`/event/${(ev as AdminEvent & { slug?: string }).slug ?? ev.id}`, '_blank')}
+                            >
                               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                             </button>
-                            <button className={styles.actionBtn} title="Editar">
+                            <button
+                              className={styles.actionBtn}
+                              title="Editar"
+                              onClick={() => navigate(`/admin/events/edit/${ev.id}`)}
+                            >
                               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                             </button>
-                            <button className={`${styles.actionBtn} ${styles.actionBtnDanger}`} title="Excluir">
+                            <button
+                              className={`${styles.actionBtn} ${styles.actionBtnDanger}`}
+                              title="Excluir"
+                              onClick={() => handleDelete(ev.id, ev.title)}
+                            >
                               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
                             </button>
                           </div>

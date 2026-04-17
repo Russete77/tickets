@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { AdminLayout } from '@shared/layout/AdminLayout/AdminLayout';
 import { api } from '@shared/lib/api';
 import { formatCurrency, formatDateTime } from '@shared/lib/formatters';
+import { downloadCSV } from '@shared/lib/csvExport';
 import styles from './admin.shared.module.css';
 
 interface Order {
@@ -33,6 +35,7 @@ const PAYMENT_LABELS: Record<Order['paymentMethod'], string> = {
 const PAGE_SIZE = 10;
 
 const AdminOrders: React.FC = () => {
+  const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [page, setPage] = useState(1);
@@ -50,6 +53,23 @@ const AdminOrders: React.FC = () => {
   const total = data?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
+  const handleExport = () => {
+    downloadCSV(
+      orders.map((o) => ({
+        ID: o.id,
+        Cliente: o.customerName,
+        Email: o.customerEmail,
+        Evento: o.eventTitle,
+        Itens: o.items,
+        Pagamento: PAYMENT_LABELS[o.paymentMethod],
+        Valor: formatCurrency(o.amount),
+        Data: formatDateTime(o.createdAt),
+        Status: o.status,
+      })),
+      'pedidos',
+    );
+  };
+
   return (
     <AdminLayout>
       <div className={styles.page}>
@@ -58,7 +78,7 @@ const AdminOrders: React.FC = () => {
             <h1 className={styles.pageTitle}>Pedidos</h1>
             <p className={styles.pageSubtitle}>{total} pedidos no total</p>
           </div>
-          <button className={styles.btnSecondary}>
+          <button className={styles.btnSecondary} onClick={handleExport}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
             </svg>
@@ -141,7 +161,11 @@ const AdminOrders: React.FC = () => {
                         <td><span className={`${styles.badge} ${s.cls}`}>{s.label}</span></td>
                         <td>
                           <div className={styles.actions}>
-                            <button className={styles.actionBtn} title="Ver detalhes">
+                            <button
+                              className={styles.actionBtn}
+                              title="Ver detalhes"
+                              onClick={() => navigate(`/orders/${o.id}`)}
+                            >
                               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                             </button>
                           </div>

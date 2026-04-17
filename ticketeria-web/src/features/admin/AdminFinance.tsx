@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { AdminLayout } from '@shared/layout/AdminLayout/AdminLayout';
 import { api } from '@shared/lib/api';
 import { formatCurrency, formatDateTime } from '@shared/lib/formatters';
@@ -76,6 +76,7 @@ interface PayoutModalState {
 }
 
 const AdminFinance: React.FC = () => {
+  const queryClient = useQueryClient();
   const [period, setPeriod] = useState<'7d' | '30d' | '90d'>('30d');
   const [payoutModal, setPayoutModal] = useState<PayoutModalState>({
     isOpen: false,
@@ -106,15 +107,19 @@ const AdminFinance: React.FC = () => {
     setPayoutModal({ isOpen: false, amount: '', method: 'pix' });
   };
 
-  const handleSubmitPayout = () => {
+  const handleSubmitPayout = async () => {
     if (payoutModal.amount && balance) {
-      const amountNum = parseFloat(payoutModal.amount);
-      if (amountNum > 0 && amountNum <= balance.available) {
-        console.log('Payout requested:', {
-          amount: amountNum,
-          method: payoutModal.method,
-        });
+      const payoutAmount = parseFloat(payoutModal.amount);
+      const payoutMethod = payoutModal.method;
+      if (payoutAmount > 0 && payoutAmount <= balance.available) {
+        const response = await api.post('/v1/admin/finance/payouts', { amount: payoutAmount, method: payoutMethod });
+        if (response.error) {
+          alert(`Erro ao solicitar saque: ${response.error}`);
+          return;
+        }
         handleClosePayoutModal();
+        alert('Saque solicitado com sucesso!');
+        queryClient.invalidateQueries({ queryKey: ['admin-finance'] });
       }
     }
   };
