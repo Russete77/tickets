@@ -45,26 +45,30 @@ const AdminReports: React.FC = () => {
             <h1 className={styles.pageTitle}>Relatórios</h1>
             <p className={styles.pageSubtitle}>Análises e métricas de desempenho</p>
           </div>
-          <div style={{ display: 'flex', gap: 'var(--space-3)', alignItems: 'center', background: '#F3F4F6', borderRadius: 'var(--radius-md)', padding: 3 }}>
+          <div className={styles.periodToggle}>
             {(['7d', '30d', '90d'] as const).map((p) => (
-              <button key={p} onClick={() => setPeriod(p)} style={{ padding: '6px 16px', background: period === p ? '#fff' : 'transparent', border: 'none', borderRadius: 'calc(var(--radius-md) - 2px)', fontWeight: period === p ? 600 : 400, fontSize: 'var(--text-sm)', color: period === p ? '#1F2937' : '#6B7280', cursor: 'pointer', boxShadow: period === p ? '0 1px 3px rgba(0,0,0,0.1)' : 'none' }}>
+              <button
+                key={p}
+                className={`${styles.periodBtn} ${period === p ? styles.periodBtnActive : ''}`}
+                onClick={() => setPeriod(p)}
+              >
                 {p === '7d' ? '7 dias' : p === '30d' ? '30 dias' : '90 dias'}
               </button>
             ))}
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-6)' }}>
+        <div className={styles.chartsGrid}>
           {/* Vendas por categoria */}
           <div className={styles.card}>
             <div className={styles.cardHeader}><h2 className={styles.cardTitle}>Vendas por categoria</h2></div>
-            <div style={{ padding: 'var(--space-5) var(--space-6)', display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+            <div className={styles.cardBody}>
               {isLoading ? Array.from({ length: 5 }).map((_, i) => <div key={i} style={{ height: 36, background: '#F3F4F6', borderRadius: 6 }} />) : (
                 salesByCategory.map((c) => (
                   <div key={c.category}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                      <span style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: '#374151', textTransform: 'capitalize' }}>{c.category}</span>
-                      <span style={{ fontSize: 'var(--text-sm)', color: '#6B7280' }}>{c.sales.toLocaleString('pt-BR')} vendas · {formatCurrency(c.revenue)}</span>
+                      <span style={{ fontSize: 'var(--tl-text-sm)', fontWeight: 600, color: '#374151', textTransform: 'capitalize' }}>{c.category}</span>
+                      <span style={{ fontSize: 'var(--tl-text-sm)', color: '#6B7280' }}>{c.sales.toLocaleString('pt-BR')} vendas · {formatCurrency(c.revenue)}</span>
                     </div>
                     <div style={{ height: 8, background: '#F3F4F6', borderRadius: 4, overflow: 'hidden' }}>
                       <div style={{ width: `${(c.revenue / maxCatRevenue) * 100}%`, height: '100%', background: BAR_COLORS[c.category] ?? '#6B7280', borderRadius: 4, transition: 'width 0.6s ease' }} />
@@ -78,15 +82,15 @@ const AdminReports: React.FC = () => {
           {/* Funil de conversão */}
           <div className={styles.card}>
             <div className={styles.cardHeader}><h2 className={styles.cardTitle}>Funil de conversão</h2></div>
-            <div style={{ padding: 'var(--space-5) var(--space-6)', display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+            <div className={styles.cardBody}>
               {isLoading ? Array.from({ length: 4 }).map((_, i) => <div key={i} style={{ height: 48, background: '#F3F4F6', borderRadius: 6 }} />) : (
                 funnel.map((f, i) => (
-                  <div key={f.stage} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
-                    <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#DBEAFE', color: '#1E40AF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 'var(--text-xs)', flexShrink: 0 }}>{i + 1}</div>
+                  <div key={f.stage} style={{ display: 'flex', alignItems: 'center', gap: 'var(--tl-space-4)' }}>
+                    <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#DBEAFE', color: '#1E40AF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 'var(--tl-text-xs)', flexShrink: 0 }}>{i + 1}</div>
                     <div style={{ flex: 1 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                        <span style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: '#374151' }}>{f.stage}</span>
-                        <span style={{ fontSize: 'var(--text-sm)', color: '#6B7280' }}>{f.count.toLocaleString('pt-BR')} ({f.pct}%)</span>
+                        <span style={{ fontSize: 'var(--tl-text-sm)', fontWeight: 600, color: '#374151' }}>{f.stage}</span>
+                        <span style={{ fontSize: 'var(--tl-text-sm)', color: '#6B7280' }}>{f.count.toLocaleString('pt-BR')} ({f.pct}%)</span>
                       </div>
                       <div style={{ height: 6, background: '#F3F4F6', borderRadius: 3, overflow: 'hidden' }}>
                         <div style={{ width: `${f.pct}%`, height: '100%', background: `hsl(${220 - i * 30}, 80%, 55%)`, borderRadius: 3 }} />
@@ -99,7 +103,7 @@ const AdminReports: React.FC = () => {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-6)' }}>
+        <div className={styles.chartsGrid}>
           {/* Por estado */}
           <div className={styles.card}>
             <div className={styles.cardHeader}><h2 className={styles.cardTitle}>Top estados</h2></div>

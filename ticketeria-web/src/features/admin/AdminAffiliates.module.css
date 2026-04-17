@@ -2,20 +2,13 @@
    ADMIN AFFILIATES — KPI, links, ranking, commissions
    ═══════════════════════════════════════════ */
 
-/* ── KPI Grid ── */
-.kpiGrid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: var(--tl-space-4);
-}
-
 /* ── Create Link Form ── */
 .formContainer {
   display: flex;
   align-items: flex-end;
   gap: var(--tl-space-4);
   flex-wrap: wrap;
-  padding: var(--tl-space-4) 0;
+  padding: var(--tl-space-5) var(--tl-space-6);
 }
 
 .formGroup {
@@ -46,7 +39,7 @@
 .input:focus,
 .select:focus {
   outline: none;
-  border-color: var(--tl-brand);
+  border-color: var(--tl-brand-fg);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
@@ -55,6 +48,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--tl-space-4);
+  padding: var(--tl-space-5) var(--tl-space-6);
 }
 
 .affiliateItem {
@@ -78,7 +72,7 @@
 .affiliateRank {
   font-size: var(--tl-text-md);
   font-weight: 800;
-  color: var(--tl-brand);
+  color: var(--tl-brand-fg);
   text-align: center;
   flex-shrink: 0;
 }
@@ -131,10 +125,6 @@
 
 /* ── Responsive ── */
 @media (max-width: 1200px) {
-  .kpiGrid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
   .affiliateStats {
     grid-template-columns: repeat(3, 1fr);
     gap: var(--tl-space-4);
@@ -142,17 +132,18 @@
 }
 
 @media (max-width: 768px) {
-  .kpiGrid {
-    grid-template-columns: 1fr;
-  }
-
   .formContainer {
     flex-direction: column;
     align-items: stretch;
+    padding: var(--tl-space-4);
   }
 
   .formGroup {
     min-width: auto;
+  }
+
+  .affiliatesList {
+    padding: var(--tl-space-4);
   }
 
   .affiliateItem {

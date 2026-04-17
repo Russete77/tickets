@@ -307,6 +307,123 @@
 .avatarName  { font-weight: 600; color: #111827; font-size: var(--tl-text-sm); }
 .avatarEmail { font-size: var(--tl-text-xs); color: #6B7280; }
 
+/* ── Period Toggle (reused across Reports, Finance, etc.) ── */
+.periodToggle {
+  display: flex;
+  background: #F3F4F6;
+  border-radius: var(--tl-radius-md);
+  padding: 3px;
+  gap: 2px;
+}
+
+.periodBtn {
+  padding: var(--tl-space-2) var(--tl-space-4);
+  background: transparent;
+  border: none;
+  border-radius: calc(var(--tl-radius-md) - 2px);
+  font-size: var(--tl-text-sm);
+  font-weight: 500;
+  color: #6B7280;
+  cursor: pointer;
+  transition: all var(--tl-duration-fast);
+  white-space: nowrap;
+}
+
+.periodBtnActive {
+  background: #FFFFFF;
+  color: #1F2937;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* ── Two-column charts/content grid ── */
+.chartsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--tl-space-4);
+}
+
+/* ── Card body padding (for content inside .card) ── */
+.cardBody {
+  padding: var(--tl-space-5) var(--tl-space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--tl-space-4);
+}
+
+/* ── KPI Grid (4-col, shared across pages with KPIs) ── */
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--tl-space-4);
+}
+
+/* ── KPI Card ── */
+.kpiCard {
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: var(--tl-radius-lg);
+  padding: var(--tl-space-5);
+  display: flex;
+  align-items: center;
+  gap: var(--tl-space-4);
+  transition: box-shadow var(--tl-duration-fast), transform var(--tl-duration-fast);
+}
+
+.kpiCard:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+}
+
+.kpiIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--tl-radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.kpiColor_blue .kpiIcon   { background: #DBEAFE; }
+.kpiColor_green .kpiIcon  { background: #D1FAE5; }
+.kpiColor_orange .kpiIcon { background: #FEF3C7; }
+.kpiColor_purple .kpiIcon { background: #EDE9FE; }
+
+.kpiBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.kpiTitle {
+  font-size: var(--tl-text-xs);
+  font-weight: 600;
+  color: #6B7280;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0 0 var(--tl-space-1);
+}
+
+.kpiValue {
+  font-size: var(--tl-text-2xl);
+  font-weight: 800;
+  color: #111827;
+  letter-spacing: -0.02em;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kpiGrowth {
+  font-size: var(--tl-text-xs);
+  font-weight: 500;
+  margin: var(--tl-space-1) 0 0;
+}
+
+.growthPos { color: #10B981; }
+.growthNeg { color: #EF4444; }
+
 /* ── KPI mini row ── */
 .kpiRow {
   display: grid;
@@ -329,3 +446,19 @@
 .kpiMiniGreen  .kpiMiniValue { color: #059669; }
 .kpiMiniOrange .kpiMiniValue { color: #D97706; }
 .kpiMiniRed    .kpiMiniValue { color: #DC2626; }
+
+/* ── Responsive ── */
+@media (max-width: 1200px) {
+  .kpiGrid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 768px) {
+  .kpiGrid { grid-template-columns: repeat(2, 1fr); gap: var(--tl-space-3); }
+  .chartsGrid { grid-template-columns: 1fr; }
+  .kpiCard { padding: var(--tl-space-4); }
+  .kpiValue { font-size: var(--tl-text-xl); }
+}
+
+@media (max-width: 480px) {
+  .kpiGrid { grid-template-columns: 1fr; }
+}

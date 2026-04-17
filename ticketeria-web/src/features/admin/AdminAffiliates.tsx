@@ -250,7 +250,7 @@ const AdminAffiliates: React.FC = () => {
         </div>
 
         {/* KPI Grid */}
-        <div className={styles.kpiGrid}>
+        <div className={sharedStyles.kpiGrid}>
           <KpiCard
             title="Total de Afiliados"
             value={totalAffiliates.toString()}
