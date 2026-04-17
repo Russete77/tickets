@@ -105,7 +105,7 @@
 | Socket.IO JWT auth | RS256 no handshake | - | CONCLUIDO |
 | Push notifications (Expo) | Expo SDK + BullMQ worker + mobile hook | - | CONCLUIDO |
 | Relatorio Excel 9 abas | ExcelJS 9 abas com formatacao profissional | - | CONCLUIDO |
-| Fila inteligente (virtual queue) | Middleware existe | Testar fluxo completo | MEDIA |
+| Fila inteligente (virtual queue) | Middleware wired no checkout route | - | CONCLUIDO |
 | Modo offline mobile (SQLite) | expo-sqlite + sync queue + TOTP offline | - | CONCLUIDO |
 | TOTP mobile (producao) | otplib RFC 6238 + compatibilidade hex/base32 | - | CONCLUIDO |
 | Capacity alerts Socket.IO | Redis pub/sub bridge + producer room | - | CONCLUIDO |
@@ -262,9 +262,9 @@ StockMovementType, StaffRole, StoreItemType
 | reservation-expiry | Expira reservas apos timeout (10min) |
 | payment-confirmation | Processa webhooks Asaas |
 | notification | Envia emails via Resend |
-| push-notification | **TODO**: Integrar FCM/Expo Notifications |
-| capacity-alert | **TODO**: Alertas Socket.IO + email |
-| report-generation | Gera relatorios CSV |
+| push-notification | Expo Push API via BullMQ (implementado) |
+| capacity-alert | Redis pub/sub → Socket.IO + email (implementado) |
+| report-generation | Gera relatorios CSV + Excel 9 abas |
 | ticket-transfer | Processa transferencias de ingresso |
 
 ---
@@ -454,7 +454,7 @@ Compra no PDV:
 1. Organizador cria guest list com configuracao (cor, cota, horario)
 2. Promoter recebe link publico unico (slug + token)
 3. Convidado acessa link → preenche dados → POST /guest-lists/register
-4. QR JWT gerado para convidado (RS256, exp 5min) [TODO: migrar para RS256]
+4. QR JWT gerado para convidado (RS256, exp 5min)
 5. Check-in identico ao fluxo 11.2
 6. Pos-evento: relatorio por promoter com conversao e ranking
 ```
@@ -619,12 +619,12 @@ cd ticketeria-api && npx prisma studio
 - [ ] Evento piloto com produtora parceira
 
 ### Fase v1.1 (Meses 4-5)
-- [ ] Fila inteligente completa (Redis queue + WebSocket UI)
+- [x] Fila inteligente completa (Redis queue + flashSaleQueue middleware)
 - [ ] Antifraude avancado (scalper detection, risk scoring)
 - [ ] Webhook Sympla/Ingresso.com
 - [ ] Biometria no app (expo-local-authentication)
-- [ ] Push notifications contextuais
-- [ ] Modo offline robusto com sync queue
+- [ ] Push notifications contextuais (templates por evento)
+- [x] Modo offline robusto com sync queue (expo-sqlite + useOfflineSync)
 
 ### Fase v1.2 (Meses 6-7)
 - [ ] Super App: mapa interativo, pedido pelo app, social
@@ -696,11 +696,11 @@ cd ticketeria-api && npx prisma studio
 - [x] Validacao Zod em todos os inputs
 - [x] Sentry para error tracking
 - [x] Request ID tracking
-- [ ] RLS por org_id (isolamento multi-tenant)
+- [x] RLS por org_id (isolamento multi-tenant — requireEventOwnership middleware)
 - [x] bcryptjs cost 12 para senhas
 - [x] 2FA TOTP com otplib
 - [x] Email verification obrigatorio
-- [ ] Device fingerprinting completo
+- [x] Device fingerprinting completo (web canvas hash + mobile device props + header)
 - [x] Audit logging
 
 ---
