@@ -56,6 +56,16 @@ export const handlers = [
     return HttpResponse.json({ data: null }, { status: 200 });
   }),
 
+  http.post(`${BASE}/auth/forgot-password`, async () => {
+    await delay(LAT);
+    return HttpResponse.json({ data: { message: 'Email enviado' } }, { status: 200 });
+  }),
+
+  http.post(`${BASE}/auth/reset-password`, async () => {
+    await delay(LAT);
+    return HttpResponse.json({ data: { message: 'Senha alterada com sucesso' } }, { status: 200 });
+  }),
+
   // ── Eventos ─────────────────────────────────────────────────────────────
 
   http.get(`${BASE}/events/weekend`, async () => {
@@ -707,6 +717,98 @@ export const handlers = [
         remaining,
         percentage,
       },
+    });
+  }),
+
+  // ── Admin: Criar Evento ─────────────────────────────────────────────────
+
+  http.post(`${BASE}/events`, async ({ request }) => {
+    await delay(LAT);
+    const body = (await request.json()) as Record<string, unknown>;
+    const newEvent = {
+      id: `evt-${Date.now()}`,
+      ...body,
+      status: 'published',
+      createdAt: new Date().toISOString(),
+    };
+    return HttpResponse.json({ data: newEvent }, { status: 201 });
+  }),
+
+  // ── Admin: Guest Lists ──────────────────────────────────────────────────
+
+  http.get(`${BASE}/guest-lists`, async ({ request }) => {
+    await delay(LAT);
+    const url = new URL(request.url);
+    const eventId = url.searchParams.get('eventId') ?? 'evt-001';
+    const lists = [
+      { id: 'gl-001', eventId, name: 'Lista VIP', type: 'vip', maxGuests: 100, totalEntries: 68, checkedIn: 52, createdAt: '2025-03-01T10:00:00Z' },
+      { id: 'gl-002', eventId, name: 'Lista Imprensa', type: 'press', maxGuests: 30, totalEntries: 22, checkedIn: 18, createdAt: '2025-03-02T10:00:00Z' },
+      { id: 'gl-003', eventId, name: 'Lista Backstage', type: 'backstage', maxGuests: 20, totalEntries: 15, checkedIn: 15, createdAt: '2025-03-03T10:00:00Z' },
+      { id: 'gl-004', eventId, name: 'Lista Free', type: 'free', maxGuests: 200, totalEntries: 134, checkedIn: 98, createdAt: '2025-03-04T10:00:00Z' },
+    ];
+    return HttpResponse.json({ data: lists });
+  }),
+
+  http.post(`${BASE}/guest-lists`, async ({ request }) => {
+    await delay(LAT);
+    const body = (await request.json()) as Record<string, unknown>;
+    return HttpResponse.json({
+      data: { id: `gl-${Date.now()}`, ...body, totalEntries: 0, checkedIn: 0, createdAt: new Date().toISOString() },
+    }, { status: 201 });
+  }),
+
+  http.get(`${BASE}/guest-lists/:id/entries`, async ({ params }) => {
+    await delay(LAT);
+    const id = params.id as string;
+    const entries = Array.from({ length: 12 }, (_, i) => ({
+      id: `entry-${id}-${i + 1}`,
+      guestListId: id,
+      name: ['João Silva', 'Maria Santos', 'Carlos Oliveira', 'Ana Costa', 'Pedro Lima', 'Fernanda Melo', 'Ricardo Alves', 'Juliana Nunes', 'Bruno Carvalho', 'Camila Rocha', 'Lucas Mendes', 'Marina Silva'][i],
+      cpf: `${String(i * 12345678901 % 100000000000).padStart(11, '0')}`,
+      email: `guest${i + 1}@email.com`,
+      phone: `(11) 9${String(i * 9999).padStart(8, '0')}`,
+      status: i < 8 ? 'checked_in' : 'pending',
+      checkedInAt: i < 8 ? new Date(Date.now() - i * 600000).toISOString() : null,
+    }));
+    return HttpResponse.json({ data: entries });
+  }),
+
+  http.post(`${BASE}/guest-lists/:id/entries`, async ({ request, params }) => {
+    await delay(LAT);
+    const body = (await request.json()) as Record<string, unknown>;
+    return HttpResponse.json({
+      data: { id: `entry-${Date.now()}`, guestListId: params.id, ...body, status: 'pending', checkedInAt: null },
+    }, { status: 201 });
+  }),
+
+  // ── Admin: Promoters ────────────────────────────────────────────────────
+
+  http.get(`${BASE}/promoters`, async ({ request }) => {
+    await delay(LAT);
+    const url = new URL(request.url);
+    const eventId = url.searchParams.get('eventId') ?? 'evt-001';
+    const promoters = [
+      { id: 'prm-001', eventId, name: 'Diego Souza', email: 'diego@promo.com', slug: 'diego-s', tier: 'gold', totalGuests: 420, checkIns: 385, conversionPct: 91.7, score: 98 },
+      { id: 'prm-002', eventId, name: 'Larissa Mendes', email: 'larissa@promo.com', slug: 'larissa-m', tier: 'silver', totalGuests: 280, checkIns: 244, conversionPct: 87.1, score: 84 },
+      { id: 'prm-003', eventId, name: 'Rafael Torres', email: 'rafael@promo.com', slug: 'rafael-t', tier: 'bronze', totalGuests: 165, checkIns: 130, conversionPct: 78.8, score: 71 },
+      { id: 'prm-004', eventId, name: 'Bianca Lima', email: 'bianca@promo.com', slug: 'bianca-l', tier: 'silver', totalGuests: 310, checkIns: 276, conversionPct: 89.0, score: 88 },
+      { id: 'prm-005', eventId, name: 'Marcos Pereira', email: 'marcos@promo.com', slug: 'marcos-p', tier: 'bronze', totalGuests: 98, checkIns: 71, conversionPct: 72.4, score: 59 },
+    ];
+    return HttpResponse.json({ data: promoters });
+  }),
+
+  http.post(`${BASE}/promoters`, async ({ request }) => {
+    await delay(LAT);
+    const body = (await request.json()) as Record<string, unknown>;
+    return HttpResponse.json({
+      data: { id: `prm-${Date.now()}`, ...body, tier: 'bronze', totalGuests: 0, checkIns: 0, conversionPct: 0, score: 0 },
+    }, { status: 201 });
+  }),
+
+  http.get(`${BASE}/promoters/:id`, async ({ params }) => {
+    await delay(LAT);
+    return HttpResponse.json({
+      data: { id: params.id, name: 'Promoter Detail', email: 'promoter@email.com', slug: 'promoter', tier: 'gold', totalGuests: 420, checkIns: 385, conversionPct: 91.7, score: 98 },
     });
   }),
 

@@ -6,8 +6,10 @@ import { useAuthStore } from '@shared/stores/authStore';
 const HomePage        = lazy(() => import('@features/home/HomePage'));
 const EventPage       = lazy(() => import('@features/event/EventPage'));
 const SearchPage      = lazy(() => import('@features/search/SearchPage'));
-const LoginPage       = lazy(() => import('@features/auth/LoginPage'));
-const RegisterPage    = lazy(() => import('@features/auth/RegisterPage'));
+const LoginPage            = lazy(() => import('@features/auth/LoginPage'));
+const RegisterPage         = lazy(() => import('@features/auth/RegisterPage'));
+const ForgotPasswordPage   = lazy(() => import('@features/auth/ForgotPasswordPage'));
+const ResetPasswordPage    = lazy(() => import('@features/auth/ResetPasswordPage'));
 const CheckoutFlow    = lazy(() => import('@features/checkout/CheckoutFlow'));
 const MyTicketsPage   = lazy(() => import('@features/tickets/MyTicketsPage'));
 const ProfilePage     = lazy(() => import('@features/profile/ProfilePage'));
@@ -57,6 +59,8 @@ const router = createBrowserRouter([
   // ── Auth routes ──
   { path: '/login',    element: wrap(<GuestRoute><LoginPage /></GuestRoute>) },
   { path: '/register', element: wrap(<GuestRoute><RegisterPage /></GuestRoute>) },
+  { path: '/forgot-password', element: wrap(<GuestRoute><ForgotPasswordPage /></GuestRoute>) },
+  { path: '/reset-password/:userId/:token', element: wrap(<GuestRoute><ResetPasswordPage /></GuestRoute>) },
 
   // ── Protected user routes ──
   { path: '/checkout', element: wrap(<ProtectedRoute><CheckoutFlow /></ProtectedRoute>) },
