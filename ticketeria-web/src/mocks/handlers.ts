@@ -720,6 +720,54 @@ export const handlers = [
     });
   }),
 
+  // ── Cashless / Wallet ───────────────────────────────────────────────────
+
+  http.get(`${BASE}/cashless/balance`, async () => {
+    await delay(LAT);
+    return HttpResponse.json({ data: { balanceCents: 5000 } });
+  }),
+
+  http.get(`${BASE}/cashless/transactions`, async () => {
+    await delay(LAT);
+    const DESCRIPTIONS = {
+      recharge: ['Recarga via PIX', 'Recarga via cartão', 'Recarga na entrada'],
+      purchase: ['Bar — Cerveja', 'Food court — Hambúrguer', 'Bar — Caipirinha', 'Merchandising — Camiseta', 'Bar — Água'],
+      refund:   ['Estorno de compra', 'Reembolso de evento cancelado'],
+    };
+    const types: Array<'recharge' | 'purchase' | 'refund'> = [
+      'recharge', 'purchase', 'purchase', 'purchase', 'recharge', 'purchase', 'refund', 'purchase', 'purchase', 'recharge',
+    ];
+    const transactions = Array.from({ length: 10 }, (_, i) => {
+      const type = types[i % types.length];
+      const descArr = DESCRIPTIONS[type];
+      const d = new Date(2025, 3, 9 - Math.floor(i / 2), 18 + (i % 6));
+      const amountMap: Record<string, number[]> = { recharge: [2000, 5000, 10000, 20000], purchase: [800, 1500, 2400, 3500, 500], refund: [2000, 3500] };
+      const amounts = amountMap[type];
+      return {
+        id: `tx-${String(i + 1).padStart(4, '0')}`,
+        type,
+        amountCents: amounts[i % amounts.length],
+        description: descArr[i % descArr.length],
+        createdAt: d.toISOString(),
+      };
+    });
+    return HttpResponse.json({ data: transactions });
+  }),
+
+  http.post(`${BASE}/cashless/recharge`, async ({ request }) => {
+    await delay(LAT);
+    const body = (await request.json()) as { amountCents: number };
+    const amount = body.amountCents ?? 5000;
+    const rnd = Array.from({ length: 36 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
+    const pixCopyPaste = `00020126580014BR.GOV.BCB.PIX0136${rnd}520400005303986${(amount / 100).toFixed(2).replace('.', '5406')}5802BR5925TICKETY PAGAMENTOS LTDA6009SAO PAULO6304ABCD`;
+    return HttpResponse.json({
+      data: {
+        pixQrCode: `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(pixCopyPaste)}`,
+        pixCopyPaste,
+      },
+    });
+  }),
+
   // ── Admin: Criar Evento ─────────────────────────────────────────────────
 
   http.post(`${BASE}/events`, async ({ request }) => {

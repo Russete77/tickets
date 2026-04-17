@@ -23,7 +23,13 @@ const AdminOrders    = lazy(() => import('@features/admin/AdminOrders'));
 const AdminUsers     = lazy(() => import('@features/admin/AdminUsers'));
 const AdminFinance   = lazy(() => import('@features/admin/AdminFinance'));
 const AdminReports   = lazy(() => import('@features/admin/AdminReports'));
-const AdminAffiliates = lazy(() => import('@features/admin/AdminAffiliates'));
+const AdminAffiliates  = lazy(() => import('@features/admin/AdminAffiliates'));
+const AdminGuestLists  = lazy(() => import('@features/admin/AdminGuestLists'));
+const AdminPromoters   = lazy(() => import('@features/admin/AdminPromoters'));
+const AdminCheckinDashboard = lazy(() => import('@features/admin/AdminCheckinDashboard'));
+
+// User pages
+const WalletPage = lazy(() => import('@features/wallet/WalletPage'));
 
 const PageLoader: React.FC = () => (
   <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
@@ -66,6 +72,7 @@ const router = createBrowserRouter([
   { path: '/checkout', element: wrap(<ProtectedRoute><CheckoutFlow /></ProtectedRoute>) },
   { path: '/tickets',  element: wrap(<ProtectedRoute><MyTicketsPage /></ProtectedRoute>) },
   { path: '/profile',  element: wrap(<ProtectedRoute><ProfilePage /></ProtectedRoute>) },
+  { path: '/wallet',   element: wrap(<ProtectedRoute><WalletPage /></ProtectedRoute>) },
 
   // ── Check-in route (standalone, no layout) ──
   { path: '/checkin', element: wrap(<CheckinPage />) },
@@ -78,7 +85,10 @@ const router = createBrowserRouter([
   { path: '/admin/users',     element: adminWrap(<AdminUsers />) },
   { path: '/admin/finance',   element: adminWrap(<AdminFinance />) },
   { path: '/admin/reports',   element: adminWrap(<AdminReports />) },
-  { path: '/admin/affiliates', element: adminWrap(<AdminAffiliates />) },
+  { path: '/admin/affiliates',   element: adminWrap(<AdminAffiliates />) },
+  { path: '/admin/guest-lists', element: adminWrap(<AdminGuestLists />) },
+  { path: '/admin/promoters',   element: adminWrap(<AdminPromoters />) },
+  { path: '/admin/checkin',     element: adminWrap(<AdminCheckinDashboard />) },
 
   // ── Catch-all ──
   { path: '*', element: <Navigate to="/" replace /> },

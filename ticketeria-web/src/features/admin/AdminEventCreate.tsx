@@ -5,6 +5,7 @@ import { Icon } from '@shared/ui/Icon/Icon';
 import { Input } from '@shared/ui/Input/Input';
 import { Button } from '@shared/ui/Button/Button';
 import { MediaUpload } from '@shared/ui/MediaUpload';
+import { api } from '@shared/lib/api';
 import styles from './AdminEventCreate.module.css';
 
 // ── Types ──
@@ -572,15 +573,43 @@ const AdminEventCreate: React.FC = () => {
   const handlePublish = async () => {
     setIsLoading(true);
     try {
-      // TODO: Call API to create event
-      console.log({
-        basicInfo,
-        venue,
-        dates,
-        batches,
-        media,
+      const startsAt = dates.startDate && dates.startTime
+        ? `${dates.startDate}T${dates.startTime}:00`
+        : '';
+      const endsAt = dates.endDate && dates.endTime
+        ? `${dates.endDate}T${dates.endTime}:00`
+        : '';
+      const doorsOpenAt = dates.doorsOpenTime
+        ? `${dates.startDate}T${dates.doorsOpenTime}:00`
+        : undefined;
+
+      const response = await api.post('/v1/events', {
+        title: basicInfo.title,
+        description: basicInfo.description,
+        category: basicInfo.category,
+        tags: basicInfo.tags ? basicInfo.tags.split(',').map((t) => t.trim()).filter(Boolean) : [],
+        venueName: venue.name,
+        venueAddress: venue.address,
+        venueCity: venue.city,
+        venueState: venue.state,
+        venueCapacity: parseInt(venue.capacity, 10),
+        startsAt,
+        endsAt,
+        doorsOpenAt,
+        batches: batches.map((b) => ({
+          name: b.name,
+          price: parseFloat(b.price),
+          quantity: parseInt(b.quantity, 10),
+          type: b.type,
+        })),
+        coverImageUrl: media.coverImage ? URL.createObjectURL(media.coverImage) : undefined,
       });
-      // After successful creation:
+
+      if (response.error) {
+        console.error('Erro ao criar evento:', response.error);
+        return;
+      }
+
       navigate('/admin/events');
     } catch (error) {
       console.error('Erro ao criar evento:', error);
