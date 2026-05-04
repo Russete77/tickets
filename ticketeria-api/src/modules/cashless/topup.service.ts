@@ -1,5 +1,9 @@
 import { prisma } from '../../config/database';
 import { NotFoundError, BadRequestError, InternalError } from '../../shared/errors';
+import { LedgerService } from '../ledger/ledger.service';
+import { logger } from '../../shared/logger';
+import { emitWebhookSafe, resolveOrgIdFromEvent } from '../webhooks-outbound/webhook-emit.helper';
+import { ledgerEntriesCounter } from '../../shared/metrics';
 
 export interface TopupPaymentResult {
   paymentId: string;
@@ -226,6 +230,13 @@ export class TopupService {
       return wallet;
     });
 
+    // Auditoria CTO 2026-05 — gap 4.5/4.10
+    void postTopupToLedger({
+      walletId: result.id,
+      transactionId: transaction.id,
+      amountCents: transaction.amountCents,
+    });
+
     return {
       walletId: result.id,
       newBalance: result.balanceCents,
@@ -244,3 +255,49 @@ export class TopupService {
 }
 
 export const topupService = new TopupService();
+
+// ============================================================
+// Helpers — postar topup no ledger + webhook (Auditoria CTO 2026-05)
+// ============================================================
+
+async function postTopupToLedger(args: {
+  walletId: string;
+  transactionId: string;
+  amountCents: number;
+}): Promise<void> {
+  try {
+    const wallet = await prisma.cashlessWallet.findUnique({
+      where: { id: args.walletId },
+      select: { eventId: true, userId: true },
+    });
+    if (!wallet) return;
+    const organizationId = await resolveOrgIdFromEvent(wallet.eventId);
+    if (!organizationId) return;
+
+    const walletAcc = await LedgerService.ensureAccount({
+      organizationId, eventId: wallet.eventId, walletId: args.walletId, type: 'wallet',
+    });
+    const bankAcc = await LedgerService.ensureAccount({
+      organizationId, eventId: wallet.eventId, type: 'bank_settlement',
+    });
+
+    await LedgerService.post({
+      organizationId, eventId: wallet.eventId,
+      sourceType: 'cashless_topup', sourceId: args.transactionId,
+      entries: [
+        { accountId: bankAcc, direction: 'debit', amountCents: args.amountCents, description: 'Topup received' },
+        { accountId: walletAcc, direction: 'credit', amountCents: args.amountCents, description: 'Wallet credited' },
+      ],
+    });
+    ledgerEntriesCounter.inc({ source_type: 'cashless_topup' }, 2);
+
+    await emitWebhookSafe(
+      'cashless_topup',
+      { transactionId: args.transactionId, walletId: args.walletId, eventId: wallet.eventId, userId: wallet.userId, amountCents: args.amountCents },
+      wallet.eventId,
+      `cashless_topup:${args.transactionId}`,
+    );
+  } catch (err) {
+    logger.error({ err, transactionId: args.transactionId }, 'Topup ledger post failed');
+  }
+}

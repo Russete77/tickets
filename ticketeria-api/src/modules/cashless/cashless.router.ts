@@ -319,3 +319,68 @@ router.get(
 );
 
 export const cashlessRouter = router;
+
+// ============================================================
+// POS endpoints — Auditoria CTO 2026-05 (gap 4.4)
+// Necessários para o app mobile POS funcionar.
+// ============================================================
+import { prisma as prismaPos } from '../../config/database';
+import bcryptPos from 'bcryptjs';
+
+/** GET /cashless/pos/:posId/products — lista catálogo do POS */
+router.get('/pos/:posId/products', authenticate, asyncHandler(async (req, res) => {
+  const products = await prismaPos.pOSProduct.findMany({
+    where: { posId: String(req.params.posId), isAvailable: true },
+    orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+  });
+  res.json({ success: true, data: products });
+}));
+
+/** POST /cashless/pos/:posId/operator/login — valida PIN do operador */
+router.post('/pos/:posId/operator/login', authenticate, asyncHandler(async (req, res) => {
+  const { pin } = req.body as { pin?: string };
+  if (!pin) {
+    res.status(400).json({ success: false, error: { code: 'PIN_REQUIRED', message: 'PIN é obrigatório' } });
+    return;
+  }
+  const operators = await prismaPos.pOSOperator.findMany({
+    where: { posId: String(req.params.posId), isActive: true },
+  });
+  for (const op of operators) {
+    // PIN é armazenado em texto puro (curto) ou bcrypt — testa ambos
+    if (op.pin === pin || bcryptPos.compareSync(pin, op.pin)) {
+      res.json({ success: true, data: { valid: true, operatorId: op.userId } });
+      return;
+    }
+  }
+  res.status(401).json({ success: false, error: { code: 'INVALID_PIN', message: 'PIN inválido' } });
+}));
+
+/** GET /cashless/wallet/by-code/:code — resolve wallet por walletCode ou nfcTagId */
+router.get('/wallet/by-code/:code', authenticate, asyncHandler(async (req, res) => {
+  const code = String(req.params.code).toUpperCase();
+  const wallet = await prismaPos.cashlessWallet.findFirst({
+    where: {
+      OR: [
+        { walletCode: code },
+        { nfcTagId: code.replace(/[^0-9A-F]/g, '') },
+      ],
+      status: 'wallet_active',
+    },
+    include: { user: { select: { name: true } } },
+  });
+  if (!wallet) {
+    res.status(404).json({ success: false, error: { code: 'WALLET_NOT_FOUND', message: 'Wallet não encontrada' } });
+    return;
+  }
+  res.json({
+    success: true,
+    data: {
+      id: wallet.id,
+      walletCode: wallet.walletCode,
+      balanceCents: wallet.balanceCents,
+      status: wallet.status,
+      userName: wallet.user.name,
+    },
+  });
+}));

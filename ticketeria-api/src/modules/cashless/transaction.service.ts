@@ -3,6 +3,10 @@ import { redis } from '../../config/redis';
 import { NotFoundError, BadRequestError } from '../../shared/errors';
 import { buildCursorPagination, formatPaginatedResponse, type PaginatedResponse } from '../../shared/pagination';
 import { CashlessTransactionType } from '../../generated/prisma/client';
+import { LedgerService } from '../ledger/ledger.service';
+import { logger } from '../../shared/logger';
+import { emitWebhookSafe, resolveOrgIdFromEvent } from '../webhooks-outbound/webhook-emit.helper';
+import { ledgerEntriesCounter } from '../../shared/metrics';
 
 export interface TransactionData {
   id: string;
@@ -137,6 +141,11 @@ export class TransactionService {
       },
     );
 
+    // Auditoria CTO 2026-05 — gap 4.5/4.10
+    void postCashlessPurchaseToLedger({
+      walletId, transactionId: result.transactionId, amountCents, tipCents, posId,
+    });
+
     return result;
   }
 
@@ -233,6 +242,14 @@ export class TransactionService {
       };
     });
 
+    void postCashlessRefundToLedger({
+      walletId: transaction.walletId,
+      originalTransactionId: transactionId,
+      amountCents: transaction.amountCents,
+      tipCents: transaction.tipCents,
+      reason,
+    });
+
     return result;
   }
 
@@ -294,3 +311,119 @@ export class TransactionService {
 }
 
 export const transactionService = new TransactionService();
+
+// ============================================================
+// Helpers — postar no ledger + emitir webhooks (Auditoria CTO 2026-05)
+// ============================================================
+
+async function postCashlessPurchaseToLedger(args: {
+  walletId: string;
+  transactionId: string;
+  amountCents: number;
+  tipCents: number;
+  posId?: string;
+}): Promise<void> {
+  try {
+    const wallet = await prisma.cashlessWallet.findUnique({
+      where: { id: args.walletId },
+      select: { eventId: true },
+    });
+    if (!wallet) return;
+    const organizationId = await resolveOrgIdFromEvent(wallet.eventId);
+    if (!organizationId) return;
+
+    const walletAcc = await LedgerService.ensureAccount({
+      organizationId, eventId: wallet.eventId, walletId: args.walletId, type: 'wallet',
+    });
+    const posAcc = await LedgerService.ensureAccount({
+      organizationId, eventId: wallet.eventId, type: 'pos_sales',
+    });
+
+    const entries: Array<{ accountId: string; direction: 'debit' | 'credit'; amountCents: number; description: string }> = [
+      { accountId: walletAcc, direction: 'debit', amountCents: args.amountCents, description: 'Cashless purchase' },
+      { accountId: posAcc, direction: 'credit', amountCents: args.amountCents, description: 'POS sale' },
+    ];
+
+    if (args.tipCents > 0) {
+      const tipAcc = await LedgerService.ensureAccount({
+        organizationId, eventId: wallet.eventId, type: 'tip_pool',
+      });
+      entries.push(
+        { accountId: walletAcc, direction: 'debit', amountCents: args.tipCents, description: 'Tip' },
+        { accountId: tipAcc, direction: 'credit', amountCents: args.tipCents, description: 'Tip credited' },
+      );
+    }
+
+    await LedgerService.post({
+      organizationId, eventId: wallet.eventId,
+      sourceType: 'cashless_transaction', sourceId: args.transactionId,
+      entries,
+    });
+    ledgerEntriesCounter.inc({ source_type: 'cashless_transaction' }, entries.length);
+
+    await emitWebhookSafe(
+      'cashless_purchase',
+      { transactionId: args.transactionId, walletId: args.walletId, eventId: wallet.eventId, amountCents: args.amountCents, tipCents: args.tipCents, posId: args.posId },
+      wallet.eventId,
+      `cashless_purchase:${args.transactionId}`,
+    );
+  } catch (err) {
+    logger.error({ err, transactionId: args.transactionId }, 'Ledger purchase post failed');
+  }
+}
+
+async function postCashlessRefundToLedger(args: {
+  walletId: string;
+  originalTransactionId: string;
+  amountCents: number;
+  tipCents: number;
+  reason?: string;
+}): Promise<void> {
+  try {
+    const wallet = await prisma.cashlessWallet.findUnique({
+      where: { id: args.walletId },
+      select: { eventId: true },
+    });
+    if (!wallet) return;
+    const organizationId = await resolveOrgIdFromEvent(wallet.eventId);
+    if (!organizationId) return;
+
+    const walletAcc = await LedgerService.ensureAccount({
+      organizationId, eventId: wallet.eventId, walletId: args.walletId, type: 'wallet',
+    });
+    const posAcc = await LedgerService.ensureAccount({
+      organizationId, eventId: wallet.eventId, type: 'pos_sales',
+    });
+
+    const entries: Array<{ accountId: string; direction: 'debit' | 'credit'; amountCents: number; description: string }> = [
+      { accountId: posAcc, direction: 'debit', amountCents: args.amountCents, description: 'POS sale reverted' },
+      { accountId: walletAcc, direction: 'credit', amountCents: args.amountCents, description: 'Wallet refunded' },
+    ];
+
+    if (args.tipCents > 0) {
+      const tipAcc = await LedgerService.ensureAccount({
+        organizationId, eventId: wallet.eventId, type: 'tip_pool',
+      });
+      entries.push(
+        { accountId: tipAcc, direction: 'debit', amountCents: args.tipCents, description: 'Tip reverted' },
+        { accountId: walletAcc, direction: 'credit', amountCents: args.tipCents, description: 'Tip refunded' },
+      );
+    }
+
+    await LedgerService.post({
+      organizationId, eventId: wallet.eventId,
+      sourceType: 'cashless_refund', sourceId: args.originalTransactionId,
+      entries,
+    });
+    ledgerEntriesCounter.inc({ source_type: 'cashless_refund' }, entries.length);
+
+    await emitWebhookSafe(
+      'cashless_refund',
+      { originalTransactionId: args.originalTransactionId, walletId: args.walletId, eventId: wallet.eventId, amountCents: args.amountCents, tipCents: args.tipCents, reason: args.reason },
+      wallet.eventId,
+      `cashless_refund:${args.originalTransactionId}`,
+    );
+  } catch (err) {
+    logger.error({ err, originalTransactionId: args.originalTransactionId }, 'Refund ledger post failed');
+  }
+}

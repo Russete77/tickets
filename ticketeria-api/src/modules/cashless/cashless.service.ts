@@ -45,6 +45,17 @@ export interface HourlyStats {
   uniqueWallets: number;
 }
 
+export interface PosRevenue {
+  posId: string | null;
+  posName: string;
+  posLocation: string | null;
+  transactionCount: number;
+  totalAmountCents: number;
+  totalTipsCents: number;
+  uniqueWallets: number;
+  averageTicketCents: number;
+}
+
 /**
  * Serviço de configuração e analytics de cashless
  */
@@ -475,6 +486,108 @@ export class CashlessService {
       totalAmountCents: hourlyData[i]?.totalAmountCents || 0,
       uniqueWallets: hourlyData[i]?.uniqueWallets.size || 0,
     }));
+  }
+
+  /**
+   * Obtém receita agrupada por ponto de venda (PDV)
+   * Inclui transações sem POS associado (vendas em app, recargas) sob "Sem PDV"
+   */
+  async getRevenueByPos(
+    eventId: string,
+    userId: string,
+    startDate?: Date,
+    endDate?: Date,
+  ): Promise<PosRevenue[]> {
+    // Validar propriedade do evento
+    const event = await prisma.event.findUnique({
+      where: { id: eventId },
+      select: { producerId: true },
+    });
+
+    if (!event) {
+      throw new NotFoundError('Evento não encontrado');
+    }
+
+    if (event.producerId !== userId) {
+      throw new ForbiddenError('Apenas o produtor pode acessar relatórios');
+    }
+
+    const dateFilter = {
+      ...(startDate && { gte: startDate }),
+      ...(endDate && { lte: endDate }),
+    };
+
+    // Buscar transações concluídas do evento
+    const transactions = await prisma.cashlessTransaction.findMany({
+      where: {
+        wallet: { eventId },
+        status: 'tx_completed',
+        ...(startDate || endDate ? { createdAt: dateFilter } : {}),
+      },
+      select: {
+        amountCents: true,
+        tipCents: true,
+        walletId: true,
+        posId: true,
+        pos: {
+          select: {
+            id: true,
+            name: true,
+            location: true,
+          },
+        },
+      },
+    });
+
+    // Agrupar por POS
+    type PosAggregation = {
+      posId: string | null;
+      posName: string;
+      posLocation: string | null;
+      transactionCount: number;
+      totalAmountCents: number;
+      totalTipsCents: number;
+      uniqueWallets: Set<string>;
+    };
+
+    const grouped = new Map<string, PosAggregation>();
+
+    for (const tx of transactions) {
+      const key = tx.posId ?? '__nopos__';
+      const existing = grouped.get(key);
+
+      if (existing) {
+        existing.transactionCount += 1;
+        existing.totalAmountCents += tx.amountCents;
+        existing.totalTipsCents += tx.tipCents;
+        existing.uniqueWallets.add(tx.walletId);
+      } else {
+        grouped.set(key, {
+          posId: tx.posId ?? null,
+          posName: tx.pos?.name ?? 'Sem PDV',
+          posLocation: tx.pos?.location ?? null,
+          transactionCount: 1,
+          totalAmountCents: tx.amountCents,
+          totalTipsCents: tx.tipCents,
+          uniqueWallets: new Set([tx.walletId]),
+        });
+      }
+    }
+
+    // Formatar resposta ordenada por receita total desc
+    return Array.from(grouped.values())
+      .map((g) => ({
+        posId: g.posId,
+        posName: g.posName,
+        posLocation: g.posLocation,
+        transactionCount: g.transactionCount,
+        totalAmountCents: g.totalAmountCents,
+        totalTipsCents: g.totalTipsCents,
+        uniqueWallets: g.uniqueWallets.size,
+        averageTicketCents:
+          g.transactionCount > 0 ? Math.round(g.totalAmountCents / g.transactionCount) : 0,
+      }))
+      .sort((a, b) => b.totalAmountCents - a.totalAmountCents);
   }
 }
 

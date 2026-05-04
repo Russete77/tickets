@@ -533,8 +533,12 @@ export class CashlessController {
       const startDate = req.query.startDate as string | undefined;
       const endDate = req.query.endDate as string | undefined;
 
-      // Stub: return empty data as this method is not implemented
-      const revenue = { eventId, startDate, endDate, data: [] };
+      const revenue = await cashlessService.getRevenueByPos(
+        eventId,
+        req.user.userId,
+        startDate ? new Date(startDate) : undefined,
+        endDate ? new Date(endDate) : undefined,
+      );
 
       res.status(200).json({
         success: true,
