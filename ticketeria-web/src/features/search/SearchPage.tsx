@@ -8,6 +8,7 @@ import { useDocumentHead } from '@shared/hooks/useDocumentHead';
 import { api } from '@shared/lib/api';
 import { Icon } from '@shared/ui/Icon/Icon';
 import EventCard, { EventData } from '@features/home/EventCard';
+import { useTranslation } from '@shared/i18n';
 import styles from './SearchPage.module.css';
 
 interface SearchResponse {
@@ -38,6 +39,7 @@ const SORT_OPTIONS = [
 ];
 
 const SearchPage: React.FC = () => {
+  const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const [searchInput, setSearchInput] = useState(searchParams.get('q') ?? '');
@@ -156,7 +158,7 @@ const SearchPage: React.FC = () => {
                 placeholder="Shows, festas, teatro, artistas..."
                 className={styles.searchInput}
               />
-              <button type="submit" className={styles.searchBtn}>Buscar</button>
+              <button type="submit" className={styles.searchBtn}>{t("common.search")}</button>
             </form>
           </div>
         </div>

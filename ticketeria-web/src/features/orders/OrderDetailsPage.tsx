@@ -5,6 +5,7 @@ import { api } from '@shared/lib/api';
 import { PublicLayout } from '@shared/layout/PublicLayout/PublicLayout';
 import { Skeleton } from '@shared/ui/Skeleton/Skeleton';
 import { formatCurrency, formatDate } from '@shared/lib/formatters';
+import { useTranslation } from '@shared/i18n';
 import styles from './OrderDetailsPage.module.css';
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -59,6 +60,7 @@ const METHOD_LABEL: Record<PaymentMethod, string> = {
 // ── Component ──────────────────────────────────────────────────────────────
 
 const OrderDetailsPage: React.FC = () => {
+  const { t } = useTranslation();
   const { orderId } = useParams<{ orderId: string }>();
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -199,7 +201,7 @@ const OrderDetailsPage: React.FC = () => {
                     <span className={styles.paymentValue}>{METHOD_LABEL[order.payment.method] ?? order.payment.method}</span>
                   </div>
                   <div className={styles.paymentItem}>
-                    <span className={styles.paymentLabel}>Total</span>
+                    <span className={styles.paymentLabel}>{t("checkout.total")}</span>
                     <span className={`${styles.paymentValue} ${styles.paymentTotal}`}>
                       {formatCurrency(order.payment.amountCents)}
                     </span>

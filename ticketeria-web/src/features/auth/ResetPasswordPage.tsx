@@ -5,6 +5,7 @@ import { Button } from '@shared/ui/Button/Button';
 import { Input } from '@shared/ui/Input/Input';
 import { Icon } from '@shared/ui/Icon/Icon';
 import { api } from '@shared/lib/api';
+import { useTranslation } from '@shared/i18n';
 import styles from './ResetPasswordPage.module.css';
 
 interface FormErrors {
@@ -15,6 +16,7 @@ interface FormErrors {
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
 
 const ResetPasswordPage: React.FC = () => {
+  const { t } = useTranslation();
   useDocumentHead({
     title: 'Nova senha — Ticketeria Digital',
     description: 'Defina sua nova senha na Ticketeria Digital',

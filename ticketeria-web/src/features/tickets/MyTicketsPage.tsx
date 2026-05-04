@@ -5,11 +5,13 @@ import { PublicLayout } from '@shared/layout/PublicLayout/PublicLayout';
 import { Skeleton } from '@shared/ui/Skeleton/Skeleton';
 import { EmptyState } from '@shared/ui/EmptyState/EmptyState';
 import TicketCard, { TicketData } from './TicketCard';
+import { useTranslation } from '@shared/i18n';
 import styles from './MyTicketsPage.module.css';
 
 type Tab = 'active' | 'history';
 
 const MyTicketsPage: React.FC = () => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<Tab>('active');
 
   const { data: tickets, isLoading } = useQuery({

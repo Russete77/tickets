@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { PublicLayout } from '@shared/layout/PublicLayout/PublicLayout';
 import { api } from '@shared/lib/api';
 import { Skeleton } from '@shared/ui/Skeleton/Skeleton';
+import { useTranslation } from '@shared/i18n';
 import styles from './WalletPage.module.css';
 
 // ── Types ─────────────────────────────────────────
@@ -236,6 +237,7 @@ const TransactionItem: React.FC<{ tx: Transaction }> = ({ tx }) => {
 // ── Page ──────────────────────────────────────────
 const WalletPage: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
+  const { t } = useTranslation();
 
   const { data: balanceData, isLoading: balanceLoading } = useQuery({
     queryKey: ['wallet-balance'],
@@ -263,7 +265,7 @@ const WalletPage: React.FC = () => {
           <div className={styles.walletCard}>
             <div className={styles.walletCardBg} aria-hidden="true" />
             <div className={styles.walletCardContent}>
-              <p className={styles.balanceLabel}>Saldo disponível</p>
+              <p className={styles.balanceLabel}>{t('wallet.balance')}</p>
               {balanceLoading ? (
                 <Skeleton width="180px" height="48px" borderRadius="8px" />
               ) : (
@@ -315,9 +317,4 @@ const WalletPage: React.FC = () => {
         </div>
       </div>
 
-      {showModal && <RechargeModal onClose={() => setShowModal(false)} />}
-    </PublicLayout>
-  );
-};
-
-export default WalletPage;
+      {showModal && <RechargeModal onClose={()

@@ -6,17 +6,19 @@ import { Button } from '@shared/ui/Button/Button';
 import { Input } from '@shared/ui/Input/Input';
 import { Icon } from '@shared/ui/Icon/Icon';
 import { useToastStore } from '@shared/stores/toastStore';
+import { useTranslation } from '@shared/i18n';
 import styles from './LoginPage.module.css';
 
 const LoginPage: React.FC = () => {
   const { login } = useAuth();
   const addToast = useToastStore((s) => s.addToast);
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   useDocumentHead({
-    title: 'Entrar — Ticketeria Digital',
+    title: `${t('auth.login')} — Ticketeria`,
     description: 'Faça login na sua conta Ticketeria para acessar seus ingressos',
-    ogTitle: 'Entrar — Ticketeria Digital',
+    ogTitle: `${t('auth.login')} — Ticketeria`,
     ogType: 'website',
   });
 
@@ -65,7 +67,7 @@ const LoginPage: React.FC = () => {
 
         <form onSubmit={handleSubmit} className={styles.form} noValidate>
           <div className={styles.field}>
-            <label htmlFor="email" className={styles.label}>E-mail</label>
+            <label htmlFor="email" className={styles.label}>{t('auth.email')}</label>
             <Input
               id="email"
               type="email"
@@ -80,9 +82,9 @@ const LoginPage: React.FC = () => {
 
           <div className={styles.field}>
             <div className={styles.labelRow}>
-              <label htmlFor="password" className={styles.label}>Senha</label>
+              <label htmlFor="password" className={styles.label}>{t('auth.password')}</label>
               <Link to="/forgot-password" className={styles.forgotLink}>
-                Esqueceu a senha?
+                {t('auth.forgotPassword')}
               </Link>
             </div>
             <Input
@@ -98,7 +100,7 @@ const LoginPage: React.FC = () => {
           </div>
 
           <Button type="submit" variant="primary" fullWidth loading={loading}>
-            Entrar
+            {t('auth.login')}
           </Button>
         </form>
 
@@ -133,12 +135,4 @@ const LoginPage: React.FC = () => {
         </div>
 
         <p className={styles.registerLink}>
-          Não tem uma conta?{' '}
-          <Link to="/register">Cadastre-se grátis</Link>
-        </p>
-      </div>
-    </div>
-  );
-};
-
-export default LoginPage;
+          Não tem uma conta?{

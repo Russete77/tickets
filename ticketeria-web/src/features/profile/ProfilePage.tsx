@@ -6,6 +6,7 @@ import { PublicLayout } from '@shared/layout/PublicLayout/PublicLayout';
 import { Button } from '@shared/ui/Button/Button';
 import { Input } from '@shared/ui/Input/Input';
 import { Avatar } from '@shared/ui/Avatar/Avatar';
+import { useTranslation } from '@shared/i18n';
 import styles from './ProfilePage.module.css';
 
 type Tab = 'info' | 'security' | 'preferences';
@@ -18,6 +19,7 @@ const ROLE_LABEL: Record<string, string> = {
 };
 
 const ProfilePage: React.FC = () => {
+  const { t } = useTranslation();
   const { user, setUser } = useAuth();
   const addToast = useToastStore((s) => s.addToast);
 

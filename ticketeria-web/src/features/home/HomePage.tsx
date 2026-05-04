@@ -8,9 +8,11 @@ import TrendingSection from './TrendingSection';
 import CategorySection from './CategorySection';
 import RecommendedSection from './RecommendedSection';
 import SocialProofBar from './SocialProofBar';
+import { useTranslation } from '@shared/i18n';
 import styles from './HomePage.module.css';
 
 const HomePage: React.FC = () => {
+  const { t } = useTranslation();
   const { isAuthenticated } = useAuth();
 
   useDocumentHead({

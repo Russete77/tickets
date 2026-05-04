@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Icon } from '@shared/ui/Icon/Icon';
+import { LocaleSwitcher } from '@shared/i18n/LocaleSwitcher';
 import styles from './Footer.module.css';
 
 export const Footer: React.FC = () => {
@@ -109,6 +110,8 @@ export const Footer: React.FC = () => {
           <div className={styles.brazilTag}>
             <span>Feito com seguranca no Brasil</span>
           </div>
+          {/* Auditoria CTO 2026-05 — gap 4.11 */}
+          <LocaleSwitcher />
         </div>
       </div>
     </footer>

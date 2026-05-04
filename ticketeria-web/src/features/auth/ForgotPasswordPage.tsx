@@ -5,9 +5,11 @@ import { Button } from '@shared/ui/Button/Button';
 import { Input } from '@shared/ui/Input/Input';
 import { Icon } from '@shared/ui/Icon/Icon';
 import { api } from '@shared/lib/api';
+import { useTranslation } from '@shared/i18n';
 import styles from './ForgotPasswordPage.module.css';
 
 const ForgotPasswordPage: React.FC = () => {
+  const { t } = useTranslation();
   useDocumentHead({
     title: 'Recuperar senha — Ticketeria Digital',
     description: 'Recupere o acesso à sua conta Ticketeria',
@@ -75,7 +77,7 @@ const ForgotPasswordPage: React.FC = () => {
           <>
             <form onSubmit={handleSubmit} className={styles.form} noValidate>
               <div className={styles.field}>
-                <label htmlFor="email" className={styles.label}>E-mail</label>
+                <label htmlFor="email" className={styles.label}>{t('auth.email')}</label>
                 <Input
                   id="email"
                   type="email"
@@ -100,11 +102,4 @@ const ForgotPasswordPage: React.FC = () => {
               Lembrou a senha?{' '}
               <Link to="/login">Voltar para o login</Link>
             </p>
-          </>
-        )}
-      </div>
-    </div>
-  );
-};
-
-export default ForgotPasswordPage;
+ 

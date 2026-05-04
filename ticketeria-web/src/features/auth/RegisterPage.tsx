@@ -6,6 +6,7 @@ import { Button } from '@shared/ui/Button/Button';
 import { Input } from '@shared/ui/Input/Input';
 import { Icon } from '@shared/ui/Icon/Icon';
 import { useToastStore } from '@shared/stores/toastStore';
+import { useTranslation } from '@shared/i18n';
 import styles from './RegisterPage.module.css';
 
 interface FormValues {
@@ -40,6 +41,7 @@ const RegisterPage: React.FC = () => {
   const { register } = useAuth();
   const addToast = useToastStore((s) => s.addToast);
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   useDocumentHead({
     title: 'Criar conta — Ticketeria Digital',
@@ -133,7 +135,7 @@ const RegisterPage: React.FC = () => {
           </div>
 
           <div className={styles.field}>
-            <label htmlFor="email" className={styles.label}>E-mail</label>
+            <label htmlFor="email" className={styles.label}>{t('auth.email')}</label>
             <Input
               id="email"
               type="email"
@@ -177,7 +179,7 @@ const RegisterPage: React.FC = () => {
           </div>
 
           <div className={styles.field}>
-            <label htmlFor="password" className={styles.label}>Senha</label>
+            <label htmlFor="password" className={styles.label}>{t('auth.password')}</label>
             <Input
               id="password"
               type="password"
@@ -233,11 +235,4 @@ const RegisterPage: React.FC = () => {
 
         <p className={styles.loginLink}>
           Já tem uma conta?{' '}
-          <Link to="/login">Entrar</Link>
-        </p>
-      </div>
-    </div>
-  );
-};
-
-export default RegisterPage;
+          
