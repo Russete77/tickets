@@ -34,6 +34,13 @@ const AdminWaitlist   = lazy(() => import('@features/admin/AdminWaitlist'));
 const AdminBoxOffice  = lazy(() => import('@features/admin/AdminBoxOffice'));
 const AdminPriceRules = lazy(() => import('@features/admin/AdminPriceRules'));
 
+// Auditoria CTO 2026-05 — telas novas
+const AdminOrganizationPage = lazy(() => import('@features/admin/organization/AdminOrganizationPage'));
+const AdminBrandingPage = lazy(() => import('@features/admin/branding/AdminBrandingPage'));
+const AdminApiKeysPage = lazy(() => import('@features/admin/api-keys/AdminApiKeysPage'));
+const AdminWebhooksPage = lazy(() => import('@features/admin/webhooks/AdminWebhooksPage'));
+const AdminLedgerPage = lazy(() => import('@features/admin/ledger/AdminLedgerPage'));
+
 // User pages
 const WalletPage = lazy(() => import('@features/wallet/WalletPage'));
 const OrderDetailsPage = lazy(() => import('@features/orders/OrderDetailsPage'));
@@ -113,6 +120,13 @@ const router = createBrowserRouter([
   { path: '/admin/waitlist',    element: adminWrap(<AdminWaitlist />) },
   { path: '/admin/box-office',  element: adminWrap(<AdminBoxOffice />) },
   { path: '/admin/price-rules', element: adminWrap(<AdminPriceRules />) },
+
+  // Auditoria CTO 2026-05 — multi-tenant + branding + API + ledger
+  { path: '/admin/orgs/:organizationId', element: adminWrap(<AdminOrganizationPage />) },
+  { path: '/admin/orgs/:organizationId/branding', element: adminWrap(<AdminBrandingPage />) },
+  { path: '/admin/orgs/:organizationId/api-keys', element: adminWrap(<AdminApiKeysPage />) },
+  { path: '/admin/orgs/:organizationId/webhooks', element: adminWrap(<AdminWebhooksPage />) },
+  { path: '/admin/orgs/:organizationId/ledger', element: adminWrap(<AdminLedgerPage />) },
 
   // ── Catch-all ──
   { path: '*', element: <Navigate to="/" replace /> },

@@ -1,0 +1,37 @@
+{
+  "name": "ticketeria-admin",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "PulsePass — painel admin do produtor (SPA separada de ticketeria-web). Auditoria CTO 2026-05 gap 4.8.",
+  "scripts": {
+    "dev": "vite --port 5174",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview --port 5174",
+    "lint": "eslint src/ --ext .ts,.tsx",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "@sentry/react": "^10.47.0",
+    "@tanstack/react-query": "^5.56.0",
+    "@ticketeria/types": "*",
+    "date-fns": "^3.6.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-router-dom": "^6.26.0",
+    "recharts": "^2.12.0",
+    "socket.io-client": "^4.7.5",
+    "zod": "^4.0.0",
+    "zustand": "^4.5.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.3",
+    "typescript": "^6.0.0",
+    "vite": "^7.0.0",
+    "vitest": "^4.1.4"
+  }
+}
