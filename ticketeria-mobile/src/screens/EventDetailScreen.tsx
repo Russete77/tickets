@@ -13,10 +13,12 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import * as Clipboard from 'expo-clipboard';
 import { apiClient } from '../lib/api';
+import { useTranslation } from '../i18n';
 import { Colors, Spacing, Typography, BorderRadius, Shadows } from '../styles/tokens';
 import { Event, Review } from '../types';
 
 export function EventDetailScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);

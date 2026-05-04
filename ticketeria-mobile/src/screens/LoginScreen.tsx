@@ -13,11 +13,13 @@ import {
 import { useRouter } from 'expo-router';
 import { useMutation } from '@tanstack/react-query';
 import { apiClient } from '../lib/api';
+import { useTranslation } from '../i18n';
 import { Colors, Typography, Spacing, BorderRadius, Shadows } from '../styles/tokens';
 import { AuthResponse } from '../types';
 
 export function LoginScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -67,11 +69,11 @@ export function LoginScreen() {
 
       {/* Form */}
       <View style={styles.formContainer}>
-        <Text style={styles.title}>Entrar</Text>
+        <Text style={styles.title}>{t('auth.login')}</Text>
 
         {/* Email Input */}
         <View style={styles.inputContainer}>
-          <Text style={styles.label}>Email</Text>
+          <Text style={styles.label}>{t("auth.email")}</Text>
           <TextInput
             style={styles.input}
             placeholder="seu@email.com"
@@ -86,7 +88,7 @@ export function LoginScreen() {
 
         {/* Password Input */}
         <View style={styles.inputContainer}>
-          <Text style={styles.label}>Senha</Text>
+          <Text style={styles.label}>{t('auth.password')}</Text>
           <View style={styles.passwordInputContainer}>
             <TextInput
               style={styles.passwordInput}
@@ -120,7 +122,7 @@ export function LoginScreen() {
           {loginMutation.isPending ? (
             <ActivityIndicator color={Colors.textInverse} />
           ) : (
-            <Text style={styles.loginButtonText}>Entrar</Text>
+            <Text style={styles.loginButtonText}>{t('auth.login')}</Text>
           )}
         </TouchableOpacity>
 
@@ -129,7 +131,7 @@ export function LoginScreen() {
           onPress={handleForgotPassword}
           disabled={loginMutation.isPending}
         >
-          <Text style={styles.forgotPasswordLink}>Esqueci minha senha</Text>
+          <Text style={styles.forgotPasswordLink}>{t('auth.forgotPassword')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -272,9 +274,4 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
   },
   signUpLink: {
-    fontSize: Typography.fontSize.base,
-    fontWeight: Typography.fontWeight.bold,
-    color: Colors.accent,
-    textDecorationLine: 'underline',
-  },
-});
+    fontSize: Typography.fontSize.ba

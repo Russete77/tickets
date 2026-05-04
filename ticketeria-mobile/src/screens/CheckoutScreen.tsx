@@ -13,6 +13,7 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiClient } from '../lib/api';
+import { useTranslation } from '../i18n';
 import { Colors, Spacing, Typography, BorderRadius, Shadows } from '../styles/tokens';
 import { Event, TicketBatch } from '../types';
 
@@ -34,6 +35,7 @@ const PAYMENT_METHODS: PaymentMethod[] = [
 ];
 
 export function CheckoutScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { eventId, batchId, quantity = '1' } = useLocalSearchParams<{
     eventId: string;

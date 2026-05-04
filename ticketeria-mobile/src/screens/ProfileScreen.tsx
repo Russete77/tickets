@@ -15,6 +15,7 @@ import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '../lib/api';
 import { Colors, Typography, Spacing, BorderRadius, Shadows } from '../styles/tokens';
 import { User, Order } from '../types';
+import { useTranslation } from '../i18n';
 
 interface ProfileSettings {
   notifications: boolean;
@@ -24,6 +25,7 @@ interface ProfileSettings {
 
 export function ProfileScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [settings, setSettings] = useState<ProfileSettings>({
     notifications: true,
     theme: 'dark',
@@ -237,7 +239,7 @@ export function ProfileScreen() {
           {isLoggingOut ? (
             <ActivityIndicator color={Colors.error} />
           ) : (
-            <Text style={styles.logoutButtonText}>Sair</Text>
+            <Text style={styles.logoutButtonText}>{t('auth.logout')}</Text>
           )}
         </TouchableOpacity>
 
@@ -421,8 +423,4 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   logoutButtonText: {
-    fontSize: Typography.fontSize.lg,
-    fontWeight: Typography.fontWeight.bold,
-    color: Colors.error,
-  },
-});
+    fontSize: Typography.f

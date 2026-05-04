@@ -12,6 +12,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useMutation } from '@tanstack/react-query';
 import { apiClient } from '../lib/api';
+import { useTranslation } from '../i18n';
 import { Colors, Typography, Spacing, BorderRadius, Shadows } from '../styles/tokens';
 import { AuthResponse } from '../types';
 
@@ -25,6 +26,7 @@ interface FormData {
 }
 
 export function RegisterScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [formData, setFormData] = useState<FormData>({
     name: '',
@@ -149,7 +151,7 @@ export function RegisterScreen() {
 
       {/* Email Input */}
       <View style={styles.inputContainer}>
-        <Text style={styles.label}>Email</Text>
+        <Text style={styles.label}>{t("auth.email")}</Text>
         <TextInput
           style={[styles.input, errors.email && styles.inputError]}
           placeholder="seu@email.com"
@@ -199,7 +201,7 @@ export function RegisterScreen() {
 
       {/* Password Input */}
       <View style={styles.inputContainer}>
-        <Text style={styles.label}>Senha</Text>
+        <Text style={styles.label}>{t("auth.password")}</Text>
         <View style={[styles.passwordInputContainer, errors.password && styles.inputError]}>
           <TextInput
             style={styles.passwordInput}
@@ -269,7 +271,7 @@ export function RegisterScreen() {
       <View style={styles.loginContainer}>
         <Text style={styles.loginText}>Já tenho conta</Text>
         <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.loginLink}>Entrar</Text>
+          <Text style={styles.loginLink}>{t("auth.login")}</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>

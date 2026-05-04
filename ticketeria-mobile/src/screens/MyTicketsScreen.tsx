@@ -11,10 +11,12 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import QRCode from 'react-native-qrcode-svg';
 import { apiClient } from '../lib/api';
+import { useTranslation } from '../i18n';
 import { Colors, Typography, Spacing, BorderRadius, Shadows } from '../styles/tokens';
 import { Ticket } from '../types';
 
 export function MyTicketsScreen() {
+  const { t } = useTranslation();
   const [qrRefreshTime, setQrRefreshTime] = useState(30);
   const [displayedQrCode, setDisplayedQrCode] = useState<string | null>(null);
   const [expandedTicketId, setExpandedTicketId] = useState<string | null>(null);

@@ -13,10 +13,12 @@ import {
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { apiClient } from '../lib/api';
+import { useTranslation } from '../i18n';
 import { Colors, Typography, Spacing, BorderRadius, Shadows } from '../styles/tokens';
 import { CheckInEvent, CheckInResult } from '../types';
 
 export function CheckinScreen() {
+  const { t } = useTranslation();
   const [permission, requestPermission] = useCameraPermissions();
   const [scannedCode, setScannedCode] = useState<string | null>(null);
   const [manualCode, setManualCode] = useState('');

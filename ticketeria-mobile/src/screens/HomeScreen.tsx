@@ -13,6 +13,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '../lib/api';
+import { useTranslation } from '../i18n';
 import { Colors, Spacing, Typography, BorderRadius, Shadows } from '../styles/tokens';
 import { Event, CategoryFilter } from '../types';
 
@@ -24,6 +25,7 @@ const CATEGORIES: CategoryFilter[] = [
 ];
 
 export function HomeScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [searchText, setSearchText] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -89,7 +91,7 @@ export function HomeScreen() {
       {/* Search Bar */}
       <View style={styles.searchContainer}>
         <View style={styles.searchBar}>
-          <Text style={styles.searchIcon}>Buscar</Text>
+          <Text style={styles.searchIcon}>{t("common.search")}</Text>
           <TextInput
             style={styles.searchInput}
             placeholder="Buscar eventos..."

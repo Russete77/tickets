@@ -12,6 +12,7 @@ import {
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '../lib/api';
+import { useTranslation } from '../i18n';
 import { Colors, Typography, Spacing, BorderRadius, Shadows } from '../styles/tokens';
 import { Event, CategoryFilter } from '../types';
 
@@ -23,6 +24,7 @@ const CATEGORIES: CategoryFilter[] = [
 ];
 
 export function SearchScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { q: initialQuery } = useLocalSearchParams<{ q?: string }>();
 
