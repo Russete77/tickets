@@ -8,6 +8,8 @@ import { AppError } from './shared/errors';
 import { logger } from './shared/logger';
 import { requestId } from './middleware/requestId';
 import { globalRateLimiter } from './middleware/rateLimiter';
+import { deviceFingerprint } from './middleware/deviceFingerprint';
+import { httpMetrics } from './middleware/httpMetrics';
 import { Sentry } from './config/sentry';
 import { setupSwagger } from './config/swagger';
 
@@ -53,6 +55,21 @@ import { credentialsRouter } from './modules/credentials/credentials.router';
 import { certificatesRouter } from './modules/certificates/certificates.router';
 import { insuranceRouter } from './modules/insurance/insurance.router';
 
+// Operacional — health checks profundos + métricas Prometheus
+import { healthRouter } from './modules/health/health.router';
+import { renderMetrics } from './shared/metrics';
+
+// Webhooks externos (Sympla, Ingresso.com)
+import { externalWebhooksRouter } from './modules/webhooks-external/webhooks-external.router';
+
+// ============================================
+// Auditoria CTO 2026-05 — novos módulos
+// ============================================
+import { organizationsRouter } from './modules/organizations/organizations.router';
+import { brandingRouter } from './modules/organizations/branding.router';
+import { ledgerRouter } from './modules/ledger/ledger.router';
+import { webhooksOutboundRouter } from './modules/webhooks-outbound/webhooks-outbound.router';
+
 export function createApp() {
   const app = express();
 
@@ -72,7 +89,13 @@ export function createApp() {
       origin: [env.FRONTEND_URL, env.ADMIN_URL, env.CHECKIN_URL],
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-Id', 'X-Idempotency-Key'],
+      allowedHeaders: [
+        'Content-Type',
+        'Authorization',
+        'X-Request-Id',
+        'X-Idempotency-Key',
+        'X-Device-Fingerprint',
+      ],
     }),
   );
 
@@ -94,22 +117,26 @@ export function createApp() {
     );
   }
 
+  // Device fingerprint + IP capture (após body parser, antes de rotas)
+  app.use(deviceFingerprint);
+
+  // HTTP metrics collection (Prometheus)
+  app.use(httpMetrics);
+
   // Rate limiting global
   app.use(globalRateLimiter);
 
   // ============================
-  // Health check
+  // Health checks profundos
   // ============================
-  app.get('/health', (_req: Request, res: Response) => {
-    res.json({
-      success: true,
-      data: {
-        status: 'ok',
-        timestamp: new Date().toISOString(),
-        version: '1.0.0',
-        environment: env.NODE_ENV,
-      },
-    });
+  app.use('/health', healthRouter);
+
+  // ============================
+  // Prometheus metrics endpoint (text/plain)
+  // ============================
+  app.get('/metrics', (_req: Request, res: Response) => {
+    res.setHeader('Content-Type', 'text/plain; version=0.0.4; charset=utf-8');
+    res.send(renderMetrics());
   });
 
   // ============================
@@ -152,6 +179,15 @@ export function createApp() {
   app.use(`${apiPrefix}/credentials`, credentialsRouter);
   app.use(`${apiPrefix}/certificates`, certificatesRouter);
   app.use(`${apiPrefix}/insurance`, insuranceRouter);
+  app.use(`${apiPrefix}/webhooks/external`, externalWebhooksRouter);
+
+  // ============================
+  // Novos módulos — Auditoria CTO 2026-05
+  // ============================
+  app.use(`${apiPrefix}/organizations`, organizationsRouter);
+  app.use(`${apiPrefix}/branding`, brandingRouter);
+  app.use(`${apiPrefix}/ledger`, ledgerRouter);
+  app.use(`${apiPrefix}/webhooks/outbound`, webhooksOutboundRouter);
 
   // ============================
   // 404 handler
@@ -159,57 +195,27 @@ export function createApp() {
   app.use((_req: Request, res: Response) => {
     res.status(404).json({
       success: false,
-      error: {
-        code: 'NOT_FOUND',
-        message: 'Rota não encontrada',
-      },
+      error: { code: 'NOT_FOUND', message: 'Rota não encontrada' },
     });
   });
 
-  // ============================
-  // Sentry error handler
-  // ============================
   if (env.SENTRY_DSN) {
     Sentry.setupExpressErrorHandler(app);
   }
 
-  // ============================
-  // Error handler global
-  // ============================
   app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
     if (err instanceof AppError) {
-      logger.warn({
-        err,
-        requestId: req.headers['x-request-id'],
-        path: req.path,
-        method: req.method,
-      });
-
+      logger.warn({ err, requestId: req.headers['x-request-id'], path: req.path });
       res.status(err.statusCode).json({
         success: false,
-        error: {
-          code: err.code,
-          message: err.message,
-          ...(err.details ? { details: err.details } : {}),
-        },
+        error: { code: err.code, message: err.message, ...(err.details ? { details: err.details } : {}) },
       });
       return;
     }
-
-    // Erro não esperado
-    logger.error({
-      err,
-      requestId: req.headers['x-request-id'],
-      path: req.path,
-      method: req.method,
-    });
-
+    logger.error({ err, requestId: req.headers['x-request-id'], path: req.path });
     res.status(500).json({
       success: false,
-      error: {
-        code: 'INTERNAL_ERROR',
-        message: 'Erro interno do servidor',
-      },
+      error: { code: 'INTERNAL_ERROR', message: 'Erro interno do servidor' },
     });
   });
 

@@ -56,19 +56,46 @@ const envSchema = z.object({
   // Rate Limiting
   RATE_LIMIT_WINDOW_MS: z.coerce.number().default(60000),
   RATE_LIMIT_MAX_REQUESTS: z.coerce.number().default(100),
+
+  // Operational alerts (capacity overflow → security/ops team)
+  SECURITY_ALERT_EMAIL: z.string().email().optional(),
+  OPS_ALERT_EMAIL: z.string().email().optional(),
+
+  // Webhook external integrators (Sympla, Ingresso.com)
+  EXTERNAL_WEBHOOK_SECRET: z.string().optional(),
+
+  // Feature flags storage prefix
+  FEATURE_FLAGS_PREFIX: z.string().default('feature:'),
+
+  // ============================================
+  // Auditoria CTO 2026-05 — env vars novas (todas opcionais)
+  // ============================================
+
+  // Pagar.me — gateway secundário (gap 4.6)
+  PAGARME_API_URL: z.string().optional(),
+  PAGARME_SECRET_KEY: z.string().optional(),
+  PAGARME_RECIPIENT_ID: z.string().optional(),
+  PAGARME_WEBHOOK_SECRET: z.string().optional(),
+
+  // Meilisearch (gap 4.3)
+  MEILI_HOST: z.string().optional(),
+  MEILI_MASTER_KEY: z.string().optional(),
+
+  // FCM (gap 4.7)
+  FCM_PROJECT_ID: z.string().optional(),
+  FCM_CLIENT_EMAIL: z.string().optional(),
+  FCM_PRIVATE_KEY: z.string().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;
 
 function validateEnv(): Env {
   const result = envSchema.safeParse(process.env);
-
   if (!result.success) {
     console.error('❌ Variáveis de ambiente inválidas:');
     console.error(result.error.flatten().fieldErrors);
     process.exit(1);
   }
-
   return result.data;
 }
 

@@ -116,4 +116,23 @@ export const AuditActions = {
   CREDENTIAL_CREATED: 'credential.created',
   CREDENTIAL_CHECKED_IN: 'credential.checked_in',
   CREDENTIAL_BULK_CREATED: 'credential.bulk_created',
+
+  // Auditoria CTO 2026-05 — multi-tenancy (gap 4.1)
+  ORGANIZATION_CREATED: 'organization.created',
+  ORGANIZATION_UPDATED: 'organization.updated',
+  ORGANIZATION_MEMBER_INVITED: 'organization.member_invited',
+  ORGANIZATION_MEMBER_ROLE_CHANGED: 'organization.member_role_changed',
+  ORGANIZATION_MEMBER_REMOVED: 'organization.member_removed',
+  ORGANIZATION_INVITE_ACCEPTED: 'organization.invite_accepted',
+
+  // API keys (gap 4.10)
+  API_KEY_CREATED: 'api_key.created',
+  API_KEY_REVOKED: 'api_key.revoked',
+
+  // Webhook outbound (gap 4.10)
+  WEBHOOK_SUBSCRIPTION_CREATED: 'webhook_subscription.created',
+  WEBHOOK_SUBSCRIPTION_DELETED: 'webhook_subscription.deleted',
+
+  // Ledger (gap 4.5)
+  LEDGER_EVENT_CLOSED: 'ledger.event_closed',
 } as const;

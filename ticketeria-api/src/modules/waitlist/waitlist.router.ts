@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { authenticate, authorize } from '../../middleware/auth';
+import { requireEventOwnership } from '../../middleware/eventOwnership';
 import { validate } from '../../middleware/validate';
 import { WaitlistController } from './waitlist.controller';
 import {
@@ -34,13 +35,14 @@ waitlistRouter.delete(
 
 /**
  * GET /waitlist/:eventId
- * Listar waitlist (autenticado, produtor)
+ * Listar waitlist (autenticado, produtor dono do evento)
  */
 waitlistRouter.get(
   '/:eventId',
   authenticate,
   authorize('producer', 'admin'),
   validate({ params: eventIdParamSchema, query: listWaitlistSchema }),
+  requireEventOwnership,
   WaitlistController.getWaitlist,
 );
 

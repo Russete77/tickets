@@ -47,6 +47,10 @@ const openApiSpec = {
     { name: 'Admin', description: 'Admin dashboard and moderation tools' },
     { name: 'Favorites', description: 'User favorite events management' },
     { name: 'Live', description: 'Real-time social proof and live statistics' },
+    { name: 'LGPD', description: 'LGPD compliance — data export, account deletion, consent (art. 18)' },
+    { name: 'Health Deep', description: 'Liveness, readiness, deep health checks (DB, Redis, queues, breakers)' },
+    { name: 'Metrics', description: 'Prometheus metrics endpoint (text/plain exposition)' },
+    { name: 'Webhooks External', description: 'Webhooks de integradores externos (Sympla, Ingresso.com)' },
   ],
   paths: {
     '/health': {
@@ -2564,6 +2568,136 @@ const openApiSpec = {
               },
             },
           },
+        },
+      },
+    },
+    '/health/ready': {
+      get: {
+        tags: ['Health'],
+        summary: 'Readiness probe',
+        description: 'Verifica se a aplicação está pronta para receber tráfego (DB + Redis ok). Use em Kubernetes readiness probe.',
+        operationId: 'healthReady',
+        responses: {
+          '200': { description: 'App pronta' },
+          '503': { description: 'Dependência degradada — não roteie tráfego' },
+        },
+      },
+    },
+    '/health/full': {
+      get: {
+        tags: ['Health'],
+        summary: 'Health profundo',
+        description: 'Health check completo: DB, Redis, filas BullMQ e circuit breakers. Mais caro que /ready — use em dashboards e alertas.',
+        operationId: 'healthFull',
+        responses: {
+          '200': { description: 'Todos os checks ok ou apenas degraded' },
+          '503': { description: 'Pelo menos um check falhou (status: down)' },
+        },
+      },
+    },
+    '/health/db': {
+      get: {
+        tags: ['Health'],
+        summary: 'Health do banco de dados',
+        operationId: 'healthDb',
+        responses: { '200': { description: 'OK' }, '503': { description: 'DB inacessível' } },
+      },
+    },
+    '/health/redis': {
+      get: {
+        tags: ['Health'],
+        summary: 'Health do Redis',
+        operationId: 'healthRedis',
+        responses: { '200': { description: 'OK' }, '503': { description: 'Redis inacessível' } },
+      },
+    },
+    '/health/queues': {
+      get: {
+        tags: ['Health'],
+        summary: 'Health das filas BullMQ',
+        operationId: 'healthQueues',
+        responses: { '200': { description: 'Filas saudáveis' }, '503': { description: 'Falha em alguma fila' } },
+      },
+    },
+    '/metrics': {
+      get: {
+        tags: ['Metrics'],
+        summary: 'Prometheus metrics',
+        description: 'Exposição no formato Prometheus 0.0.4 (text/plain). Sem auth — restringir via network policy.',
+        operationId: 'metrics',
+        responses: {
+          '200': {
+            description: 'Métricas no formato exposition',
+            content: { 'text/plain': { schema: { type: 'string' } } },
+          },
+        },
+      },
+    },
+    '/users/me/data': {
+      get: {
+        tags: ['LGPD'],
+        summary: 'Exportar dados do usuário (LGPD art. 18 IV)',
+        description: 'Retorna JSON com todos os dados pessoais do usuário (perfil, pedidos, ingressos). Limite: 3 chamadas/h.',
+        operationId: 'lgpdExportData',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': { description: 'Dados exportados em JSON' },
+          '401': { $ref: '#/components/responses/Unauthorized' },
+          '429': { description: 'Rate limit LGPD excedido' },
+        },
+      },
+    },
+    '/users/me': {
+      delete: {
+        tags: ['LGPD'],
+        summary: 'Apagar conta (LGPD art. 18 VI)',
+        description: 'Anonimiza email, CPF, nome, telefone, push token, IP e userAgent em pedidos/ingressos. Dados financeiros são preservados por 5 anos (art. 174 CTN). Limite: 3 chamadas/h.',
+        operationId: 'lgpdDeleteAccount',
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['password'],
+                properties: { password: { type: 'string', description: 'Senha atual para confirmação' } },
+              },
+            },
+          },
+        },
+        responses: {
+          '200': { description: 'Conta anonimizada com sucesso' },
+          '401': { $ref: '#/components/responses/Unauthorized' },
+          '429': { description: 'Rate limit LGPD excedido' },
+        },
+      },
+    },
+    '/webhooks/external/sympla': {
+      post: {
+        tags: ['Webhooks External'],
+        summary: 'Webhook receiver Sympla',
+        description: 'Recebe eventos do Sympla (ORDER_APPROVED, ORDER_CANCELED, ORDER_REFUNDED, CHECKIN_CREATED). Validação HMAC SHA256 via header X-Signature quando EXTERNAL_WEBHOOK_SECRET está configurado. Idempotência por order_id (TTL 24h).',
+        operationId: 'webhookSympla',
+        responses: {
+          '202': { description: 'Webhook aceito e enfileirado' },
+          '200': { description: 'Duplicado — já processado nas últimas 24h' },
+          '401': { description: 'Assinatura inválida' },
+          '422': { description: 'Payload inválido' },
+        },
+      },
+    },
+    '/webhooks/external/ingresso': {
+      post: {
+        tags: ['Webhooks External'],
+        summary: 'Webhook receiver Ingresso.com',
+        description: 'Recebe eventos do Ingresso.com (order.paid, order.canceled, checkin.scanned). Validação HMAC e idempotência idênticas ao Sympla.',
+        operationId: 'webhookIngresso',
+        responses: {
+          '202': { description: 'Webhook aceito' },
+          '200': { description: 'Duplicado' },
+          '401': { description: 'Assinatura inválida' },
+          '422': { description: 'Payload inválido' },
         },
       },
     },

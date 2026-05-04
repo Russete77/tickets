@@ -4,6 +4,7 @@ import { logAudit, AuditActions } from '../../shared/audit';
 import { Order, OrderStatus, Ticket, User } from '../../generated/prisma/client';
 import { AsaasWebhookPayload } from '../../types/asaas.types';
 import { logger } from '../../shared/logger';
+import { emitWebhookSafe } from '../webhooks-outbound/webhook-emit.helper';
 
 type OrderWithRelations = Order & {
   tickets: Ticket[];
@@ -184,6 +185,36 @@ export class WebhookService {
       },
     });
 
+    // Webhook outbound — Auditoria CTO 2026-05 (gap 4.10)
+    await emitWebhookSafe(
+      'order_paid',
+      {
+        orderId: order.id,
+        eventId: order.eventId,
+        userId: order.userId,
+        totalCents: order.totalCents,
+        paymentMethod: order.paymentMethod,
+        ticketIds: order.tickets.map((t) => t.id),
+        paidAt: new Date().toISOString(),
+      },
+      order.eventId,
+      `order_paid:${order.id}`,
+    );
+    for (const ticket of order.tickets) {
+      await emitWebhookSafe(
+        'ticket_issued',
+        {
+          ticketId: ticket.id,
+          orderId: order.id,
+          eventId: order.eventId,
+          holderName: ticket.holderName,
+          holderEmail: ticket.holderEmail,
+        },
+        order.eventId,
+        `ticket_issued:${ticket.id}`,
+      );
+    }
+
     // Enfileirar jobs de notificação por email (a implementar)
     // await emailQueue.add('payment-confirmed', { orderId: order.id });
   }
@@ -309,7 +340,6 @@ export class WebhookService {
         refundAmount: payment.value || 0,
       },
     });
-    // Não cancelar ordem nem tickets em reembolso parcial - isso fica a critério da lógica de negócio
   }
 
   /**
@@ -325,6 +355,5 @@ export class WebhookService {
         message: 'Chargeback solicitado - verificação necessária',
       },
     });
-    // Alertar time de suporte/fraud
   }
 }

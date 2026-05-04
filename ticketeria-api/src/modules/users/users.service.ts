@@ -288,7 +288,10 @@ export class UsersService {
     const anonymousEmail = `deleted_${userId}@invalid.local`;
     const anonymousName = 'Usuário Deletado';
 
-    // Anonimizar dados do usuário
+    // Anonimizar dados do usuário (LGPD art. 18 VI - direito ao apagamento).
+    // Atenção: não usamos delete físico para preservar integridade referencial
+    // de tickets/pedidos pagos (exigência fiscal: dados financeiros precisam
+    // ser mantidos por 5 anos conforme art. 174 CTN).
     await prisma.user.update({
       where: { id: userId },
       data: {
@@ -300,8 +303,12 @@ export class UsersService {
         passwordHash: 'deleted',
         totpSecret: null,
         totpEnabled: false,
+        expoPushToken: null, // Revoga push notifications
       },
     });
+
+    // Remove favoritos (PII derivado, sem valor fiscal)
+    await prisma.favorite.deleteMany({ where: { userId } });
 
     // Remover dados sensíveis de ordens
     await prisma.order.updateMany({

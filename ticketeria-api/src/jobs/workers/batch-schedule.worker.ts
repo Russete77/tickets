@@ -3,6 +3,7 @@ import { redis } from '../../config/redis';
 import { prisma } from '../../config/database';
 import { logger } from '../../shared/logger';
 import { emailQueue } from '../queue';
+import { publishBroadcast } from '../../shared/socketBridge';
 
 interface BatchScheduleJobData {
   // Empty data - this is a cron job
@@ -180,11 +181,19 @@ export const batchScheduleWorker = new Worker<BatchScheduleJobData>(
           }
         }
 
-        // TODO: Emit Socket.IO event batch:switched to event room
-        // io.to(`event:${exhaustedBatch.eventId}`).emit('batch:switched', {
-        //   oldBatch: exhaustedBatch.name,
-        //   newBatch: nextBatch.name,
-        // });
+        // Emit Socket.IO event batch:switched to event room (via Redis pub/sub bridge)
+        await publishBroadcast(`event:${exhaustedBatch.eventId}`, 'batch:switched', {
+          eventId: exhaustedBatch.eventId,
+          oldBatch: { id: exhaustedBatch.id, name: exhaustedBatch.name },
+          newBatch: {
+            id: nextBatch.id,
+            name: nextBatch.name,
+            priceCents: nextBatch.priceCents,
+            type: nextBatch.type,
+          },
+        }).catch((err) => {
+          logger.warn({ err }, 'Falha ao publicar batch:switched via Socket.IO');
+        });
       }
 
       logger.info(

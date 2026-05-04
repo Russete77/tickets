@@ -121,34 +121,70 @@ async function bootstrap() {
 
   // ============================
   // Graceful shutdown
+  // Sequência segura para zero perda de dados em deploys:
+  //   1. Para de aceitar novas conexões HTTP (server.close).
+  //   2. Avisa clientes Socket.IO antes de cortar (graceful disconnect).
+  //   3. Espera requests em vôo terminarem (até 20s).
+  //   4. Fecha Prisma + Redis.
+  //   5. Mata o processo. Em K8s, SIGKILL chega em 30s — temos folga.
   // ============================
-  const shutdown = async (signal: string) => {
+  let shuttingDown = false;
+  const SHUTDOWN_TIMEOUT_MS = 25_000;
+
+  const shutdown = async (signal: string): Promise<void> => {
+    if (shuttingDown) return;
+    shuttingDown = true;
     logger.info(`${signal} recebido. Encerrando gracefully...`);
 
-    server.close(async () => {
-      logger.info('HTTP server fechado');
+    // Timer fail-safe: se algo travar, força saída
+    const forceExitTimer = setTimeout(() => {
+      logger.error('Timeout de graceful shutdown. Forçando encerramento.');
+      process.exit(1);
+    }, SHUTDOWN_TIMEOUT_MS);
+    forceExitTimer.unref();
 
+    try {
+      // 1. Stop accepting new connections (existing requests terminam)
+      await new Promise<void>((resolve, reject) => {
+        server.close((err) => (err ? reject(err) : resolve()));
+      });
+      logger.info('HTTP server fechado (sem novas conexões)');
+
+      // 2. Avisar Socket.IO clients e fechar com timeout
+      io.emit('server:shutdown', { reason: 'maintenance' });
+      await new Promise<void>((resolve) => {
+        io.close(() => resolve());
+        // BullMQ não está no servidor da API, está no worker-runner — aqui só Socket.IO
+        setTimeout(resolve, 5_000); // garantia de não travar
+      });
+      logger.info('Socket.IO fechado');
+
+      // 3. Fechar conexões persistentes
       await prisma.$disconnect();
       logger.info('Prisma desconectado');
 
       await redis.quit();
       logger.info('Redis desconectado');
 
-      io.close();
-      logger.info('Socket.IO fechado');
-
+      clearTimeout(forceExitTimer);
+      logger.info('Shutdown completo. Saindo limpo.');
       process.exit(0);
-    });
-
-    // Force shutdown após 10s
-    setTimeout(() => {
-      logger.error('Timeout de graceful shutdown. Forçando encerramento.');
+    } catch (err) {
+      logger.error({ err }, 'Erro no graceful shutdown');
+      clearTimeout(forceExitTimer);
       process.exit(1);
-    }, 10000);
+    }
   };
 
-  process.on('SIGTERM', () => shutdown('SIGTERM'));
-  process.on('SIGINT', () => shutdown('SIGINT'));
+  process.on('SIGTERM', () => void shutdown('SIGTERM'));
+  process.on('SIGINT', () => void shutdown('SIGINT'));
+  process.on('uncaughtException', (err) => {
+    logger.fatal({ err }, 'uncaughtException — iniciando shutdown');
+    void shutdown('uncaughtException');
+  });
+  process.on('unhandledRejection', (reason) => {
+    logger.error({ reason }, 'unhandledRejection');
+  });
 }
 
 bootstrap().catch((err) => {

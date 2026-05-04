@@ -233,12 +233,14 @@ export class PaymentsService {
         }
       }
 
-      // Atualizar pedido com dados do Asaas
+      // Atualizar pedido com dados do Asaas + multi-gateway tracking (Auditoria CTO 2026-05)
       await prisma.order.update({
         where: { id: order.id },
         data: {
           asaasPaymentId: asaasResponse.id,
           asaasInvoiceUrl: asaasResponse.invoiceUrl,
+          gatewayProvider: 'asaas',
+          gatewayPaymentId: asaasResponse.id,
           ...(paymentMethod === 'pix' &&
             pixData.payload && {
               pixQrCode: pixData.encodedImage,
@@ -261,5 +263,61 @@ export class PaymentsService {
         'Erro ao processar pagamento. Tente novamente ou entre em contato com o suporte.',
       );
     }
+  }
+
+ 
+  /**
+   * Versão multi-gateway com failover automático Asaas → Pagar.me.
+   * Auditoria CTO 2026-05 — gap 4.6
+   */
+  static async createPaymentWithFailover(
+    order: { id: string; expiresAt: Date; totalCents: number },
+    paymentMethod: 'pix' | 'credit_card' | 'boleto',
+    user: { email: string; name: string; cpf: string; phone?: string | null },
+    platformFeePercent: number,
+  ): Promise<CreatePaymentResponse> {
+    const { gatewayRegistry } = await import('../gateways/gateway.registry');
+    const customers = await gatewayRegistry.ensureCustomerOnAll({
+      email: user.email,
+      name: user.name,
+      cpfCnpj: user.cpf,
+      phone: user.phone ?? undefined,
+    });
+
+    const result = await gatewayRegistry.createPaymentWithFailover({
+      customerExternalId: customers.asaas ?? customers.pagarme ?? '',
+      internalReference: order.id,
+      amountCents: order.totalCents,
+      method: paymentMethod,
+      description: `Ingresso - Pedido ${order.id}`,
+      splits: [{
+        recipientGatewayId: env.ASAAS_WALLET_ID,
+        amountCents: Math.floor(order.totalCents * (platformFeePercent / 100)),
+      }],
+      expiresInHours: Math.max(1, Math.ceil((order.expiresAt.getTime() - Date.now()) / (3600 * 1000))),
+    });
+
+    await prisma.order.update({
+      where: { id: order.id },
+      data: {
+        gatewayProvider: result.provider,
+        gatewayPaymentId: result.gatewayPaymentId,
+        asaasPaymentId: result.provider === 'asaas' ? result.gatewayPaymentId : undefined,
+        asaasInvoiceUrl: result.invoiceUrl,
+        pixQrCode: result.pixQrCode,
+        pixCopyPaste: result.pixCopyPaste,
+      },
+    });
+
+    return {
+      id: result.gatewayPaymentId,
+      status: result.status,
+      pixQrCode: result.pixQrCode,
+      pixCopyPaste: result.pixCopyPaste,
+      invoiceUrl: result.invoiceUrl,
+      billingType: PaymentsService['mapBillingType']
+        ? (PaymentsService as any).mapBillingType(paymentMethod)
+        : (paymentMethod === 'pix' ? 'PIX' : paymentMethod === 'credit_card' ? 'CREDIT_CARD' : 'BOLETO'),
+    };
   }
 }

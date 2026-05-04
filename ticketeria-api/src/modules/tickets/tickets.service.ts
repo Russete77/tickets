@@ -8,6 +8,7 @@ import { TransferTicketInput, ValidateQRInput } from './tickets.validators';
 import crypto from 'crypto';
 import { authenticator } from 'otplib';
 import { emailService } from '../notifications/email.service';
+import { emitWebhookSafe } from '../webhooks-outbound/webhook-emit.helper';
 
 /**
  * Serviço de gerenciamento de ingressos
@@ -302,6 +303,20 @@ export class TicketsService {
       },
     });
 
+    // Webhook outbound — Auditoria CTO 2026-05 (gap 4.10)
+    await emitWebhookSafe(
+      'ticket_transferred',
+      {
+        ticketId: transfer.ticketId,
+        transferId,
+        fromUserId: transfer.fromUserId,
+        toUserId: transfer.toUserId,
+        eventId: updatedTicket.eventId,
+      },
+      updatedTicket.eventId,
+      `ticket_transferred:${transferId}`,
+    );
+
     return updatedTicket;
   }
 
@@ -470,8 +485,8 @@ export class TicketsService {
         entityType: 'ticket',
         entityId: ticketId,
         metadata: {
-          deviceId: data.deviceId,
           eventId: data.eventId,
+          deviceId: data.deviceId,
         },
       });
 

@@ -3,6 +3,8 @@ import { Expo, ExpoPushMessage, ExpoPushTicket } from 'expo-server-sdk';
 import { prisma } from '../../config/database';
 import { pushQueue } from '../../jobs/queue';
 import { logger } from '../../shared/logger';
+import { sendFcm } from './fcm.service';
+import { pushDeliveredCounter, pushFailedCounter } from '../../shared/metrics';
 
 interface PushPayload {
   userId: string;
@@ -51,11 +53,35 @@ export class PushService {
 
     if (!user?.expoPushToken) {
       logger.debug(`No push token for user ${payload.userId}, skipping`);
+      pushFailedCounter.inc({ reason: 'no_token' });
       return;
     }
 
+    // Auditoria CTO 2026-05 — gap 4.7: token FCM nativo (não-Expo) usa fallback FCM direto
     if (!Expo.isExpoPushToken(user.expoPushToken)) {
-      logger.warn(`Invalid push token for user ${payload.userId}: ${user.expoPushToken}`);
+      const fcmResult = await sendFcm({
+        token: user.expoPushToken,
+        title: payload.title,
+        body: payload.body,
+        data: Object.fromEntries(
+          Object.entries(payload.data ?? {}).map(([k, v]) => [k, String(v)]),
+        ),
+      });
+      if (fcmResult.success) {
+        pushDeliveredCounter.inc({ provider: 'fcm' });
+      } else {
+        pushFailedCounter.inc({ reason: 'fcm_failed' });
+      }
+      await prisma.notification.create({
+        data: {
+          userId: payload.userId,
+          type: 'push',
+          channel: 'push',
+          title: payload.title,
+          body: payload.body,
+          metadata: JSON.parse(JSON.stringify(payload.data || {})),
+        },
+      });
       return;
     }
 

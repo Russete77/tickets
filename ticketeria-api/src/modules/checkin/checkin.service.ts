@@ -5,6 +5,7 @@ import { logAudit, AuditActions } from '../../shared/audit';
 
 import { authenticator } from 'otplib';
 import { publishBroadcast } from '../../shared/socketBridge';
+import { emitWebhookSafe } from '../webhooks-outbound/webhook-emit.helper';
 
 /**
  * Verificacao TOTP usando otplib (RFC 6238 compliant)
@@ -247,6 +248,21 @@ export class CheckinService {
         eventId,
       }).catch(() => {}); // Don't fail check-in if broadcast fails
 
+      // Webhook outbound — Auditoria CTO 2026-05 (gap 4.10)
+      await emitWebhookSafe(
+        'ticket_checked_in',
+        {
+          ticketId: ticket.id,
+          eventId,
+          holderName: ticket.holderName,
+          checkedInAt: new Date().toISOString(),
+          operatorId,
+          deviceId,
+        },
+        eventId,
+        `ticket_checked_in:${ticket.id}`,
+      );
+
       return {
         success: true,
         result: 'valid',
@@ -409,16 +425,16 @@ export class CheckinService {
           failed++;
           results.push({
             qrData: checkin.qrData,
-            result: checkin.result,
-            message: 'Não sincronizado',
+            result: 'invalid_hash',
+            message: 'Check-in falhou',
           });
         }
-      } catch (error) {
+      } catch (err) {
         failed++;
         results.push({
           qrData: checkin.qrData,
-          result: 'offline_conflict',
-          message: 'Erro ao sincronizar',
+          result: 'invalid_hash',
+          message: err instanceof Error ? err.message : 'Erro desconhecido',
         });
       }
     }

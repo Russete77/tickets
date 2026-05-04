@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { UsersController } from './users.controller';
 import { validate } from '../../middleware/validate';
 import { authenticate } from '../../middleware/auth';
+import { lgpdRateLimiter } from '../../middleware/rateLimiter';
 import {
   updateProfileSchema,
   changePasswordSchema,
@@ -53,16 +54,20 @@ router.get(
 
 /**
  * GET /users/me/data
- * Exportar dados do usuário (LGPD */
+ * Exportar dados do usuário (LGPD - direito de portabilidade, art. 18 IV)
+ */
 router.get(
   '/me/data',
+  lgpdRateLimiter,
   UsersController.exportData);
 
 /**
  * DELETE /users/me
- * Deletar conta do usuário (LGPD */
+ * Deletar conta do usuário (LGPD - direito ao apagamento, art. 18 VI)
+ */
 router.delete(
   '/me',
+  lgpdRateLimiter,
   validate({ body: z.object({ password: z.string().min(1, 'Senha é obrigatória') }) }),
   UsersController.deleteAccount);
 

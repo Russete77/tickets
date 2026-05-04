@@ -81,6 +81,28 @@ export const cleanupSessionsQueue = new Queue('cleanup-expired-sessions', {
 });
 
 // ============================================
+// Filas adicionadas — Auditoria CTO 2026-05
+// ============================================
+
+/** Webhook outbound — entrega pra subscribers externos (gap 4.10) */
+export const webhookOutboundQueue = new Queue('webhook-outbound', {
+  connection: redis,
+  defaultJobOptions: { ...defaultJobOptions, priority: 2, attempts: 8 },
+});
+
+/** Search sync — Meilisearch (gap 4.3) */
+export const searchSyncQueue = new Queue('search-sync', {
+  connection: redis,
+  defaultJobOptions: { ...defaultJobOptions, priority: 3 },
+});
+
+/** Ledger close — invariantes pós-evento (gap 4.5) */
+export const ledgerCloseQueue = new Queue('ledger-close', {
+  connection: redis,
+  defaultJobOptions: { ...defaultJobOptions, priority: 3 },
+});
+
+// ============================================
 // Setup de CRON jobs
 // ============================================
 
@@ -120,12 +142,15 @@ export async function setupRecurringJobs(): Promise<void> {
     { repeat: { pattern: '0 3 * * *' }, jobId: 'cleanup-sessions-cron' },
   );
 
+  // Auditoria CTO 2026-05 — rebuild Meilisearch nightly às 4h (gap 4.3)
+  await searchSyncQueue.add(
+    'rebuild',
+    { type: 'rebuild' },
+    { repeat: { pattern: '0 4 * * *' }, jobId: 'search-rebuild-cron' },
+  );
+
   logger.info('✅ Recurring jobs configurados');
 }
-
-// ============================================
-// Queue events para logging
-// ============================================
 
 export function setupQueueEvents(): void {
   const queues = [
@@ -136,22 +161,19 @@ export function setupQueueEvents(): void {
     batchSwitchQueue,
     batchScheduleQueue,
     capacityAlertQueue,
+    checkinSyncQueue,
+    pushQueue,
     postEventReviewQueue,
     postEventReportQueue,
     cleanupSessionsQueue,
-    checkinSyncQueue,
-    pushQueue,
+    webhookOutboundQueue,
+    searchSyncQueue,
+    ledgerCloseQueue,
   ];
-
   for (const queue of queues) {
     const events = new QueueEvents(queue.name, { connection: redis });
-
     events.on('failed', ({ jobId, failedReason }) => {
-      logger.error(`Job ${queue.name}:${jobId} falhou: ${failedReason}`);
-    });
-
-    events.on('stalled', ({ jobId }) => {
-      logger.warn(`Job ${queue.name}:${jobId} travado (stalled)`);
+      logger.error({ queue: queue.name, jobId, failedReason }, 'Job falhou');
     });
   }
 }

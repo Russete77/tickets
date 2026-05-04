@@ -3,6 +3,9 @@ import { redis } from '../../config/redis';
 import { NotFoundError, ForbiddenError, BadRequestError } from '../../shared/errors';
 import { logAudit, AuditActions } from '../../shared/audit';
 import { Event } from '../../generated/prisma/client';
+import { searchSyncQueue } from '../../jobs/queue';
+import { emitWebhookSafe } from '../webhooks-outbound/webhook-emit.helper';
+import { logger } from '../../shared/logger';
 
 /**
  * Gerencia o fluxo de publicação de eventos, transições de status e gerenciamento de lotes
@@ -51,6 +54,17 @@ export class PublishingService {
     await redis.del(`event:slug:${event.slug}`);
     await redis.del('events:trending');
     await redis.del('events:weekend');
+
+    // Auditoria CTO 2026-05 — gap 4.3 + 4.10
+    await searchSyncQueue
+      .add('upsert', { type: 'upsert', eventIds: [eventId] })
+      .catch((err) => logger.warn({ err, eventId }, 'searchSync enqueue falhou'));
+    await emitWebhookSafe(
+      'event_published',
+      { eventId, slug: event.slug, title: event.title },
+      eventId,
+      `event_published:${eventId}`,
+    );
 
     return publishedEvent;
   }
@@ -120,6 +134,11 @@ export class PublishingService {
     await redis.del(`event:slug:${event.slug}`);
     await redis.del('events:trending');
     await redis.del('events:weekend');
+
+    // Auditoria CTO 2026-05 — remover do índice (gap 4.3)
+    await searchSyncQueue
+      .add('remove', { type: 'remove', eventIds: [eventId] })
+      .catch((err) => logger.warn({ err, eventId }, 'searchSync remove falhou'));
 
     return cancelledEvent;
   }

@@ -171,15 +171,30 @@ export async function createTestTicket(
 }
 
 /**
- * Clean up test data from database
+ * Clean up test data from database (em ordem de FK).
+ *
+ * Tables com FK precisam ser apagadas ANTES do parent.
+ * Cashless e checkin foram adicionados em sessão de hardening 2026-04-28.
  */
 export async function cleanupTestData(prisma: PrismaClient) {
   try {
-    // Delete in order of foreign key dependencies
+    // Cashless / POS — depende de event/user
+    await prisma.cashlessTransaction.deleteMany({});
+    await prisma.cashlessWallet.deleteMany({});
+
+    // Check-in logs — depende de ticket/event/user
+    await prisma.checkinLog.deleteMany({});
+
+    // Tickets / orders — depende de event/user/batch
     await prisma.ticket.deleteMany({});
     await prisma.ticketTransfer.deleteMany({});
     await prisma.order.deleteMany({});
     await prisma.ticketBatch.deleteMany({});
+
+    // Favoritos
+    await prisma.favorite.deleteMany({});
+
+    // Eventos / usuários / audit
     await prisma.event.deleteMany({});
     await prisma.user.deleteMany({});
     await prisma.auditLog.deleteMany({});

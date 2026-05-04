@@ -4,6 +4,7 @@ import { prisma } from '../../config/database';
 import { logger } from '../../shared/logger';
 import { emailQueue } from '../queue';
 import { publishBroadcast } from '../../shared/socketBridge';
+import { env } from '../../config/env';
 
 interface CapacityAlertJobData {
   eventId: string;
@@ -177,7 +178,26 @@ export const capacityAlertWorker = new Worker<CapacityAlertJobData>(
           { priority: 0 },
         );
 
-        // TODO: Email to security team
+        // Email para a equipe de segurança/operações (se configurado)
+        if (env.SECURITY_ALERT_EMAIL) {
+          await emailQueue.add(
+            'send-email',
+            {
+              to: env.SECURITY_ALERT_EMAIL,
+              subject: `🚨 LOTAÇÃO 100%: ${event.title}`,
+              template: 'capacity-full-security',
+              data: {
+                eventTitle: event.title,
+                eventId: event.id,
+                checkedIn: checkedInCount,
+                capacity: event.venueCapacity,
+                producerName: event.producer.name,
+                producerEmail: event.producer.email,
+              },
+            },
+            { priority: 0 },
+          );
+        }
 
         await publishBroadcast(
           `producer:${event.producer.id}`,
