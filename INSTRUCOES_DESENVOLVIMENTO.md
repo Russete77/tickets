@@ -1,7 +1,56 @@
 # PulsePass (Ticketeria) - Instrucoes de Desenvolvimento
 
 > Documento gerado em 2026-04-16 a partir da auditoria do projeto + analise do PRD v3.0
+> Atualizado em 2026-04-28 apos sessao de hardening (LGPD, observabilidade, webhooks externos, testes de carga)
 > Objetivo: servir como referencia unica para decisoes de desenvolvimento
+
+---
+
+## 0. CHANGELOG (Sessao 2026-04-28 - Hardening para producao)
+
+> Sessao focada em fechar gaps de producao (LGPD, observabilidade, integradores)
+> e aumentar cobertura de testes. Todas as mudancas verificadas com `tsc --noEmit`.
+
+### Adicoes / melhorias
+
+| Area | Arquivo | O que foi feito |
+|---|---|---|
+| LGPD | `users.router.ts` + `users.service.ts` | Endpoints `/me/data` (export), `DELETE /me` (anonimiza email/CPF/nome/IP/userAgent + apaga favoritos + revoga push token) com rate limit 3/hora |
+| Health profundo | `modules/health/` (novo) | `GET /health/ready` (k8s readiness), `/health/full`, `/health/db`, `/health/redis`, `/health/queues` com timeouts e degraded states |
+| Observabilidade | `shared/metrics.ts` + `middleware/httpMetrics.ts` (novos) | Endpoint `/metrics` em formato Prometheus exposition (counter/histogram/gauge sem dep externa) |
+| Circuit breaker | `shared/circuitBreaker.ts` (novo) | Implementacao leve para Asaas, Resend, Expo Push (CLOSED/OPEN/HALF_OPEN + timeout) |
+| Feature flags | `shared/featureFlags.ts` (novo) | Storage Redis + fallback env, % gradual via hash FNV-1a do userId |
+| Device fingerprint | `middleware/deviceFingerprint.ts` (novo) | Lê `X-Device-Fingerprint` + IP real (X-Forwarded-For), aplicado globalmente |
+| Webhooks externos | `modules/webhooks-external/` (novo) | Receivers Sympla e Ingresso.com com HMAC SHA256, idempotencia 24h, importador CSV |
+| Multi-tenant | `reports.router.ts`, `waitlist.router.ts` | `requireEventOwnership` aplicado (eram routers que vazavam entre produtores) |
+| Workers TODOs | `capacity-alert`, `batch-auto-switch`, `batch-schedule` | Email para security team + Socket.IO emit + notificacoes para favoritos |
+| Stub cashless | `cashless.service.ts` | `getRevenueByPos` agora retorna agregacao real por POS (ordenada por receita) |
+| Rate limiters | `middleware/rateLimiter.ts` | Adicionados: `checkinValidateRateLimiter` (20/s), `ticketReserveRateLimiter` (2/s), `webhookRateLimiter` (100/s), `lgpdRateLimiter` (3/h) |
+| Graceful shutdown | `server.ts`, `worker-runner.ts` | Drena Socket.IO + workers BullMQ + Prisma + Redis em sequencia, timeout 25s, fail-safe SIGKILL |
+| Testes integracao | `tests/integration/checkin.integration.test.ts`, `cashless.integration.test.ts` | Anti-replay, TOTP invalido, ticket de outro evento, expirado, ja usado / saldo negativo impossivel sob concorrencia |
+| Load tests | `tests/load/` (novo) | k6 scripts para checkin (1000 RPS), checkout (500 RPS), cashless (200 RPS) com thresholds de SLA |
+| Swagger | `config/swagger.ts` | Adicionados paths LGPD, health profundo, metrics, webhooks externos + tags |
+
+### Variaveis de ambiente novas
+
+```env
+# Operacional alerts
+SECURITY_ALERT_EMAIL=security@suaempresa.com
+OPS_ALERT_EMAIL=ops@suaempresa.com
+
+# Webhooks externos (HMAC SHA256)
+EXTERNAL_WEBHOOK_SECRET=<min 32 chars>
+
+# Feature flags prefix Redis
+FEATURE_FLAGS_PREFIX=feature:
+```
+
+### Convencoes para feature flags
+
+- Redis: `feature:<nome>` com valor `on`/`off`/`0..100`
+- Env fallback: `FF_<NOME_UPPER_SNAKE>` com mesma sintaxe
+- Liberacao gradual: valor 0..100 sorteia usuarios pelo hash do userId (estavel)
+- Cache em memoria: 30s
 
 ---
 
@@ -115,6 +164,18 @@
 | NFC | Nao iniciado | Fase v1.2 do roadmap | BAIXA |
 | Dynamic pricing ML | Nao iniciado | Fase v1.3 do roadmap | BAIXA |
 | White-label | Nao iniciado | Fase Enterprise | BAIXA |
+| LGPD compliance | Endpoints + anonimizacao + audit log | - | CONCLUIDO (2026-04-28) |
+| Health checks profundos | DB+Redis+queues+breakers + Prometheus | - | CONCLUIDO (2026-04-28) |
+| Webhooks Sympla/Ingresso | HMAC + idempotencia + CSV import | - | CONCLUIDO (2026-04-28) |
+| Circuit breakers | Asaas/Resend/Expo (sem dep externa) | - | CONCLUIDO (2026-04-28) |
+| Feature flags | Redis + env + canary % por userId | - | CONCLUIDO (2026-04-28) |
+| Multi-tenant em reports/waitlist | requireEventOwnership aplicado | - | CONCLUIDO (2026-04-28) |
+| Testes de carga (k6) | checkin/checkout/cashless com thresholds | Rodar em staging real | CONCLUIDO (scripts) |
+| Biometria mobile | expo-local-authentication nao integrado | Fase v1.1 | MEDIA |
+| WCAG 2.1 AA | Nao auditado formalmente | Fase v1.1 | MEDIA |
+| OpenTelemetry tracing | Nao implementado (Prometheus ja serve) | Fase v1.1 | MEDIA |
+| Pen test externo | Nao realizado | Antes de ir publico | ALTA |
+| LGPD juridico (DPA, politica) | Codigo pronto, documentos faltam | Antes de ir publico | ALTA |
 
 ---
 

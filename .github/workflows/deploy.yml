@@ -1,0 +1,91 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*.*.*']
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  # =============================================================
+  # Docker image API → GHCR
+  # =============================================================
+  docker-api:
+    name: Build & push API image
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: ./ticketeria-api
+          file: ./ticketeria-api/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}/api:latest
+            ghcr.io/${{ github.repository }}/api:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # =============================================================
+  # Web → Cloudflare Pages
+  # =============================================================
+  web-deploy:
+    name: Deploy web → Cloudflare Pages
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: npm ci
+      - run: npm run build:types
+      - run: npm run build:web
+        env:
+          VITE_API_BASE_URL: ${{ secrets.PROD_API_BASE_URL }}
+
+      - uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy ticketeria-web/dist --project-name=pulsepass-web
+
+  # =============================================================
+  # Mobile EAS Build (apenas em tags vX.Y.Z)
+  # =============================================================
+  mobile-eas:
+    name: Mobile EAS submit
+    runs-on: ubuntu-22.04
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - run: npm ci -w ticketeria-mobile
+      - name: EAS build
+        working-directory: ticketeria-mobile
+        run: |
+          npm i -g eas-cli
+          eas build --non-interactive --platform all --profile production
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}

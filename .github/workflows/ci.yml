@@ -1,0 +1,238 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  NODE_VERSION: '20'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # =============================================================
+  # Lint + typecheck (rápido, parar PR cedo)
+  # =============================================================
+  lint-typecheck:
+    name: Lint + Typecheck
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+  # =============================================================
+  # Unit tests
+  # =============================================================
+  unit-tests:
+    name: Unit tests + coverage
+    runs-on: ubuntu-22.04
+    needs: lint-typecheck
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - run: npm ci
+      - run: npm run build:types
+
+      - name: Run API tests with coverage
+        working-directory: ticketeria-api
+        run: npm run test:coverage
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ticketeria_test
+          JWT_PRIVATE_KEY_BASE64: ${{ secrets.CI_JWT_PRIVATE_KEY_BASE64 }}
+          JWT_PUBLIC_KEY_BASE64: ${{ secrets.CI_JWT_PUBLIC_KEY_BASE64 }}
+          JWT_REFRESH_SECRET: ci-refresh-secret-min-32-chars-yes-it-is
+          PLATFORM_SECRET: ci-platform-secret-min-32-chars-yes-it-is
+          ASAAS_API_URL: https://sandbox.asaas.com/api
+          ASAAS_API_KEY: ci-fake-key
+          ASAAS_WEBHOOK_SECRET: ci-fake-secret-min-32-chars
+          ASAAS_WALLET_ID: ci-fake-wallet
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-api
+          path: ticketeria-api/coverage/
+
+      - name: Coverage gate (>= 50% baseline, ratchet up)
+        working-directory: ticketeria-api
+        run: |
+          PCT=$(jq '.total.lines.pct' coverage/coverage-summary.json 2>/dev/null || echo 0)
+          echo "Coverage = $PCT%"
+          # Baseline atual: 50% — aumentar gradualmente até 70%.
+          MIN=50
+          awk -v c=$PCT -v m=$MIN 'BEGIN { exit (c >= m ? 0 : 1) }'
+
+  # =============================================================
+  # Integration tests com Postgres + Redis reais
+  # =============================================================
+  integration-tests:
+    name: Integration tests
+    runs-on: ubuntu-22.04
+    needs: lint-typecheck
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ticketeria_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - run: npm ci
+      - run: npm run build:types
+
+      - name: Generate Prisma client
+        working-directory: ticketeria-api
+        run: npm run db:generate
+
+      - name: Apply migrations
+        working-directory: ticketeria-api
+        run: npm run db:migrate:prod
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ticketeria_test
+
+      - name: Run integration tests
+        working-directory: ticketeria-api
+        run: npm run test:integration
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ticketeria_test
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          JWT_PRIVATE_KEY_BASE64: ${{ secrets.CI_JWT_PRIVATE_KEY_BASE64 }}
+          JWT_PUBLIC_KEY_BASE64: ${{ secrets.CI_JWT_PUBLIC_KEY_BASE64 }}
+          JWT_REFRESH_SECRET: ci-refresh-secret-min-32-chars-yes-it-is
+          PLATFORM_SECRET: ci-platform-secret-min-32-chars-yes-it-is
+          ASAAS_API_URL: https://sandbox.asaas.com/api
+          ASAAS_API_KEY: ci-fake-key
+          ASAAS_WEBHOOK_SECRET: ci-fake-secret-min-32-chars
+          ASAAS_WALLET_ID: ci-fake-wallet
+
+  # =============================================================
+  # Build (artefatos prontos para deploy)
+  # =============================================================
+  build:
+    name: Build
+    runs-on: ubuntu-22.04
+    needs: [unit-tests, integration-tests]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - run: npm ci
+      - run: npm run build
+
+      - name: Upload web dist
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-dist
+          path: ticketeria-web/dist/
+
+      - name: Upload api dist
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-dist
+          path: ticketeria-api/dist/
+
+  # =============================================================
+  # E2E Playwright (smoke)
+  # =============================================================
+  e2e:
+    name: E2E Playwright
+    runs-on: ubuntu-22.04
+    needs: build
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Install Playwright
+        working-directory: ticketeria-web
+        run: npx playwright install --with-deps chromium
+
+      - name: Run e2e
+        working-directory: ticketeria-web
+        run: npm run test:e2e
+        env:
+          CI: true
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: ticketeria-web/playwright-report/
+
+  # =============================================================
+  # Security scans
+  # =============================================================
+  security:
+    name: Security scans
+    runs-on: ubuntu-22.04
+    needs: lint-typecheck
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - run: npm ci
+
+      - name: npm audit (high+)
+        run: npm audit --audit-level=high
+        continue-on-error: true
+
+      - name: Run gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
