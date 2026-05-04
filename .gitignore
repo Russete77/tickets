@@ -11,3 +11,8 @@ ticketeria-api/generated/
 ticketeria-api/src/generated/
 .claude/
 node_modules
+
+# Generated / cache (não commitar)
+*.tsbuildinfo
+dev-dist/
+*.prisma.new
