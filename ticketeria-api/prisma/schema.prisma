@@ -343,6 +343,9 @@ model Producer {
 model Event {
   id                 String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   producerId         String        @map("producer_id") @db.Uuid
+  // Multi-tenant migration — Auditoria CTO 2026-05 (gap 4.1)
+  // Nullable durante dual-write; será NOT NULL e producerId removido em release futura.
+  organizationId     String?       @map("organization_id") @db.Uuid
   title              String        @db.VarChar(255)
   slug               String        @unique @db.VarChar(255)
   description        String        @db.Text
@@ -437,6 +440,10 @@ model Order {
   paymentMethod     PaymentMethod @map("payment_method")
   asaasPaymentId    String?       @map("asaas_payment_id") @db.VarChar(100)
   asaasInvoiceUrl   String?       @map("asaas_invoice_url") @db.VarChar(500)
+  // Multi-gateway — Auditoria CTO 2026-05 (gap 4.6)
+  gatewayProvider   PaymentGatewayProvider? @map("gateway_provider")
+  gatewayPaymentId  String?       @map("gateway_payment_id") @db.VarChar(100)
+  gatewayRaw        Json?         @map("gateway_raw") @db.JsonB
   pixQrCode         String?       @map("pix_qr_code") @db.Text
   pixCopyPaste      String?       @map("pix_copy_paste") @db.Text
   paidAt            DateTime?     @map("paid_at") @db.Timestamptz
@@ -456,6 +463,7 @@ model Order {
   // Índices
   @@index([userId, createdAt(sort: Desc)], name: "idx_orders_user")
   @@index([asaasPaymentId], name: "idx_orders_asaas")
+  @@index([gatewayProvider, gatewayPaymentId], name: "idx_orders_gateway")
   @@map("orders")
 }
 
@@ -1214,4 +1222,226 @@ model BoxOfficeSession {
   operator User  @relation("BoxOfficeOperator", fields: [operatorId], references: [id])
 
   @@map("box_office_sessions")
+}
+
+// ============================================
+// MULTI-TENANCY — Organization + Members
+// (Adicionado em 2026-05 — auditoria CTO)
+//
+// Permite white-label, equipes hierárquicas e
+// remove vazamento User ↔ Producer.
+// `Event.organizationId` é nullable durante a
+// migração; backfill via script em scripts/backfill-organizations.ts.
+// ============================================
+
+enum OrgType {
+  producer
+  venue
+  agency
+  network
+}
+
+enum OrgMemberRole {
+  owner
+  admin
+  finance
+  operator
+  promoter
+  viewer
+}
+
+model Organization {
+  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name               String   @db.VarChar(255)
+  slug               String   @unique @db.VarChar(100)
+  type               OrgType  @default(producer)
+  cnpj               String?  @unique @db.VarChar(18)
+  asaasAccountId     String?  @unique @map("asaas_account_id") @db.VarChar(100)
+  platformFeePercent Decimal  @default(10.00) @map("platform_fee_percent") @db.Decimal(5, 2)
+  // White-label
+  domain             String?  @unique @db.VarChar(255)
+  branding           Json?    @db.JsonB // { logoUrl, primaryColor, accentColor, fontFamily, faviconUrl }
+  defaultCurrency    String   @default("BRL") @map("default_currency") @db.VarChar(3)
+  defaultLocale      String   @default("pt-BR") @map("default_locale") @db.VarChar(10)
+  // Soft compatibility com Producer existente — durante migração
+  legacyProducerId   String?  @unique @map("legacy_producer_id") @db.Uuid
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  members        OrganizationMember[]
+  apiKeys        ApiKey[]
+  webhookSubs    WebhookSubscription[]
+  ledgerAccounts LedgerAccount[]
+
+  @@index([type])
+  @@map("organizations")
+}
+
+model OrganizationMember {
+  organizationId String        @map("organization_id") @db.Uuid
+  userId         String        @map("user_id") @db.Uuid
+  role           OrgMemberRole
+  invitedBy      String?       @map("invited_by") @db.Uuid
+  acceptedAt     DateTime?     @map("accepted_at") @db.Timestamptz
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@id([organizationId, userId])
+  @@index([userId])
+  @@index([organizationId, role])
+  @@map("organization_members")
+}
+
+// ============================================
+// LEDGER DOUBLE-ENTRY — Cashless contábil
+// (Adicionado em 2026-05 — auditoria CTO)
+//
+// Toda movimentação cashless gera N entradas
+// (debit + credit) em LedgerEntry. Soma por
+// account deve fechar. Job pós-evento valida
+// invariantes; divergência dispara alerta.
+// ============================================
+
+enum LedgerAccountType {
+  wallet            // saldo do participante
+  event_revenue     // receita do evento (top-ups capturados)
+  pos_sales         // vendas em pontos de venda
+  platform_fee      // taxa da plataforma
+  refund_clearing   // saldo a devolver pós-evento
+  tip_pool          // gorjeta acumulada
+  service_charge    // taxa de serviço
+  bank_settlement   // assentamento bancário
+}
+
+model LedgerAccount {
+  id             String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String            @map("organization_id") @db.Uuid
+  eventId        String?           @map("event_id") @db.Uuid
+  walletId       String?           @unique @map("wallet_id") @db.Uuid
+  type           LedgerAccountType
+  currency       String            @default("BRL") @db.VarChar(3)
+  balanceCents   BigInt            @default(0) @map("balance_cents")
+  createdAt      DateTime          @default(now()) @map("created_at") @db.Timestamptz
+
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  entries      LedgerEntry[]
+
+  @@index([organizationId, eventId, type])
+  @@index([eventId])
+  @@map("ledger_accounts")
+}
+
+model LedgerEntry {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  accountId       String   @map("account_id") @db.Uuid
+  // groupId une as N entradas de uma transação (debit + credit)
+  groupId         String   @map("group_id") @db.Uuid
+  // sourceType / sourceId: rastreia origem (cashless_transaction, order, refund...)
+  sourceType      String   @map("source_type") @db.VarChar(50)
+  sourceId        String   @map("source_id") @db.Uuid
+  direction       String   @db.VarChar(6) // 'debit' | 'credit'
+  amountCents     BigInt   @map("amount_cents")
+  balanceAfter    BigInt   @map("balance_after")
+  currency        String   @default("BRL") @db.VarChar(3)
+  description     String?  @db.VarChar(500)
+  metadata        Json?    @db.JsonB
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  account LedgerAccount @relation(fields: [accountId], references: [id])
+
+  @@index([accountId, createdAt(sort: Desc)])
+  @@index([groupId])
+  @@index([sourceType, sourceId])
+  @@map("ledger_entries")
+}
+
+// ============================================
+// WEBHOOK OUTBOUND + API PÚBLICA
+// (Adicionado em 2026-05 — auditoria CTO)
+// ============================================
+
+enum WebhookEventType {
+  event_published
+  event_updated
+  order_paid
+  order_refunded
+  ticket_issued
+  ticket_checked_in
+  ticket_transferred
+  cashless_topup
+  cashless_purchase
+  cashless_refund
+  guest_checked_in
+}
+
+enum WebhookDeliveryStatus {
+  pending
+  delivered
+  failed
+  abandoned
+}
+
+model WebhookSubscription {
+  id             String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String             @map("organization_id") @db.Uuid
+  url            String             @db.VarChar(500)
+  secret         String             @db.VarChar(128) // HMAC SHA256
+  eventTypes     WebhookEventType[] @map("event_types")
+  isActive       Boolean            @default(true) @map("is_active")
+  description    String?            @db.VarChar(255)
+  createdAt      DateTime           @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt      DateTime           @updatedAt @map("updated_at") @db.Timestamptz
+
+  organization Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  deliveries   WebhookDelivery[]
+
+  @@index([organizationId, isActive])
+  @@map("webhook_subscriptions")
+}
+
+model WebhookDelivery {
+  id             String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  subscriptionId String                @map("subscription_id") @db.Uuid
+  eventType      WebhookEventType      @map("event_type")
+  payload        Json                  @db.JsonB
+  status         WebhookDeliveryStatus @default(pending)
+  attempts       Int                   @default(0)
+  lastError      String?               @map("last_error") @db.Text
+  responseStatus Int?                  @map("response_status")
+  nextAttemptAt  DateTime?             @map("next_attempt_at") @db.Timestamptz
+  deliveredAt    DateTime?             @map("delivered_at") @db.Timestamptz
+  createdAt      DateTime              @default(now()) @map("created_at") @db.Timestamptz
+
+  subscription WebhookSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@index([status, nextAttemptAt])
+  @@index([subscriptionId, createdAt(sort: Desc)])
+  @@map("webhook_deliveries")
+}
+
+model ApiKey {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String    @map("organization_id") @db.Uuid
+  name           String    @db.VarChar(100)
+  prefix         String    @unique @db.VarChar(12) // "pk_live_xxxx" prefix shown to user
+  hashedKey      String    @unique @map("hashed_key") @db.VarChar(128) // bcrypt
+  scopes         String[]  @default([]) // ["events:read", "orders:read", "checkin:write"]
+  lastUsedAt     DateTime? @map("last_used_at") @db.Timestamptz
+  revokedAt      DateTime? @map("revoked_at") @db.Timestamptz
+  expiresAt      DateTime? @map("expires_at") @db.Timestamptz
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, revokedAt])
+  @@map("api_keys")
+}
+
+
+enum PaymentGatewayProvider {
+  asaas
+  pagarme
+  mercadopago
+  stripe
 }
