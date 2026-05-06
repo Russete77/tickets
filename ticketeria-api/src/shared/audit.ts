@@ -109,6 +109,24 @@ export const AuditActions = {
   CASHLESS_REFUND: 'cashless.refund',
   CASHLESS_WALLET_CREATED: 'cashless.wallet_created',
 
+  // Cashless admin — Sub-projeto 1 CRUDs (2026-05)
+  CASHLESS_CATEGORY_CREATED: 'cashless.category_created',
+  CASHLESS_CATEGORY_UPDATED: 'cashless.category_updated',
+  CASHLESS_CATEGORY_DELETED: 'cashless.category_deleted',
+  CASHLESS_POS_CREATED: 'cashless.pos_created',
+  CASHLESS_POS_UPDATED: 'cashless.pos_updated',
+  CASHLESS_POS_ARCHIVED: 'cashless.pos_archived',
+  CASHLESS_PRODUCT_CREATED: 'cashless.product_created',
+  CASHLESS_PRODUCT_UPDATED: 'cashless.product_updated',
+  CASHLESS_PRODUCT_ARCHIVED: 'cashless.product_archived',
+  CASHLESS_PRODUCT_IMAGE_UPLOADED: 'cashless.product_image_uploaded',
+  CASHLESS_CATALOG_CLONED: 'cashless.catalog_cloned',
+  CASHLESS_OPERATOR_CREATED: 'cashless.operator_created',
+  CASHLESS_OPERATOR_UPDATED: 'cashless.operator_updated',
+  CASHLESS_OPERATOR_PIN_RESET: 'cashless.operator_pin_reset',
+  CASHLESS_OPERATOR_ARCHIVED: 'cashless.operator_archived',
+  CASHLESS_STOCK_MOVEMENT: 'cashless.stock_movement',
+
   // Certificates
   CERTIFICATE_ISSUED: 'certificate.issued',
 
