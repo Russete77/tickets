@@ -3,6 +3,7 @@ import { authenticate, authorize } from '../../middleware/auth';
 import { requireEventOwnership } from '../../middleware/eventOwnership';
 import { validate } from '../../middleware/validate';
 import { CashlessController } from './cashless.controller';
+import { categoriesRouter } from './categories/categories.router';
 import {
   eventIdParamSchema,
   walletIdParamSchema,
@@ -317,6 +318,8 @@ router.get(
   }),
   CashlessController.exportData
 );
+
+router.use('/orgs', categoriesRouter);
 
 export const cashlessRouter = router;
 
