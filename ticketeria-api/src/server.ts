@@ -99,6 +99,23 @@ async function bootstrap() {
       }
     });
 
+    // Cashless admin (sub-projeto 1) — rooms para sync de catálogo e estoque
+    const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+    socket.on('pos:join', ({ posId }: { posId?: string }) => {
+      if (typeof posId === 'string' && UUID_REGEX.test(posId)) {
+        socket.join(`pos:${posId}`);
+        logger.debug({ socketId: socket.id, posId }, 'socket joined pos room');
+      }
+    });
+
+    socket.on('org:join', ({ organizationId }: { organizationId?: string }) => {
+      if (typeof organizationId === 'string' && UUID_REGEX.test(organizationId)) {
+        socket.join(`org:${organizationId}`);
+        logger.debug({ socketId: socket.id, organizationId }, 'socket joined org room');
+      }
+    });
+
     socket.on('disconnect', () => {
       logger.debug(`Socket disconnected: ${socket.id}`);
     });
