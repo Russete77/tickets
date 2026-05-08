@@ -4,6 +4,7 @@ import { requireEventOwnership } from '../../middleware/eventOwnership';
 import { validate } from '../../middleware/validate';
 import { CashlessController } from './cashless.controller';
 import { categoriesRouter } from './categories/categories.router';
+import { posRouter } from './pos/pos.router';
 import {
   eventIdParamSchema,
   walletIdParamSchema,
@@ -320,6 +321,7 @@ router.get(
 );
 
 router.use('/orgs', categoriesRouter);
+router.use('/orgs', posRouter);
 
 export const cashlessRouter = router;
 
