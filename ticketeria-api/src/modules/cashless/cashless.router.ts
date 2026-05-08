@@ -6,6 +6,7 @@ import { CashlessController } from './cashless.controller';
 import { categoriesRouter } from './categories/categories.router';
 import { posRouter } from './pos/pos.router';
 import { productsRouter } from './products/products.router';
+import { operatorsRouter } from './operators/operators.router';
 import {
   eventIdParamSchema,
   walletIdParamSchema,
@@ -324,6 +325,7 @@ router.get(
 router.use('/orgs', categoriesRouter);
 router.use('/orgs', posRouter);
 router.use('/orgs', productsRouter);
+router.use('/orgs', operatorsRouter);
 
 export const cashlessRouter = router;
 
@@ -343,7 +345,7 @@ router.get('/pos/:posId/products', authenticate, asyncHandler(async (req, res) =
   res.json({ success: true, data: products });
 }));
 
-/** POST /cashless/pos/:posId/operator/login — valida PIN do operador */
+/** POST /cashless/pos/:posId/operator/login — valida PIN do operador (bcrypt-only) */
 router.post('/pos/:posId/operator/login', authenticate, asyncHandler(async (req, res) => {
   const { pin } = req.body as { pin?: string };
   if (!pin) {
@@ -351,12 +353,11 @@ router.post('/pos/:posId/operator/login', authenticate, asyncHandler(async (req,
     return;
   }
   const operators = await prismaPos.pOSOperator.findMany({
-    where: { posId: String(req.params.posId), isActive: true },
+    where: { posId: String(req.params.posId), isActive: true, isArchived: false, pinHash: { not: null } },
   });
   for (const op of operators) {
-    // PIN é armazenado em texto puro (curto) ou bcrypt — testa ambos
-    if (op.pin === pin || bcryptPos.compareSync(pin, op.pin)) {
-      res.json({ success: true, data: { valid: true, operatorId: op.userId } });
+    if (op.pinHash && await bcryptPos.compare(pin, op.pinHash)) {
+      res.json({ success: true, data: { valid: true, operatorId: op.id, name: op.name } });
       return;
     }
   }
