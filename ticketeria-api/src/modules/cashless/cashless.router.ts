@@ -7,6 +7,7 @@ import { categoriesRouter } from './categories/categories.router';
 import { posRouter } from './pos/pos.router';
 import { productsRouter } from './products/products.router';
 import { operatorsRouter } from './operators/operators.router';
+import { stockRouter } from './stock/stock.router';
 import {
   eventIdParamSchema,
   walletIdParamSchema,
@@ -326,6 +327,7 @@ router.use('/orgs', categoriesRouter);
 router.use('/orgs', posRouter);
 router.use('/orgs', productsRouter);
 router.use('/orgs', operatorsRouter);
+router.use('/orgs', stockRouter);
 
 export const cashlessRouter = router;
 
