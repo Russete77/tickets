@@ -41,6 +41,14 @@ const AdminApiKeysPage = lazy(() => import('@features/admin/api-keys/AdminApiKey
 const AdminWebhooksPage = lazy(() => import('@features/admin/webhooks/AdminWebhooksPage'));
 const AdminLedgerPage = lazy(() => import('@features/admin/ledger/AdminLedgerPage'));
 
+// Sub-projeto 1 — Cashless admin CRUDs (2026-05)
+const AdminCashlessHubPage = lazy(() => import('@features/admin/cashless/AdminCashlessHubPage'));
+const AdminCashlessPosPage = lazy(() => import('@features/admin/cashless/AdminPosPage'));
+const AdminCashlessCategoriesPage = lazy(() => import('@features/admin/cashless/AdminCategoriesPage'));
+const AdminCashlessProductsPage = lazy(() => import('@features/admin/cashless/AdminProductsPage'));
+const AdminCashlessOperatorsPage = lazy(() => import('@features/admin/cashless/AdminOperatorsPage'));
+const AdminCashlessStockPage = lazy(() => import('@features/admin/cashless/AdminStockOverviewPage'));
+
 // User pages
 const WalletPage = lazy(() => import('@features/wallet/WalletPage'));
 const OrderDetailsPage = lazy(() => import('@features/orders/OrderDetailsPage'));
@@ -127,6 +135,14 @@ const router = createBrowserRouter([
   { path: '/admin/orgs/:organizationId/api-keys', element: adminWrap(<AdminApiKeysPage />) },
   { path: '/admin/orgs/:organizationId/webhooks', element: adminWrap(<AdminWebhooksPage />) },
   { path: '/admin/orgs/:organizationId/ledger', element: adminWrap(<AdminLedgerPage />) },
+
+  // Cashless admin (sub-projeto 1)
+  { path: '/admin/orgs/:organizationId/events/:eventId/cashless', element: adminWrap(<AdminCashlessHubPage />) },
+  { path: '/admin/orgs/:organizationId/events/:eventId/cashless/pos', element: adminWrap(<AdminCashlessPosPage />) },
+  { path: '/admin/orgs/:organizationId/events/:eventId/cashless/categories', element: adminWrap(<AdminCashlessCategoriesPage />) },
+  { path: '/admin/orgs/:organizationId/events/:eventId/cashless/products', element: adminWrap(<AdminCashlessProductsPage />) },
+  { path: '/admin/orgs/:organizationId/events/:eventId/cashless/operators', element: adminWrap(<AdminCashlessOperatorsPage />) },
+  { path: '/admin/orgs/:organizationId/events/:eventId/cashless/stock', element: adminWrap(<AdminCashlessStockPage />) },
 
   // ── Catch-all ──
   { path: '*', element: <Navigate to="/" replace /> },
