@@ -5,6 +5,7 @@ import { validate } from '../../middleware/validate';
 import { CashlessController } from './cashless.controller';
 import { categoriesRouter } from './categories/categories.router';
 import { posRouter } from './pos/pos.router';
+import { productsRouter } from './products/products.router';
 import {
   eventIdParamSchema,
   walletIdParamSchema,
@@ -322,6 +323,7 @@ router.get(
 
 router.use('/orgs', categoriesRouter);
 router.use('/orgs', posRouter);
+router.use('/orgs', productsRouter);
 
 export const cashlessRouter = router;
 
