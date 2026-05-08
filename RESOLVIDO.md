@@ -131,6 +131,32 @@
 9. **Drop `Event.producerId` legado** — depois de 30 dias de dual-state validados
 10. **Fase 2 hardware:** lote 50 Sunmi V2s + impressora Bluetooth Bematech
 
+## Sub-projeto 1 — CRUDs admin do cashless (Zig parity 1/6) — ENTREGUE 2026-05-08
+
+> Spec: `docs/superpowers/specs/2026-05-03-cashless-admin-cruds-design.md`
+> Plano: `docs/superpowers/plans/2026-05-03-cashless-admin-cruds.md`
+
+- **Schema:** `ProductCategory` (tabela nova), `pos_products.{categoryId, lowStockThreshold, isArchived, archivedAt}`, `pos_operators.{userId nullable, name, cpf, pinHash, isArchived}`, `points_of_sale.{isArchived, archivedAt}`. Migration `20260508212947_cashless_admin_setup`.
+- **Backfill** idempotente (`scripts/backfill-cashless-admin.ts`) — categorias por enum em uso + bcrypt PIN.
+- **Backend (5 módulos)** com TDD (20 testes verdes):
+  - `cashless/categories/` — CRUD + reorder + archive (5 tests)
+  - `cashless/pos/` — CRUD + archive bloqueia se há transação <24h (3 tests)
+  - `cashless/products/` — CRUD + upload R2 + clone idempotente (5 tests)
+  - `cashless/operators/` — CRUD + bcrypt PIN único por POS + reset-pin (3 tests)
+  - `cashless/stock/` — entry/adjustment/loss + emit stock:low/stock:out + auto-disable (4 tests)
+- **Login operador refatorado** pra bcrypt-only (remove fallback texto puro).
+- **Socket.IO server:** handlers `pos:join` e `org:join`. Rooms `pos:${posId}` e `org:${organizationId}`.
+- **Frontend web** — 6 telas em `features/admin/cashless/`: Hub + POS + Categorias + Produtos (com upload + clone) + Operadores + Estoque. Rotas `/admin/orgs/:orgId/events/:eventId/cashless/...`.
+- **Mobile** — `lib/socket.ts` + integração no `CashlessPOSScreen` (refetch automático em `catalog:updated`, polling 5min como fallback).
+
+**Pendências documentadas** (não bloqueiam o rollout):
+- Task 21 — emit stock events do `transaction.service.ts` no `sale`. Não aplicado: o transaction.service atual não decrementa `stockQty` automaticamente (vendas cashless não criam StockMovement hoje). Quando essa lógica entrar, o hook fica trivial.
+- Task 23 — integration test end-to-end (orquestração HTTP completa). Cobertura unitária em service layer já está em 20 testes; integration test fica como dívida técnica.
+- Task 35 — smoke test em staging (manual, requer presença do produtor pra rodar o fluxo end-to-end no browser/app).
+- R2 sem credenciais no `.env` — upload de imagem só funciona depois de setar `R2_ACCOUNT_ID/ACCESS_KEY_ID/SECRET_ACCESS_KEY/BUCKET_NAME/PUBLIC_URL`.
+
+**Próximo:** sub-projeto 2 — Monetização (combos, bônus de recarga, taxa de devolução, modificadores, caução).
+
 ## O fluxo completo opera
 
 ✓ **Portaria:** mobile/web `CheckinScreen` → scan QR → TOTP+anti-replay → audit + Socket.IO + webhook outbound
