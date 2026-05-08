@@ -12,7 +12,8 @@
  *
  * Auditoria CTO 2026-05 — gap 4.4
  */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { joinPos, onCatalogUpdated, getSocket } from '../lib/socket';
 import {
   View,
   Text,
@@ -91,11 +92,33 @@ export function CashlessPOSScreen({ posId, operatorJwt }: Props) {
   const [lastResult, setLastResult] = useState<ChargeResult | null>(null);
 
   // Carrega catálogo de produtos do POS
-  const { data: products = [] } = useQuery({
+  const { data: products = [], refetch: refetchProducts } = useQuery({
     queryKey: ['pos-products', posId],
     queryFn: () => api<POSProduct[]>(`/cashless/pos/${posId}/products`, {}, operatorJwt),
     enabled: pinValidated,
   });
+
+  // Sub-projeto 1 (cashless admin): sync de catálogo via Socket.IO + polling fallback de 5min
+  useEffect(() => {
+    if (!pinValidated || !posId) return;
+    let cleanup: (() => void) | undefined;
+    let pollInterval: ReturnType<typeof setInterval> | undefined;
+
+    const setup = async () => {
+      await joinPos(posId);
+      cleanup = await onCatalogUpdated(() => { refetchProducts(); });
+      pollInterval = setInterval(async () => {
+        const s = await getSocket();
+        if (!s.connected) refetchProducts();
+      }, 5 * 60 * 1000);
+    };
+    void setup();
+
+    return () => {
+      cleanup?.();
+      if (pollInterval) clearInterval(pollInterval);
+    };
+  }, [pinValidated, posId, refetchProducts]);
 
   // Valida PIN do operador
   const validatePinMut = useMutation({
