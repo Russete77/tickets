@@ -225,6 +225,8 @@ enum ProductCategoryEnum {
   merch
   service
   other
+
+  @@map("ProductCategory")
 }
 
 enum POSType {
@@ -344,8 +346,8 @@ model Event {
   id                 String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   producerId         String        @map("producer_id") @db.Uuid
   // Multi-tenant migration — Auditoria CTO 2026-05 (gap 4.1)
-  // Nullable durante dual-write; será NOT NULL e producerId removido em release futura.
-  organizationId     String?       @map("organization_id") @db.Uuid
+  // NOT NULL desde a migration event_drop_legacy_producer (2026-06-01).
+  organizationId     String        @map("organization_id") @db.Uuid
   title              String        @db.VarChar(255)
   slug               String        @unique @db.VarChar(255)
   description        String        @db.Text
@@ -404,6 +406,7 @@ model Event {
   // Índices
   @@index([status, startsAt, category], name: "idx_events_search")
   @@index([slug], name: "idx_events_slug")
+  @@index([organizationId])
   @@map("events")
 }
 
