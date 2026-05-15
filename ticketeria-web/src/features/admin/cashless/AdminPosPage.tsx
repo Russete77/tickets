@@ -6,6 +6,7 @@ import { Input } from '@shared/ui/Input/Input';
 import { Spinner } from '@shared/ui/Spinner/Spinner';
 import { useToastStore } from '@shared/stores/toastStore';
 import { cashlessApi } from './api';
+import { PosDevicesPanel } from './PosDevicesPanel';
 
 interface Pos {
   id: string;
@@ -27,6 +28,7 @@ const AdminPosPage: React.FC = () => {
   const addToast = useToastStore((s) => s.addToast);
   const [editing, setEditing] = useState<Pos | null>(null);
   const [form, setForm] = useState(empty);
+  const [selectedPos, setSelectedPos] = useState<Pos | null>(null);
 
   const list = useQuery({
     queryKey: ['cashless-pos', organizationId, eventId],
@@ -126,6 +128,9 @@ const AdminPosPage: React.FC = () => {
                 <td style={{ padding: 8 }}>{p.isActive ? '✓' : '—'}</td>
                 <td style={{ padding: 8, display: 'flex', gap: 8 }}>
                   <Button onClick={() => setEditing(p)}>Editar</Button>
+                  <Button onClick={() => setSelectedPos((prev) => (prev?.id === p.id ? null : p))}>
+                    Dispositivos
+                  </Button>
                   <Button
                     onClick={() => {
                       if (confirm(`Arquivar POS "${p.name}"?`)) archiveMut.mutate(p.id);
@@ -173,6 +178,8 @@ const AdminPosPage: React.FC = () => {
           </div>
         </dialog>
       )}
+
+      {selectedPos && <PosDevicesPanel posId={selectedPos.id} />}
     </div>
   );
 };
