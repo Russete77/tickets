@@ -21,6 +21,7 @@ import { postEventReportWorker } from './workers/post-event-report.worker';
 // Workers adicionados — Auditoria CTO 2026-05
 import { webhookOutboundWorker } from './workers/webhook-outbound.worker';
 import { searchSyncWorker } from './workers/search-sync.worker';
+import { lgpdExportWorker } from './workers/lgpd-export.worker';
 
 const workers = [
   emailWorker,
@@ -34,6 +35,7 @@ const workers = [
   postEventReportWorker,
   webhookOutboundWorker,
   searchSyncWorker,
+  lgpdExportWorker,
 ];
 
 async function startWorkers(): Promise<void> {

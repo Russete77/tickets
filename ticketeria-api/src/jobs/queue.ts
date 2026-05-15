@@ -108,6 +108,12 @@ export const ledgerCloseQueue = new Queue('ledger-close', {
   defaultJobOptions: { ...defaultJobOptions, priority: 3 },
 });
 
+/** LGPD export — gera ZIP de dados pessoais (Fase 2.5) */
+export const lgpdExportQueue = new Queue('lgpd-export', {
+  connection: redis,
+  defaultJobOptions: { ...defaultJobOptions, priority: 3 },
+});
+
 // ============================================
 // Setup de CRON jobs
 // ============================================
@@ -176,6 +182,7 @@ export function setupQueueEvents(): void {
     webhookOutboundQueue,
     searchSyncQueue,
     ledgerCloseQueue,
+    lgpdExportQueue,
   ];
   for (const queue of queues) {
     const events = new QueueEvents(queue.name, { connection: redis });
