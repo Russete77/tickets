@@ -70,6 +70,7 @@ import { brandingRouter } from './modules/organizations/branding.router';
 import { ledgerRouter } from './modules/ledger/ledger.router';
 import { webhooksOutboundRouter } from './modules/webhooks-outbound/webhooks-outbound.router';
 import lgpdRouter from './modules/lgpd/lgpd.router';
+import posDevicesRouter from './modules/pos-devices/pos-devices.router';
 
 export function createApp() {
   const app = express();
@@ -190,6 +191,7 @@ export function createApp() {
   app.use(`${apiPrefix}/ledger`, ledgerRouter);
   app.use(`${apiPrefix}/webhooks/outbound`, webhooksOutboundRouter);
   app.use(`${apiPrefix}/lgpd`, lgpdRouter);
+  app.use(`${apiPrefix}/pos-devices`, posDevicesRouter);
 
   // ============================
   // 404 handler
