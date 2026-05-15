@@ -489,6 +489,7 @@ model Ticket {
   checkedInBy     String?      @map("checked_in_by") @db.Uuid
   checkedInDevice String?      @map("checked_in_device") @db.VarChar(100)
   transferCount   Int          @default(0) @map("transfer_count")
+  deviceFp        String?      @map("device_fp") @db.VarChar(128)
   createdAt       DateTime     @default(now()) @map("created_at") @db.Timestamptz
 
   // Relações
@@ -505,6 +506,7 @@ model Ticket {
   @@index([ticketHash], name: "idx_tickets_hash")
   @@index([holderId, status], name: "idx_tickets_holder")
   @@index([eventId, status], name: "idx_tickets_event")
+  @@index([deviceFp], name: "tickets_device_fp_idx")
   @@map("tickets")
 }
 
@@ -923,6 +925,8 @@ model CashlessWallet {
   totalSpentCents Int          @default(0) @map("total_spent_cents")
   status          WalletStatus @default(wallet_active)
   nfcTagId        String?      @map("nfc_tag_id") @db.VarChar(100)
+  offlineLimit    Int          @default(20000) @map("offline_limit")
+  version         Int          @default(0)
   activatedAt     DateTime?    @map("activated_at") @db.Timestamptz
   lastUsedAt      DateTime?    @map("last_used_at") @db.Timestamptz
   createdAt       DateTime     @default(now()) @map("created_at") @db.Timestamptz

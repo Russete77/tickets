@@ -171,6 +171,7 @@ export class CheckoutService {
               holderCpf: item.holderCpf,
               holderEmail: user.email,
               priceCents: item.priceCents,
+              deviceFp: data.deviceFingerprint || null,
             },
           });
 
