@@ -161,4 +161,9 @@ export const AuditActions = {
   LGPD_DATA_EXPORT_REQUESTED: 'lgpd.data_export_requested',
   LGPD_DATA_EXPORT_COMPLETED: 'lgpd.data_export_completed',
   LGPD_USER_ANONYMIZED: 'lgpd.user_anonymized',
+
+  // POS devices (app kiosk)
+  POS_DEVICE_PAIR_CODE_ISSUED: 'pos_device.pair_code_issued',
+  POS_DEVICE_PAIRED: 'pos_device.paired',
+  POS_DEVICE_REVOKED: 'pos_device.revoked',
 } as const;

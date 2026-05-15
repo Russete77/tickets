@@ -102,6 +102,16 @@ export const mockPrisma = {
     delete: vi.fn(),
     count: vi.fn(),
   },
+  posDevice: {
+    findUnique: vi.fn(),
+    findFirst: vi.fn(),
+    findMany: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+    updateMany: vi.fn(),
+    delete: vi.fn(),
+    count: vi.fn(),
+  },
   checkinLog: {
     create: vi.fn(),
     findMany: vi.fn(),
@@ -329,6 +339,9 @@ vi.mock('../shared/audit', () => ({
     LGPD_DATA_EXPORT_REQUESTED: 'lgpd.data_export_requested',
     LGPD_DATA_EXPORT_COMPLETED: 'lgpd.data_export_completed',
     LGPD_USER_ANONYMIZED: 'lgpd.user_anonymized',
+    POS_DEVICE_PAIR_CODE_ISSUED: 'pos_device.pair_code_issued',
+    POS_DEVICE_PAIRED: 'pos_device.paired',
+    POS_DEVICE_REVOKED: 'pos_device.revoked',
   },
 }));
 
