@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { PosDeviceService } from '../pos-devices.service';
 import { prisma } from '../../../config/database';
@@ -13,7 +14,7 @@ describe('PosDeviceService', () => {
       const r = await PosDeviceService.issuePairCode({
         posId: 'pos1', organizationId: 'org1', label: 'Bar 1', actorId: 'u1',
       });
-      expect(r.pairingCode).toMatch(/^[A-Z0-9]{8}$/);
+      expect(r.pairingCode).toMatch(/^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{8}$/);
       expect(r.expiresAt).toBeInstanceOf(Date);
       expect(logAudit).toHaveBeenCalledWith(
         expect.objectContaining({ action: 'pos_device.pair_code_issued', actorId: 'u1' }),
@@ -37,8 +38,13 @@ describe('PosDeviceService', () => {
       const updateArg = vi.mocked(prisma.posDevice.update).mock.calls[0][0] as any;
       expect(updateArg.data.deviceTokenHash).toBeTruthy();
       expect(updateArg.data.deviceTokenHash).not.toBe(r.deviceToken);
+      const expectedHash = crypto.createHash('sha256').update(r.deviceToken).digest('hex');
+      expect(updateArg.data.deviceTokenHash).toBe(expectedHash);
       expect(updateArg.data.status).toBe('active');
       expect(updateArg.data.pairingCode).toBeNull();
+      expect(logAudit).toHaveBeenCalledWith(
+        expect.objectContaining({ action: 'pos_device.paired', actorId: 'u1' }),
+      );
     });
 
     it('rejeita código inexistente', async () => {
@@ -83,6 +89,8 @@ describe('PosDeviceService', () => {
       await PosDeviceService.revoke({ posId: 'pos1', organizationId: 'org1', deviceId: 'd1', actorId: 'u1' });
       const arg = vi.mocked(prisma.posDevice.update).mock.calls[0][0] as any;
       expect(arg.data.status).toBe('revoked');
+      expect(arg.data.revokedBy).toBe('u1');
+      expect(arg.data.revokedAt).toBeInstanceOf(Date);
       expect(logAudit).toHaveBeenCalledWith(
         expect.objectContaining({ action: 'pos_device.revoked' }),
       );
@@ -99,7 +107,7 @@ describe('PosDeviceService', () => {
   describe('heartbeat', () => {
     it('atualiza lastSeenAt e telemetria', async () => {
       vi.mocked(prisma.posDevice.update).mockResolvedValueOnce({ id: 'd1' } as any);
-      await PosDeviceService.heartbeat('d1', { appVersion: '1.0.0', online: true, pendingQueue: 2 });
+      await PosDeviceService.heartbeat('d1', { appVersion: '1.0.0' });
       const arg = vi.mocked(prisma.posDevice.update).mock.calls[0][0] as any;
       expect(arg.where).toEqual({ id: 'd1' });
       expect(arg.data.lastSeenAt).toBeInstanceOf(Date);

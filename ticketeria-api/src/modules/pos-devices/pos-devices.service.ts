@@ -120,7 +120,7 @@ export class PosDeviceService {
 
   static async heartbeat(
     deviceId: string,
-    data: { appVersion?: string; online?: boolean; pendingQueue?: number; battery?: number },
+    data: { appVersion?: string },
     ipAddress?: string,
   ): Promise<void> {
     await prisma.posDevice.update({
