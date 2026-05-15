@@ -164,6 +164,7 @@ export const mockRedis = {
   get: vi.fn(),
   set: vi.fn(),
   setex: vi.fn().mockResolvedValue('OK'),
+  publish: vi.fn(),
   del: vi.fn(),
   incr: vi.fn(),
   expire: vi.fn(),

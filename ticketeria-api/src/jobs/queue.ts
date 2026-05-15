@@ -41,6 +41,12 @@ export const capacityAlertQueue = new Queue('capacity-alert', {
   defaultJobOptions: { ...defaultJobOptions, priority: 1 },
 });
 
+/** Fraud detection — detecção proativa de check-ins duplicados (Fase 2.2) */
+export const fraudDetectionQueue = new Queue('fraud-detection', {
+  connection: redis,
+  defaultJobOptions: { ...defaultJobOptions, priority: 1 },
+});
+
 export const checkinSyncQueue = new Queue('sync-checkin-offline', {
   connection: redis,
   defaultJobOptions: { ...defaultJobOptions, priority: 1 },
@@ -161,6 +167,7 @@ export function setupQueueEvents(): void {
     batchSwitchQueue,
     batchScheduleQueue,
     capacityAlertQueue,
+    fraudDetectionQueue,
     checkinSyncQueue,
     pushQueue,
     postEventReviewQueue,

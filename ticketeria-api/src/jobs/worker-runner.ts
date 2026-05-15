@@ -14,6 +14,7 @@ import { emitTicketsWorker } from './workers/emit-tickets.worker';
 import { batchAutoSwitchWorker } from './workers/batch-auto-switch.worker';
 import { batchScheduleWorker } from './workers/batch-schedule.worker';
 import { capacityAlertWorker } from './workers/capacity-alert.worker';
+import { fraudDetectionWorker } from './workers/fraud-detection.worker';
 import { postEventReviewWorker } from './workers/post-event-review.worker';
 import { postEventReportWorker } from './workers/post-event-report.worker';
 
@@ -28,6 +29,7 @@ const workers = [
   batchAutoSwitchWorker,
   batchScheduleWorker,
   capacityAlertWorker,
+  fraudDetectionWorker,
   postEventReviewWorker,
   postEventReportWorker,
   webhookOutboundWorker,
