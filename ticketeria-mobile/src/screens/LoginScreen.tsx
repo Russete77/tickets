@@ -353,4 +353,8 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
   },
   signUpLink: {
-    fontSize: Typography.fontSize.ba
+    fontSize: Typography.fontSize.base,
+    fontWeight: Typography.fontWeight.bold,
+    color: Colors.accent,
+  },
+});
