@@ -17,21 +17,18 @@ const router = Router();
  * Helper: resolve organizationId from POS (via POS -> Event -> organizationId).
  * Returns null when POS does not exist.
  */
-async function resolvePosOrg(posId: string): Promise<{ organizationId: string; eventId: string; name: string } | null> {
+async function resolvePosOrg(posId: string): Promise<{ organizationId: string } | null> {
   const pos = await prisma.pointOfSale.findUnique({
     where: { id: posId },
     include: { event: { select: { organizationId: true } } },
   });
   if (!pos) return null;
-  return {
-    organizationId: pos.event.organizationId,
-    eventId: pos.eventId,
-    name: pos.name,
-  };
+  return { organizationId: pos.event.organizationId };
 }
 
 // --- Admin (autenticação de usuário) ---
 
+// Express 5: rejeições de async handlers propagam nativamente ao error middleware — asyncHandler não é necessário.
 router.post(
   '/pos/:posId/devices/pair-code',
   authenticate,
