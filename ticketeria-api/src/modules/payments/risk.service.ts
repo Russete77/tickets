@@ -2,75 +2,89 @@ import { prisma } from '../../config/database';
 import { redis } from '../../config/redis';
 import { CheckoutInput } from './payments.validators';
 import { OrderStatus } from '../../generated/prisma/client';
-
-interface RiskAssessment {
-  score: number;
-  status: 'approve' | 'review' | 'block';
-  reasons: string[];
-}
+import { computeRiskScore, type RiskResult, type RiskSignals } from '../../shared/antifraud';
 
 /**
- * Gerencia avaliação de risco e prevenção de fraude
+ * Gerencia avaliação de risco e prevenção de fraude.
+ * Coleta sinais (DB/Redis) e delega o cálculo à função pura `computeRiskScore`.
  */
 export class RiskService {
   /**
-   * Avalia risco da transação com pipeline simplificado
+   * Avalia risco da transação coletando sinais e aplicando computeRiskScore.
    */
   static async assessRisk(
     userId: string,
     data: CheckoutInput,
     ipAddress?: string,
     userAgent?: string,
-  ): Promise<RiskAssessment> {
-    let score = 0;
-    const reasons: string[] = [];
+  ): Promise<RiskResult> {
+    const primaryCpf = data.items[0]?.holderCpf;
+    const totalQuantity = data.items.reduce((sum, item) => sum + item.quantity, 0);
 
-    // Regra 1: Verificar checkout rápido (<5s) - implementado no frontend
-    // Para esta implementação, apenas lógica backend
-
-    // Regra 2: Múltiplos CPFs no mesmo dispositivo
+    // Sinal: CPFs distintos no mesmo device (24h) + registra o CPF atual
+    let distinctCpfsOnDevice = 1;
     if (data.deviceFingerprint) {
-      const cpfsByDevice = await redis.get(`device:${data.deviceFingerprint}`);
-      if (cpfsByDevice) {
-        const cpfs = JSON.parse(cpfsByDevice);
-        if (cpfs.length >= 3 && !cpfs.includes(data.items[0].holderCpf)) {
-          score += 50;
-          reasons.push('Múltiplos CPFs no mesmo dispositivo');
-        }
+      const stored = await redis.get(`device:${data.deviceFingerprint}`);
+      const cpfList: string[] = stored ? JSON.parse(stored) : [];
+      distinctCpfsOnDevice = new Set(
+        primaryCpf ? [...cpfList, primaryCpf] : cpfList,
+      ).size;
+
+      if (primaryCpf && !cpfList.includes(primaryCpf)) {
+        cpfList.push(primaryCpf);
+        await redis.set(
+          `device:${data.deviceFingerprint}`,
+          JSON.stringify(cpfList),
+          'EX',
+          86400,
+        );
       }
+    }
 
-      // Registrar este CPF para o device
-      const storedCpfs = await redis.get(`device:${data.deviceFingerprint}`);
-      const cpfList = storedCpfs ? JSON.parse(storedCpfs) : [];
-      if (!cpfList.includes(data.items[0].holderCpf)) {
-        cpfList.push(data.items[0].holderCpf);
-        await redis.set(`device:${data.deviceFingerprint}`, JSON.stringify(cpfList), 'EX', 86400);
+    // Sinal: velocidade de tentativas por device (5 min)
+    let deviceVelocityCount = 0;
+    if (data.deviceFingerprint) {
+      const velKey = `risk:vel:${data.deviceFingerprint}`;
+      deviceVelocityCount = await redis.incr(velKey);
+      if (deviceVelocityCount === 1) {
+        await redis.expire(velKey, 300);
       }
     }
 
-    // Regra 3: Histórico de chargebacks (simplificado)
-    const userOrders = await prisma.order.count({
-      where: {
-        userId,
-        status: OrderStatus.refunded,
-      },
-    });
-
-    if (userOrders >= 3) {
-      score += 40;
-      reasons.push('Histórico de reembolsos');
+    // Sinal: tempo entre ver o lote e finalizar (anti-bot)
+    let purchaseSpeedMs: number | null = null;
+    if (data.deviceFingerprint) {
+      const viewedAt = await redis.get(`batch:viewed:${data.deviceFingerprint}:${data.eventId}`);
+      if (viewedAt) {
+        purchaseSpeedMs = Date.now() - parseInt(viewedAt, 10);
+      }
     }
 
-    // Status final baseado no score
-    let status: 'approve' | 'review' | 'block' = 'approve';
+    // Sinais via DB
+    const [refundedOrdersCount, recentOrdersSameCpf] = await Promise.all([
+      prisma.order.count({
+        where: { userId, status: OrderStatus.refunded },
+      }),
+      primaryCpf
+        ? prisma.order.count({
+            where: {
+              userId,
+              createdAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
+            },
+          })
+        : Promise.resolve(0),
+    ]);
 
-    if (score > 70) {
-      status = 'block';
-    } else if (score >= 40) {
-      status = 'review';
-    }
+    const signals: RiskSignals = {
+      totalQuantity,
+      distinctCpfsOnDevice,
+      refundedOrdersCount,
+      recentOrdersSameCpf,
+      deviceVelocityCount,
+      purchaseSpeedMs,
+    };
 
-    return { score, status, reasons };
+    return computeRiskScore(signals);
   }
 
   /**
