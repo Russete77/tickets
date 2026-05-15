@@ -18,7 +18,7 @@ CREATE TABLE "pos_devices" (
   "revoked_by" UUID,
   "revoked_at" TIMESTAMPTZ,
   "created_at" TIMESTAMPTZ NOT NULL DEFAULT now(),
-  "updated_at" TIMESTAMPTZ NOT NULL,
+  "updated_at" TIMESTAMPTZ NOT NULL DEFAULT now(),
   CONSTRAINT "pos_devices_pkey" PRIMARY KEY ("id")
 );
 
