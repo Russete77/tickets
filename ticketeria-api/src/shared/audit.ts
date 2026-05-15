@@ -64,6 +64,9 @@ export const AuditActions = {
   TICKET_TRANSFERRED: 'ticket.transferred',
   TICKET_CHECKED_IN: 'ticket.checked_in',
   TICKET_CANCELLED: 'ticket.cancelled',
+  TICKET_TOTP_SECRET_VIEWED: 'ticket.totp_secret_viewed',
+  TICKET_TOTP_SECRET_ROTATED: 'ticket.totp_secret_rotated',
+  TICKET_FRAUD_DUPLICATE_DETECTED: 'ticket.fraud_duplicate_detected',
 
   // Payments
   PAYMENT_CONFIRMED: 'payment.confirmed',
@@ -153,4 +156,9 @@ export const AuditActions = {
 
   // Ledger (gap 4.5)
   LEDGER_EVENT_CLOSED: 'ledger.event_closed',
+
+  // LGPD (Fase 2.5)
+  LGPD_DATA_EXPORT_REQUESTED: 'lgpd.data_export_requested',
+  LGPD_DATA_EXPORT_COMPLETED: 'lgpd.data_export_completed',
+  LGPD_USER_ANONYMIZED: 'lgpd.user_anonymized',
 } as const;

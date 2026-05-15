@@ -313,6 +313,12 @@ vi.mock('../shared/audit', () => ({
     ORDER_CANCELLED: 'ORDER_CANCELLED',
     TICKET_TRANSFERRED: 'TICKET_TRANSFERRED',
     TICKET_CHECKED_IN: 'TICKET_CHECKED_IN',
+    TICKET_TOTP_SECRET_VIEWED: 'ticket.totp_secret_viewed',
+    TICKET_TOTP_SECRET_ROTATED: 'ticket.totp_secret_rotated',
+    TICKET_FRAUD_DUPLICATE_DETECTED: 'ticket.fraud_duplicate_detected',
+    LGPD_DATA_EXPORT_REQUESTED: 'lgpd.data_export_requested',
+    LGPD_DATA_EXPORT_COMPLETED: 'lgpd.data_export_completed',
+    LGPD_USER_ANONYMIZED: 'lgpd.user_anonymized',
   },
 }));
 
