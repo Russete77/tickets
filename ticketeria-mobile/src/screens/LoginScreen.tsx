@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   ScrollView,
@@ -16,6 +16,14 @@ import { apiClient } from '../lib/api';
 import { useTranslation } from '../i18n';
 import { Colors, Typography, Spacing, BorderRadius, Shadows } from '../styles/tokens';
 import { AuthResponse } from '../types';
+import { SecureStorage, StorageKey } from '../lib/storage';
+import {
+  authenticate,
+  isBiometricsAvailable,
+  isBiometricsEnabled,
+  setBiometricsEnabled,
+  BiometricPref,
+} from '../lib/biometrics';
 
 export function LoginScreen() {
   const router = useRouter();
@@ -23,20 +31,65 @@ export function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [biometricLoginAvailable, setBiometricLoginAvailable] = useState(false);
+
+  // Oferece login biométrico se: device suporta + preferência ligada + há sessão salva
+  useEffect(() => {
+    (async () => {
+      const [available, enabled, refreshToken] = await Promise.all([
+        isBiometricsAvailable(),
+        isBiometricsEnabled(BiometricPref.LOGIN),
+        SecureStorage.getItem(StorageKey.REFRESH_TOKEN),
+      ]);
+      setBiometricLoginAvailable(available && enabled && !!refreshToken);
+    })();
+  }, []);
+
+  const persistSession = async (data: AuthResponse) => {
+    await Promise.all([
+      SecureStorage.setItem(StorageKey.AUTH_TOKEN, data.accessToken),
+      SecureStorage.setItem(StorageKey.REFRESH_TOKEN, data.refreshToken),
+      SecureStorage.setJSON(StorageKey.USER_DATA, data.user),
+    ]);
+  };
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: { email: string; password: string }) => {
       return apiClient.post<AuthResponse>('/auth/login', credentials);
     },
-    onSuccess: (data) => {
-      // Store tokens in secure storage
-      // Then navigate to home
+    onSuccess: async (data) => {
+      await persistSession(data);
+
+      // Primeiro login bem-sucedido num device com biometria: oferece ativar
+      const available = await isBiometricsAvailable();
+      const alreadyEnabled = await isBiometricsEnabled(BiometricPref.LOGIN);
+      if (available && !alreadyEnabled) {
+        Alert.alert(
+          'Ativar biometria?',
+          'Use Face ID / digital para entrar mais rápido na próxima vez.',
+          [
+            { text: 'Agora não', style: 'cancel' },
+            {
+              text: 'Ativar',
+              onPress: () => setBiometricsEnabled(BiometricPref.LOGIN, true),
+            },
+          ],
+        );
+      }
+
       router.replace('/(tabs)/home');
     },
     onError: () => {
       Alert.alert('Erro', 'Email ou senha incorretos');
     },
   });
+
+  const handleBiometricLogin = async () => {
+    const ok = await authenticate('Entre com sua biometria');
+    if (ok) {
+      router.replace('/(tabs)/home');
+    }
+  };
 
   const handleLogin = () => {
     if (!email || !password) {
@@ -133,6 +186,19 @@ export function LoginScreen() {
         >
           <Text style={styles.forgotPasswordLink}>{t('auth.forgotPassword')}</Text>
         </TouchableOpacity>
+
+        {/* Biometric Login */}
+        {biometricLoginAvailable && (
+          <TouchableOpacity
+            style={styles.biometricButton}
+            onPress={handleBiometricLogin}
+            disabled={loginMutation.isPending}
+          >
+            <Text style={styles.biometricButtonText}>
+              Entrar com Face ID / digital
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Divider */}
@@ -248,6 +314,19 @@ const styles = StyleSheet.create({
     color: Colors.accent,
     textAlign: 'center',
     textDecorationLine: 'underline',
+  },
+  biometricButton: {
+    marginTop: Spacing.lg,
+    paddingVertical: Spacing.lg,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: Colors.accent,
+    alignItems: 'center',
+  },
+  biometricButtonText: {
+    fontSize: Typography.fontSize.base,
+    fontWeight: Typography.fontWeight.semibold,
+    color: Colors.accent,
   },
   dividerContainer: {
     flexDirection: 'row',
