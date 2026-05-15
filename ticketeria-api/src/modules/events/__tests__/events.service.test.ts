@@ -52,6 +52,10 @@ describe('EventsService', () => {
       };
 
       vi.mocked(prisma.user.findUnique).mockResolvedValueOnce(producer);
+      vi.mocked(prisma.organizationMember.findFirst).mockResolvedValueOnce({
+        organizationId: 'org-1',
+        userId: producer.id,
+      } as any);
       vi.mocked(prisma.event.findUnique).mockResolvedValueOnce(null);
       vi.mocked(prisma.$transaction).mockImplementationOnce(async (callback: any) => {
         const result = await callback(prisma);
@@ -160,6 +164,10 @@ describe('EventsService', () => {
       };
 
       vi.mocked(prisma.user.findUnique).mockResolvedValueOnce(producer);
+      vi.mocked(prisma.organizationMember.findFirst).mockResolvedValueOnce({
+        organizationId: 'org-1',
+        userId: producer.id,
+      } as any);
       // First call returns existing event, subsequent calls return null
       vi.mocked(prisma.event.findUnique)
         .mockResolvedValueOnce(mockEvent) // Slug exists

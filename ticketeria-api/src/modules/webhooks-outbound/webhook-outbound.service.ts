@@ -16,7 +16,7 @@ import crypto from 'crypto';
 import { prisma } from '../../config/database';
 import { webhookOutboundQueue } from '../../jobs/queue';
 import { logger } from '../../shared/logger';
-import { WebhookEventType } from '../../generated/prisma/client';
+import { WebhookEventType, Prisma } from '../../generated/prisma/client';
 
 export class WebhookOutboundService {
   /**
@@ -52,7 +52,7 @@ export class WebhookOutboundService {
         data: {
           subscriptionId: sub.id,
           eventType,
-          payload: wrappedPayload,
+          payload: wrappedPayload as unknown as Prisma.InputJsonValue,
           status: 'pending',
           nextAttemptAt: new Date(),
         },

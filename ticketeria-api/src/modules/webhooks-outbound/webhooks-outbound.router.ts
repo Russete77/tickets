@@ -43,7 +43,7 @@ webhooksOutboundRouter.get(
   requireOrganizationRole('admin'),
   asyncHandler(async (req, res) => {
     const subs = await prisma.webhookSubscription.findMany({
-      where: { organizationId: req.params.organizationId },
+      where: { organizationId: String(req.params.organizationId) },
       orderBy: { createdAt: 'desc' },
     });
     res.json({
@@ -62,7 +62,7 @@ webhooksOutboundRouter.post(
     const secret = crypto.randomBytes(32).toString('hex');
     const sub = await prisma.webhookSubscription.create({
       data: {
-        organizationId: req.params.organizationId,
+        organizationId: String(req.params.organizationId),
         url: req.body.url,
         secret,
         eventTypes: req.body.eventTypes,
@@ -79,7 +79,7 @@ webhooksOutboundRouter.delete(
   requireOrganizationRole('admin'),
   asyncHandler(async (req, res) => {
     await prisma.webhookSubscription.delete({
-      where: { id: req.params.subscriptionId },
+      where: { id: String(req.params.subscriptionId) },
     });
     res.status(204).end();
   }),
@@ -90,7 +90,7 @@ webhooksOutboundRouter.get(
   requireOrganizationRole('admin'),
   asyncHandler(async (req, res) => {
     const deliveries = await prisma.webhookDelivery.findMany({
-      where: { subscriptionId: req.params.subscriptionId },
+      where: { subscriptionId: String(req.params.subscriptionId) },
       orderBy: { createdAt: 'desc' },
       take: 100,
     });

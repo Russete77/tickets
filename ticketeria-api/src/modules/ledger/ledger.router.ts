@@ -19,7 +19,7 @@ ledgerRouter.get(
   requireOrganizationRole('finance'),
   asyncHandler(async (req, res) => {
     const accounts = await prisma.ledgerAccount.findMany({
-      where: { organizationId: req.params.organizationId },
+      where: { organizationId: String(req.params.organizationId) },
       orderBy: [{ eventId: 'desc' }, { type: 'asc' }],
       take: 500,
     });
@@ -36,15 +36,15 @@ ledgerRouter.get(
     const cursor = req.query.cursor as string | undefined;
 
     const account = await prisma.ledgerAccount.findUnique({
-      where: { id: req.params.accountId },
+      where: { id: String(req.params.accountId) },
     });
-    if (!account || account.organizationId !== req.params.organizationId) {
+    if (!account || account.organizationId !== String(req.params.organizationId)) {
       res.status(404).json({ success: false, error: { code: 'NOT_FOUND' } });
       return;
     }
 
     const entries = await prisma.ledgerEntry.findMany({
-      where: { accountId: req.params.accountId },
+      where: { accountId: String(req.params.accountId) },
       orderBy: { createdAt: 'desc' },
       take: limit,
       ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
