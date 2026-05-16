@@ -57,6 +57,7 @@ export function PosDevicesPanel({ posId }: { posId: string }) {
     onSuccess: (d) => {
       setPairing(d);
       setLabel('');
+      addToast({ type: 'success', message: 'Código de pareamento gerado' });
       qc.invalidateQueries({ queryKey: ['pos-devices', posId] });
     },
     onError: (e: Error) => addToast({ type: 'error', message: e.message }),
@@ -92,7 +93,7 @@ export function PosDevicesPanel({ posId }: { posId: string }) {
 
       {pairing && (
         <div
-          role="dialog"
+          role="status"
           style={{
             padding: 24,
             border: '2px solid #4f46e5',
