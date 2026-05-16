@@ -17,8 +17,8 @@ const config: ExpoConfig = {
   },
   assetBundlePatterns: ['**/*'],
   ios: {
-    supportsTablet: true,
     bundleIdentifier: IS_POS ? 'com.pulsepass.pos' : 'com.ticketeria.app',
+    ...(IS_POS ? { supportsTablet: true } : {}),
   },
   android: {
     adaptiveIcon: {
