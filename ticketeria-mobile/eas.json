@@ -25,6 +25,16 @@
         "API_URL": "https://staging-api.ticketeria.com.br"
       }
     },
+    "pos": {
+      "extends": "preview",
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "APP_VARIANT": "pos"
+      }
+    },
     "production": {
       "distribution": "store",
       "ios": {
