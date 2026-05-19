@@ -157,6 +157,42 @@
 
 **Próximo:** sub-projeto 2 — Monetização (combos, bônus de recarga, taxa de devolução, modificadores, caução).
 
+## Fase 1 + Fase 2 + POS Kiosk — INTEGRADAS NO MASTER 2026-05-18
+
+> Mergeado de `worktree-phase-1-2-antifraud-security` (28 commits, merge `cbe0f07`).
+> Pré-merge verificado: typecheck verde, 314 unit tests passam, **zero regressões**
+> (4 falhas `events.service`/`gateway.registry` são pré-existentes idênticas ao master;
+> 9 integration tests exigem Postgres/Redis ausentes no sandbox).
+
+### ✅ FASE 1 — Schema antifraude (`1730dc5`)
+- `Ticket.deviceFp` (`@db.VarChar(128)` + índice) — fingerprint de device
+- `CashlessWallet.offlineLimit` (default 20000 cents) — limite offline configurável
+- `CashlessWallet.version` (default 0) — optimistic locking em recarga concorrente
+- 1 migration única + schema Prisma alinhado às convenções
+
+### ✅ FASE 2 — Segurança + Compliance
+- `0066a39` — **TOTP rotativo backend**: geração na emissão + endpoint seguro `GET /tickets/:id/totp-secret` (dono only) + mobile lê via secure-store
+- `356784d` — **Worker fraud-detection** BullMQ: mesmo ticket 2x em <60s → AuditLog + Socket.IO alert
+- `d18b9de` — **riskScore** computado na reserva (quantidade/CPF/IP/velocidade → threshold review)
+- `8778381` + `255b7fc` — **Biometria mobile** (`expo-local-authentication@17.0.8`)
+- `6fafc1b` — **LGPD**: export de dados + anonimização de usuário (endpoints)
+- `f9ad5f2` — typecheck 100% verde (resolvidos erros pré-existentes)
+
+### ✅ BÔNUS — POS Kiosk dedicado (não estava no plano dos 3 buracos)
+- Build variant kiosk via `app.config.ts` + EAS profile `pos` + Android lock-task
+- `PosDevice` model + migration (pairing code / token / revoke)
+- `authenticateDevice` middleware (min-scope device auth) + `PosDeviceService` (TDD)
+- Stack mobile `(pos)` setup/pin/pos/topup + `PosSessionProvider` offline-first + heartbeat
+- Web: `PosDevicesPanel` (pair code + lista + revoke) em `AdminPosPage`
+
+**Pendente desta integração:**
+- 3 migrations Fase 1/POS precisam rodar em ambiente com Postgres real (`npm run db:migrate`)
+- Push da branch pro `origin` (feito junto deste commit de docs)
+
+### ❌ FASE 3 — Engine 5 Super App — NÃO INICIADA
+- Confirmado por grep: `customer-orders`, `VenueMap`, `Friendship` não existem em nenhuma branch.
+- Próximo trabalho de produto real começa aqui (Sprint 1 = pedido pelo bar).
+
 ## O fluxo completo opera
 
 ✓ **Portaria:** mobile/web `CheckinScreen` → scan QR → TOTP+anti-replay → audit + Socket.IO + webhook outbound
