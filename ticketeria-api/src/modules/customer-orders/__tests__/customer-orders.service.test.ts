@@ -6,6 +6,10 @@ const products = new Map<string, any>([
   ['p-1', { id: 'p-1', posId: 'pos-1', name: 'Cerveja', priceCents: 1000, stockQty: 5, isArchived: false }],
   ['p-2', { id: 'p-2', posId: 'pos-1', name: 'Água', priceCents: 500, stockQty: null, isArchived: false }],
 ]);
+// txProducts controls what tx.pOSProduct.findUnique returns — independently of the outer prisma mock.
+// Tests that need different tx-vs-outer values override this map in their arrange step.
+// beforeEach resets it to mirror `products`.
+const txProducts = new Map<string, any>();
 const wallets = new Map<string, any>([
   ['w-1', { id: 'w-1', eventId: 'ev-1', userId: 'u-1', balanceCents: 5000, status: 'wallet_active', version: 0, totalSpentCents: 0 }],
 ]);
@@ -32,6 +36,8 @@ function txClient() {
       }),
     },
     pOSProduct: {
+      // Authoritative in-tx read — reads from txProducts so tests can diverge from outer prisma mock.
+      findUnique: vi.fn(({ where }) => Promise.resolve(txProducts.get(where.id) ?? null)),
       update: vi.fn(({ where, data }) => {
         const p = products.get(where.id);
         if (data.stockQty?.decrement != null) p.stockQty -= data.stockQty.decrement;
@@ -46,6 +52,8 @@ function txClient() {
         orders.set(id, o);
         return Promise.resolve(o);
       }),
+      // Returns 0 by default (no collision) so existing tests are unaffected.
+      count: vi.fn(() => Promise.resolve(0)),
     },
   };
 }
@@ -90,6 +98,9 @@ describe('CustomerOrdersService.create', () => {
     wallets.set('w-1', { id: 'w-1', eventId: 'ev-1', userId: 'u-1', balanceCents: 5000, status: 'wallet_active', version: 0, totalSpentCents: 0 });
     products.set('p-1', { id: 'p-1', posId: 'pos-1', name: 'Cerveja', priceCents: 1000, stockQty: 5, isArchived: false });
     products.set('p-2', { id: 'p-2', posId: 'pos-1', name: 'Água', priceCents: 500, stockQty: null, isArchived: false });
+    // Mirror outer products into txProducts so normal tests see consistent data.
+    txProducts.clear();
+    products.forEach((v, k) => txProducts.set(k, { ...v }));
   });
 
   it('cria pedido, debita wallet, baixa estoque controlado', async () => {
@@ -131,5 +142,23 @@ describe('CustomerOrdersService.create', () => {
     const b = await CustomerOrdersService.create({ userId: 'u-1', eventId: 'ev-1', posId: 'pos-1', items: [{ productId: 'p-1', qty: 1 }], idempotencyKey: 'k1' });
     expect(b.id).toBe(a.id);
     expect(orders.size).toBe(1);
+  });
+
+  // Issue 2 regression: tx must use its own snapshot (tx.pOSProduct.findUnique), NOT bare prisma.
+  // The outer prisma mock returns ample stock (99) so the optimistic pre-check passes.
+  // The txProducts entry returns stockQty: 0 — simulating stock depleted between pre-check and tx.
+  // With Issue 1 fixed (tx.pOSProduct.findUnique), the service reads txProducts and rejects.
+  // If Issue 1 regresses (bare prisma.pOSProduct.findUnique), the outer mock returns 99 → no rejection → test fails.
+  it('rejeita estoque esgotado lido dentro da tx (detecta regressão prisma→tx)', async () => {
+    // Outer prisma sees ample stock — optimistic pre-check passes.
+    products.set('p-1', { id: 'p-1', posId: 'pos-1', name: 'Cerveja', priceCents: 1000, stockQty: 99, isArchived: false });
+    // In-tx authoritative read sees depleted stock.
+    txProducts.set('p-1', { id: 'p-1', posId: 'pos-1', name: 'Cerveja', priceCents: 1000, stockQty: 0, isArchived: false });
+    // Wallet must have enough balance for qty:1 at 1000 cents.
+    wallets.set('w-1', { id: 'w-1', eventId: 'ev-1', userId: 'u-1', balanceCents: 5000, status: 'wallet_active', version: 0, totalSpentCents: 0 });
+
+    await expect(
+      CustomerOrdersService.create({ userId: 'u-1', eventId: 'ev-1', posId: 'pos-1', items: [{ productId: 'p-1', qty: 1 }] }),
+    ).rejects.toThrow(/[Ee]stoque/);
   });
 });

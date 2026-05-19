@@ -106,8 +106,8 @@ export class CustomerOrdersService {
         // Stock: check and decrement only for stock-controlled products
         for (const i of priced) {
           if (!i.controlsStock) continue;
-          // Re-read stock inside tx for serializable safety
-          const fresh = await prisma.pOSProduct.findUnique({ where: { id: i.productId } });
+          // Re-read stock inside tx for serializable safety (must use tx, not bare prisma)
+          const fresh = await tx.pOSProduct.findUnique({ where: { id: i.productId } });
           if (fresh && fresh.stockQty != null && fresh.stockQty < i.qty) {
             throw new BadRequestError(`Estoque insuficiente: ${i.name}`);
           }
@@ -126,6 +126,22 @@ export class CustomerOrdersService {
           metadata: { source: 'customer_order' },
         });
 
+        // pickupCode: must be unique among active orders of this POS
+        let pickupCode = '';
+        for (let attempt = 0; attempt < 5; attempt++) {
+          const candidate = genPickupCode();
+          const clash = await tx.customerOrder.count({
+            where: { posId: input.posId, pickupCode: candidate, status: { notIn: ['delivered', 'cancelled'] } },
+          });
+          if (clash === 0) {
+            pickupCode = candidate;
+            break;
+          }
+        }
+        if (!pickupCode) {
+          throw new BadRequestError('Não foi possível gerar código de retirada, tente novamente');
+        }
+
         // Create the order record
         return tx.customerOrder.create({
           data: {
@@ -136,7 +152,7 @@ export class CustomerOrdersService {
             status: 'pending',
             totalCents,
             items: itemsSnapshot,
-            pickupCode: genPickupCode(),
+            pickupCode,
           },
         });
       },
