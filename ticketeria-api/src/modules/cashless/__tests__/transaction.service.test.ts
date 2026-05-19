@@ -184,6 +184,26 @@ describe('TransactionService.charge', () => {
       service.charge('wallet-1', 9999, []),
     ).rejects.toThrow('Saldo insuficiente para realizar esta compra');
   });
+
+  it('charge() relança como erro de transação concorrente quando debitWithinTx falha por saldo insuficiente dentro da tx', async () => {
+    const { prisma } = await import('../../../config/database');
+    // Override $transaction para este teste: tx client retorna saldo insuficiente na leitura interna
+    const raceTxClient = {
+      ...makeTxClient(),
+      cashlessWallet: {
+        findUnique: vi.fn(() =>
+          Promise.resolve({ balanceCents: 100, status: 'wallet_active' }),
+        ),
+        update: vi.fn(),
+      },
+      cashlessTransaction: { create: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
+    };
+    vi.mocked(prisma.$transaction).mockImplementationOnce(async (cb: any) => cb(raceTxClient));
+
+    await expect(
+      service.charge('wallet-1', 1000, [{ productId: 'p1', name: 'X', qty: 1, priceCents: 1000 }]),
+    ).rejects.toThrow('Saldo insuficiente - transação concorrente detectada');
+  });
 });
 
 describe('TransactionService.reverse', () => {

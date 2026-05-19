@@ -141,23 +141,33 @@ export class TransactionService {
     // Executar transação atomicamente com isolamento
     const result = await prisma.$transaction(
       async (tx) => {
-        const debitResult = await debitWithinTx(tx, {
-          walletId,
-          amountCents,
-          tipCents,
-          items,
-          posId,
-          operatorId,
-          metadata,
-        });
+        try {
+          const debitResult = await debitWithinTx(tx, {
+            walletId,
+            amountCents,
+            tipCents,
+            items,
+            posId,
+            operatorId,
+            metadata,
+          });
 
-        return {
-          transactionId: debitResult.transactionId,
-          amountCents,
-          tipCents,
-          newBalance: debitResult.newBalance,
-          timestamp: debitResult.timestamp,
-        };
+          return {
+            transactionId: debitResult.transactionId,
+            amountCents,
+            tipCents,
+            newBalance: debitResult.newBalance,
+            timestamp: debitResult.timestamp,
+          };
+        } catch (err) {
+          if (
+            err instanceof BadRequestError &&
+            err.message === 'Saldo insuficiente para realizar esta compra'
+          ) {
+            throw new BadRequestError('Saldo insuficiente - transação concorrente detectada');
+          }
+          throw err;
+        }
       },
       {
         isolationLevel: 'Serializable',
