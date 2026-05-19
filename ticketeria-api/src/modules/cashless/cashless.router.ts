@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { authenticate, authorize } from '../../middleware/auth';
 import { requireEventOwnership } from '../../middleware/eventOwnership';
 import { validate } from '../../middleware/validate';
+import { asyncHandler } from '../../shared/asyncHandler';
 import { CashlessController } from './cashless.controller';
 import { categoriesRouter } from './categories/categories.router';
 import { posRouter } from './pos/pos.router';

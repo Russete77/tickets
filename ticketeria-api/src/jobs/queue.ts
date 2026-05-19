@@ -41,6 +41,12 @@ export const capacityAlertQueue = new Queue('capacity-alert', {
   defaultJobOptions: { ...defaultJobOptions, priority: 1 },
 });
 
+/** Fraud detection — detecção proativa de check-ins duplicados (Fase 2.2) */
+export const fraudDetectionQueue = new Queue('fraud-detection', {
+  connection: redis,
+  defaultJobOptions: { ...defaultJobOptions, priority: 1 },
+});
+
 export const checkinSyncQueue = new Queue('sync-checkin-offline', {
   connection: redis,
   defaultJobOptions: { ...defaultJobOptions, priority: 1 },
@@ -98,6 +104,12 @@ export const searchSyncQueue = new Queue('search-sync', {
 
 /** Ledger close — invariantes pós-evento (gap 4.5) */
 export const ledgerCloseQueue = new Queue('ledger-close', {
+  connection: redis,
+  defaultJobOptions: { ...defaultJobOptions, priority: 3 },
+});
+
+/** LGPD export — gera ZIP de dados pessoais (Fase 2.5) */
+export const lgpdExportQueue = new Queue('lgpd-export', {
   connection: redis,
   defaultJobOptions: { ...defaultJobOptions, priority: 3 },
 });
@@ -161,6 +173,7 @@ export function setupQueueEvents(): void {
     batchSwitchQueue,
     batchScheduleQueue,
     capacityAlertQueue,
+    fraudDetectionQueue,
     checkinSyncQueue,
     pushQueue,
     postEventReviewQueue,
@@ -169,6 +182,7 @@ export function setupQueueEvents(): void {
     webhookOutboundQueue,
     searchSyncQueue,
     ledgerCloseQueue,
+    lgpdExportQueue,
   ];
   for (const queue of queues) {
     const events = new QueueEvents(queue.name, { connection: redis });

@@ -6,6 +6,8 @@ import React from 'react';
 import { Colors } from '../src/styles/tokens';
 import { useNotifications } from '../src/hooks/useNotifications';
 import { useOfflineSync } from '../src/hooks/useOfflineSync';
+import { IS_POS } from '../src/lib/appVariant';
+import { PosSessionProvider } from '../src/contexts/PosSessionProvider';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -23,6 +25,18 @@ export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <SafeAreaProvider>
+        {IS_POS ? (
+          <PosSessionProvider>
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                contentStyle: { backgroundColor: Colors.bg },
+              }}
+            >
+              <Stack.Screen name="(pos)" />
+            </Stack>
+          </PosSessionProvider>
+        ) : (
         <Stack
           screenOptions={{
             headerShown: false,
@@ -66,6 +80,7 @@ export default function RootLayout() {
             }}
           />
         </Stack>
+        )}
         <StatusBar style="light" />
       </SafeAreaProvider>
     </QueryClientProvider>

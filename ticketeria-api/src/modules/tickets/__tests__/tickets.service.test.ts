@@ -335,4 +335,86 @@ describe('TicketsService', () => {
       );
     });
   });
+
+  describe('getTotpSecret', () => {
+    it('expõe o secret ao titular e grava audit', async () => {
+      const user = createMockUser();
+      const ticket = createMockTicket({ holderId: user.id, status: TicketStatus.active });
+
+      vi.mocked(prisma.ticket.findUnique).mockResolvedValueOnce(ticket as any);
+
+      const result = await ticketsService.getTotpSecret(ticket.id, user.id, {
+        ipAddress: '1.2.3.4',
+        userAgent: 'jest',
+      });
+
+      expect(result.secret).toBe(ticket.totpSecret);
+      expect(result.issuer).toBe('Ticketeria');
+      expect(logAudit).toHaveBeenCalledWith(
+        expect.objectContaining({ action: 'ticket.totp_secret_viewed', actorId: user.id }),
+      );
+    });
+
+    it('rejeita acesso por outro usuário (IDOR)', async () => {
+      const user = createMockUser();
+      const ticket = createMockTicket({ holderId: 'other-user' });
+      vi.mocked(prisma.ticket.findUnique).mockResolvedValueOnce(ticket as any);
+
+      await expect(ticketsService.getTotpSecret(ticket.id, user.id)).rejects.toThrow(ForbiddenError);
+    });
+
+    it('rejeita ticket usado/cancelado', async () => {
+      const user = createMockUser();
+      const ticket = createMockTicket({ holderId: user.id, status: TicketStatus.used });
+      vi.mocked(prisma.ticket.findUnique).mockResolvedValueOnce(ticket as any);
+
+      await expect(ticketsService.getTotpSecret(ticket.id, user.id)).rejects.toThrow(BadRequestError);
+    });
+  });
+
+  describe('rotateTotpSecret', () => {
+    it('rotaciona o secret, invalida cache e audita', async () => {
+      const user = createMockUser();
+      const ticket = createMockTicket({ holderId: user.id, status: TicketStatus.active, totpSecret: 'OLD-SECRET' });
+
+      vi.mocked(prisma.ticket.findUnique).mockResolvedValueOnce(ticket as any);
+      // Simula Prisma devolvendo o secret efetivamente persistido
+      vi.mocked(prisma.ticket.update).mockImplementationOnce(async (args: any) => ({
+        id: ticket.id,
+        totpSecret: args.data.totpSecret,
+      }) as any);
+      vi.mocked(redis.del).mockResolvedValueOnce(1);
+
+      const result = await ticketsService.rotateTotpSecret(ticket.id, user.id);
+
+      expect(result.secret).toBeTruthy();
+      expect(result.secret).not.toBe('OLD-SECRET');
+      expect(prisma.ticket.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: ticket.id },
+          data: expect.objectContaining({ totpSecret: expect.any(String) }),
+        }),
+      );
+      expect(redis.del).toHaveBeenCalledWith(`ticket:totp:${ticket.id}`);
+      expect(logAudit).toHaveBeenCalledWith(
+        expect.objectContaining({ action: 'ticket.totp_secret_rotated', actorId: user.id }),
+      );
+    });
+
+    it('rejeita rotação por outro usuário', async () => {
+      const user = createMockUser();
+      const ticket = createMockTicket({ holderId: 'other' });
+      vi.mocked(prisma.ticket.findUnique).mockResolvedValueOnce(ticket as any);
+
+      await expect(ticketsService.rotateTotpSecret(ticket.id, user.id)).rejects.toThrow(ForbiddenError);
+    });
+
+    it('rejeita rotação em ticket cancelado', async () => {
+      const user = createMockUser();
+      const ticket = createMockTicket({ holderId: user.id, status: TicketStatus.cancelled });
+      vi.mocked(prisma.ticket.findUnique).mockResolvedValueOnce(ticket as any);
+
+      await expect(ticketsService.rotateTotpSecret(ticket.id, user.id)).rejects.toThrow(BadRequestError);
+    });
+  });
 });

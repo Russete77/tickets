@@ -10,6 +10,7 @@ export interface WalletData {
   balanceCents: number;
   totalTopupCents: number;
   totalSpentCents: number;
+  offlineLimit: number;
   status: WalletStatus;
   walletType: string;
   createdAt: Date;
@@ -87,6 +88,7 @@ export class WalletService {
         balanceCents: true,
         totalTopupCents: true,
         totalSpentCents: true,
+        offlineLimit: true,
         status: true,
         walletType: true,
         createdAt: true,
@@ -110,6 +112,7 @@ export class WalletService {
         balanceCents: true,
         totalTopupCents: true,
         totalSpentCents: true,
+        offlineLimit: true,
         status: true,
         walletType: true,
         createdAt: true,
@@ -169,7 +172,7 @@ export class WalletService {
 
     // Criar transação atomicamente
     const result = await prisma.$transaction(async (tx) => {
-      // Atualizar saldo
+      // Atualizar saldo (version: optimistic-lock defense-in-depth)
       const updated = await tx.cashlessWallet.update({
         where: { id: walletId },
         data: {
@@ -179,6 +182,7 @@ export class WalletService {
           totalTopupCents: {
             increment: amountCents,
           },
+          version: { increment: 1 },
           lastUsedAt: new Date(),
         },
         select: {

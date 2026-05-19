@@ -137,6 +137,100 @@ export class TicketsService {
   }
 
   /**
+   * Expõe o totpSecret do ingresso somente ao titular (uso: mobile salva em secure-store).
+   * Audit log obrigatório — cada exposição é registrada.
+   */
+  async getTotpSecret(
+    ticketId: string,
+    userId: string,
+    context?: { ipAddress?: string; userAgent?: string },
+  ): Promise<{ ticketId: string; secret: string; issuer: string; label: string }> {
+    const ticket = await prisma.ticket.findUnique({
+      where: { id: ticketId },
+      select: { id: true, holderId: true, holderName: true, status: true, totpSecret: true },
+    });
+
+    if (!ticket) {
+      throw new NotFoundError('Ingresso não encontrado');
+    }
+
+    if (ticket.holderId !== userId) {
+      throw new ForbiddenError('Você não tem permissão para acessar este ingresso');
+    }
+
+    if (ticket.status === 'used' || ticket.status === 'cancelled') {
+      throw new BadRequestError('Ingresso não está ativo');
+    }
+
+    await logAudit({
+      actorId: userId,
+      action: AuditActions.TICKET_TOTP_SECRET_VIEWED,
+      entityType: 'ticket',
+      entityId: ticketId,
+      ipAddress: context?.ipAddress,
+      userAgent: context?.userAgent,
+    });
+
+    return {
+      ticketId: ticket.id,
+      secret: ticket.totpSecret,
+      issuer: 'Ticketeria',
+      label: ticket.holderName,
+    };
+  }
+
+  /**
+   * Rotaciona o totpSecret do ingresso (uso: dono suspeita de comprometimento).
+   * Invalida cache Redis do token atual.
+   */
+  async rotateTotpSecret(
+    ticketId: string,
+    userId: string,
+    context?: { ipAddress?: string; userAgent?: string },
+  ): Promise<{ ticketId: string; secret: string }> {
+    const ticket = await prisma.ticket.findUnique({
+      where: { id: ticketId },
+      select: { id: true, holderId: true, status: true },
+    });
+
+    if (!ticket) {
+      throw new NotFoundError('Ingresso não encontrado');
+    }
+
+    if (ticket.holderId !== userId) {
+      throw new ForbiddenError('Você não tem permissão para rotacionar este ingresso');
+    }
+
+    if (ticket.status !== 'active' && ticket.status !== 'transferred') {
+      throw new BadRequestError('Apenas ingressos ativos podem ter o segredo rotacionado');
+    }
+
+    const newSecret = generateTotpSecret();
+
+    const updated = await prisma.ticket.update({
+      where: { id: ticketId },
+      data: { totpSecret: newSecret },
+      select: { id: true, totpSecret: true },
+    });
+
+    await redis.del(`ticket:totp:${ticketId}`);
+
+    await logAudit({
+      actorId: userId,
+      action: AuditActions.TICKET_TOTP_SECRET_ROTATED,
+      entityType: 'ticket',
+      entityId: ticketId,
+      ipAddress: context?.ipAddress,
+      userAgent: context?.userAgent,
+    });
+
+    return {
+      ticketId: updated.id,
+      secret: updated.totpSecret,
+    };
+  }
+
+  /**
    * Inicia transferência de ingresso
    */
   async initiateTransfer(ticketId: string, holderId: string, data: TransferTicketInput): Promise<TicketTransfer> {

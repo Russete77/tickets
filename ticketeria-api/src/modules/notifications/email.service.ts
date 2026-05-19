@@ -83,6 +83,13 @@ export class EmailService {
         <p><a href="${d.resetLink}">Clique aqui para redefinir sua senha</a></p>
         <p>Válido por: ${d.expiresIn}</p>
       `,
+      lgpd_export: (d) => `
+        <h1>Exportação de Dados Pronta</h1>
+        <p>Olá ${d.name},</p>
+        <p>Conforme solicitado, sua exportação de dados pessoais (LGPD) está disponível.</p>
+        <p><a href="${d.downloadUrl}">Baixar meus dados (ZIP)</a></p>
+        <p>O link é válido por: ${d.expiresIn}</p>
+      `,
     };
 
     const renderer = templates[template];
@@ -360,6 +367,26 @@ export class EmailService {
         resetLink,
         expiresIn: '24 horas',
       },
+    };
+
+    this.logEmail(content);
+    const html = this.renderTemplate(content.template, content.data);
+    await sendEmail({
+      to: content.to,
+      subject: content.subject,
+      html,
+    });
+  }
+
+  /**
+   * Envia o link de download da exportação de dados LGPD
+   */
+  async sendLgpdExport(to: string, name: string, downloadUrl: string): Promise<void> {
+    const content: EmailContent = {
+      to,
+      subject: 'Sua exportação de dados (LGPD) está pronta',
+      template: 'lgpd_export',
+      data: { name, downloadUrl, expiresIn: '24 horas' },
     };
 
     this.logEmail(content);

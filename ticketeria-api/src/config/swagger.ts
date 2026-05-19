@@ -2633,21 +2633,21 @@ const openApiSpec = {
         },
       },
     },
-    '/users/me/data': {
+    '/lgpd/me/export': {
       get: {
         tags: ['LGPD'],
         summary: 'Exportar dados do usuário (LGPD art. 18 IV)',
-        description: 'Retorna JSON com todos os dados pessoais do usuário (perfil, pedidos, ingressos). Limite: 3 chamadas/h.',
+        description: 'Enfileira a geração assíncrona de um ZIP com todos os dados pessoais (perfil, pedidos, ingressos, transações, auditoria). Link enviado por email, válido 24h. Limite: 3 chamadas/h.',
         operationId: 'lgpdExportData',
         security: [{ bearerAuth: [] }],
         responses: {
-          '200': { description: 'Dados exportados em JSON' },
+          '202': { description: 'Solicitação aceita; link será enviado por email' },
           '401': { $ref: '#/components/responses/Unauthorized' },
           '429': { description: 'Rate limit LGPD excedido' },
         },
       },
     },
-    '/users/me': {
+    '/lgpd/me': {
       delete: {
         tags: ['LGPD'],
         summary: 'Apagar conta (LGPD art. 18 VI)',

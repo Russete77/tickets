@@ -5,6 +5,8 @@ import {
   getMyTickets,
   getTicket,
   getTicketQR,
+  getTicketTotpSecret,
+  rotateTicketTotp,
   initiateTransfer,
   confirmTransfer,
   getTicketHistory,
@@ -38,6 +40,22 @@ router.get('/:id', authenticate, validate({ params: ticketIdParamSchema }), getT
 
 // GET /tickets/:id/qr
 router.get('/:id/qr', authenticate, validate({ params: ticketIdParamSchema }), getTicketQR);
+
+// GET /tickets/:id/totp-secret — expõe segredo ao titular (audit logged)
+router.get(
+  '/:id/totp-secret',
+  authenticate,
+  validate({ params: ticketIdParamSchema }),
+  getTicketTotpSecret,
+);
+
+// POST /tickets/:id/rotate-totp — rotaciona o segredo TOTP (auto-serve em caso de suspeita)
+router.post(
+  '/:id/rotate-totp',
+  authenticate,
+  validate({ params: ticketIdParamSchema }),
+  rotateTicketTotp,
+);
 
 // POST /tickets/:id/transfer
 router.post(

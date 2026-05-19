@@ -489,6 +489,7 @@ model Ticket {
   checkedInBy     String?      @map("checked_in_by") @db.Uuid
   checkedInDevice String?      @map("checked_in_device") @db.VarChar(100)
   transferCount   Int          @default(0) @map("transfer_count")
+  deviceFp        String?      @map("device_fp") @db.VarChar(128)
   createdAt       DateTime     @default(now()) @map("created_at") @db.Timestamptz
 
   // Relações
@@ -505,6 +506,7 @@ model Ticket {
   @@index([ticketHash], name: "idx_tickets_hash")
   @@index([holderId, status], name: "idx_tickets_holder")
   @@index([eventId, status], name: "idx_tickets_event")
+  @@index([deviceFp], name: "tickets_device_fp_idx")
   @@map("tickets")
 }
 
@@ -923,6 +925,8 @@ model CashlessWallet {
   totalSpentCents Int          @default(0) @map("total_spent_cents")
   status          WalletStatus @default(wallet_active)
   nfcTagId        String?      @map("nfc_tag_id") @db.VarChar(100)
+  offlineLimit    Int          @default(20000) @map("offline_limit")
+  version         Int          @default(0)
   activatedAt     DateTime?    @map("activated_at") @db.Timestamptz
   lastUsedAt      DateTime?    @map("last_used_at") @db.Timestamptz
   createdAt       DateTime     @default(now()) @map("created_at") @db.Timestamptz
@@ -1003,6 +1007,7 @@ model PointOfSale {
   products       POSProduct[]
   transactions   CashlessTransaction[]
   stockMovements StockMovement[]
+  devices        PosDevice[]
 
   @@map("points_of_sale")
 }
@@ -1025,6 +1030,40 @@ model POSOperator {
 
   @@index([posId, isActive])
   @@map("pos_operators")
+}
+
+enum PosDeviceStatus {
+  pending
+  active
+  revoked
+}
+
+model PosDevice {
+  id                   String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  posId                String          @map("pos_id") @db.Uuid
+  organizationId       String          @map("organization_id") @db.Uuid
+  label                String          @db.VarChar(120)
+  deviceTokenHash      String?         @map("device_token_hash") @db.VarChar(128)
+  tokenPrefix          String?         @map("token_prefix") @db.VarChar(12)
+  pairingCode          String?         @unique @map("pairing_code") @db.VarChar(8)
+  pairingCodeExpiresAt DateTime?       @map("pairing_code_expires_at") @db.Timestamptz
+  status               PosDeviceStatus @default(pending)
+  pairedAt             DateTime?       @map("paired_at") @db.Timestamptz
+  lastSeenAt           DateTime?       @map("last_seen_at") @db.Timestamptz
+  appVersion           String?         @map("app_version") @db.VarChar(20)
+  lastIp               String?         @map("last_ip") @db.VarChar(45)
+  createdBy            String          @map("created_by") @db.Uuid
+  revokedBy            String?         @map("revoked_by") @db.Uuid
+  revokedAt            DateTime?       @map("revoked_at") @db.Timestamptz
+  createdAt            DateTime        @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt            DateTime        @updatedAt @map("updated_at") @db.Timestamptz
+
+  pos PointOfSale @relation(fields: [posId], references: [id], onDelete: Cascade)
+
+  @@index([posId])
+  @@index([organizationId])
+  @@index([deviceTokenHash])
+  @@map("pos_devices")
 }
 
 model POSProduct {

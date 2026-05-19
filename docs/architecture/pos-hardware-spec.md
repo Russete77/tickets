@@ -102,3 +102,17 @@ ROI esperado: 4-6 eventos médios cobrem o investimento via taxa cashless 2,5%.
 2. POC `cashless/nfc.adapter.ts` integrado com Mifare Classic — já criado.
 3. Spec do app POS — este documento.
 4. Decisão executiva: **leasing vs venda** para produtores.
+
+## Status de implementação (2026-05-15)
+
+Entregue (software, build variant — ver spec/plan superpowers):
+- App POS variant `com.pulsepass.pos` (EAS profile `pos`)
+- Pareamento device↔POS por QR + device token revogável (kill-switch)
+- Boot offline-first; heartbeat de telemetria; kiosk lock-task Android
+
+Follow-up (não nesta entrega):
+- Stone SDK / Pagar.me Tap (cartão presencial)
+- Impressora Bluetooth (Elgin/Bematech)
+- Sunmi DeviceManager (status bar, auto-boot, watchdog) + MDM/allowlist
+- Reconciliação offline last-write-wins avançada (schema pending_tx §schema)
+- POC hardware Sunmi V2s Plus + leasing

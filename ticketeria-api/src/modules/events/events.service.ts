@@ -52,6 +52,19 @@ export class EventsService {
       throw new NotFoundError('Produtor não encontrado');
     }
 
+    // Event.organizationId é NOT NULL (migração producer→organization).
+    // Resolve a organização do produtor via OrganizationMember.
+    const membership = await prisma.organizationMember.findFirst({
+      where: { userId: producerId },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    if (!membership) {
+      throw new BadRequestError(
+        'Produtor não pertence a nenhuma organização. Crie ou entre em uma organização antes de publicar eventos.',
+      );
+    }
+
     // Gerar slug único
     let slug = this.generateSlug(data.title);
     let slugExists = await prisma.event.findUnique({ where: { slug } });
@@ -65,6 +78,7 @@ export class EventsService {
       const createdEvent = await tx.event.create({
         data: {
           producerId,
+          organizationId: membership.organizationId,
           title: data.title,
           slug,
           description: data.description,

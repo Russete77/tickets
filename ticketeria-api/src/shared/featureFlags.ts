@@ -90,6 +90,7 @@ export interface FlagContext {
 export async function isFeatureEnabled(flag: string, context: FlagContext = {}): Promise<boolean> {
   const value = await readFlag(flag);
   if (typeof value === 'boolean') return value;
+  if (typeof value !== 'number') return false;
 
   // Percentual: usa userId estável; se ausente, desliga (avoid leaking to anônimos)
   const seed = context.userId ?? context.email;

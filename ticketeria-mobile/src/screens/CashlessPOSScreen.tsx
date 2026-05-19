@@ -27,6 +27,10 @@ import {
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useTranslation, formatCurrency } from '../i18n';
+import { authenticate } from '../lib/biometrics';
+
+/** Acima deste valor, exige confirmação biométrica do operador */
+const BIOMETRIC_CHARGE_THRESHOLD_CENTS = 5000;
 
 interface POSProduct {
   id: string;
@@ -180,6 +184,19 @@ export function CashlessPOSScreen({ posId, operatorJwt }: Props) {
   const grandTotal = cartTotal + tipCents;
   const balanceAfter = scannedWallet ? scannedWallet.balanceCents - grandTotal : 0;
   const insufficientFunds = balanceAfter < 0;
+
+  const handleConfirmCharge = async () => {
+    if (grandTotal > BIOMETRIC_CHARGE_THRESHOLD_CENTS) {
+      const ok = await authenticate(
+        `Confirme a cobrança de ${formatCurrency(grandTotal)}`,
+      );
+      if (!ok) {
+        Alert.alert('Cancelado', 'Confirmação biométrica não concluída');
+        return;
+      }
+    }
+    chargeMut.mutate();
+  };
 
   // ==================== TELA 1: PIN ====================
   if (!pinValidated) {
@@ -358,7 +375,7 @@ export function CashlessPOSScreen({ posId, operatorJwt }: Props) {
               (!scannedWallet || insufficientFunds || chargeMut.isPending) && styles.btnDisabled,
             ]}
             disabled={!scannedWallet || insufficientFunds || chargeMut.isPending}
-            onPress={() => chargeMut.mutate()}
+            onPress={handleConfirmCharge}
           >
             {chargeMut.isPending ? (
               <ActivityIndicator color="#fff" />

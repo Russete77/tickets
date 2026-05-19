@@ -56,6 +56,45 @@ export const getTicketQR = async (req: Request, res: Response): Promise<void> =>
 };
 
 /**
+ * GET /tickets/:id/totp-secret
+ * Expõe o segredo TOTP do ticket ao titular (audit logged).
+ */
+export const getTicketTotpSecret = async (req: Request, res: Response): Promise<void> => {
+  const userId = req.user!.userId;
+  const ticketId = req.params.id as string;
+
+  const data = await ticketsService.getTotpSecret(ticketId, userId, {
+    ipAddress: req.ip,
+    userAgent: req.headers['user-agent'],
+  });
+
+  res.json({
+    success: true,
+    data,
+  });
+};
+
+/**
+ * POST /tickets/:id/rotate-totp
+ * Rotaciona o segredo TOTP do ticket (titular suspeita de comprometimento).
+ */
+export const rotateTicketTotp = async (req: Request, res: Response): Promise<void> => {
+  const userId = req.user!.userId;
+  const ticketId = req.params.id as string;
+
+  const data = await ticketsService.rotateTotpSecret(ticketId, userId, {
+    ipAddress: req.ip,
+    userAgent: req.headers['user-agent'],
+  });
+
+  res.json({
+    success: true,
+    data,
+    message: 'Segredo TOTP rotacionado. Atualize o app para revelar o novo QR.',
+  });
+};
+
+/**
  * POST /tickets/:id/transfer
  * Inicia transferência de ingresso
  */

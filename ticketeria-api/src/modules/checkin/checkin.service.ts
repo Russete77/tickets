@@ -6,6 +6,7 @@ import { logAudit, AuditActions } from '../../shared/audit';
 import { authenticator } from 'otplib';
 import { publishBroadcast } from '../../shared/socketBridge';
 import { emitWebhookSafe } from '../webhooks-outbound/webhook-emit.helper';
+import { fraudDetectionQueue } from '../../jobs/queue';
 
 /**
  * Verificacao TOTP usando otplib (RFC 6238 compliant)
@@ -228,6 +229,18 @@ export class CheckinService {
           scannedAt: new Date(),
         },
       });
+
+      // 8.1 Enfileira detecção de fraude (fire-and-forget — não bloqueia o check-in)
+      fraudDetectionQueue
+        .add('detect', {
+          ticketId: ticket.id,
+          ticketHash,
+          eventId,
+          operatorId,
+        })
+        .catch((err) => {
+          console.error('Falha ao enfileirar fraud-detection:', err);
+        });
 
       // 9. Registrar auditoria
       await logAudit({

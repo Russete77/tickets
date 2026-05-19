@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   ScrollView,
@@ -16,6 +16,13 @@ import { apiClient } from '../lib/api';
 import { Colors, Typography, Spacing, BorderRadius, Shadows } from '../styles/tokens';
 import { User, Order } from '../types';
 import { useTranslation } from '../i18n';
+import {
+  BiometricPref,
+  isBiometricsAvailable,
+  isBiometricsEnabled,
+  setBiometricsEnabled,
+  authenticate,
+} from '../lib/biometrics';
 
 interface ProfileSettings {
   notifications: boolean;
@@ -32,6 +39,40 @@ export function ProfileScreen() {
     marketingEmails: false,
   });
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [biometricsAvailable, setBiometricsAvailable] = useState(false);
+  const [bioLogin, setBioLogin] = useState(false);
+  const [bioPayment, setBioPayment] = useState(false);
+  const [bioTicket, setBioTicket] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      const available = await isBiometricsAvailable();
+      setBiometricsAvailable(available);
+      if (!available) return;
+      const [l, p, tk] = await Promise.all([
+        isBiometricsEnabled(BiometricPref.LOGIN),
+        isBiometricsEnabled(BiometricPref.PAYMENT),
+        isBiometricsEnabled(BiometricPref.TICKET),
+      ]);
+      setBioLogin(l);
+      setBioPayment(p);
+      setBioTicket(tk);
+    })();
+  }, []);
+
+  const toggleBiometric = async (
+    pref: BiometricPref,
+    next: boolean,
+    setLocal: (v: boolean) => void,
+  ) => {
+    // Ativar exige provar a biometria uma vez
+    if (next) {
+      const ok = await authenticate('Confirme sua biometria para ativar');
+      if (!ok) return;
+    }
+    await setBiometricsEnabled(pref, next);
+    setLocal(next);
+  };
 
   const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ['user', 'profile'],
@@ -206,6 +247,28 @@ export function ProfileScreen() {
             }
           />
         </View>
+
+        {/* Biometria */}
+        {biometricsAvailable && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Segurança Biométrica</Text>
+            <SettingOption
+              title="Exigir biometria no login"
+              value={bioLogin}
+              onToggle={(v) => toggleBiometric(BiometricPref.LOGIN, v, setBioLogin)}
+            />
+            <SettingOption
+              title="Exigir biometria em pagamentos"
+              value={bioPayment}
+              onToggle={(v) => toggleBiometric(BiometricPref.PAYMENT, v, setBioPayment)}
+            />
+            <SettingOption
+              title="Exigir biometria para revelar ingresso"
+              value={bioTicket}
+              onToggle={(v) => toggleBiometric(BiometricPref.TICKET, v, setBioTicket)}
+            />
+          </View>
+        )}
 
         {/* Account */}
         <View style={styles.section}>
@@ -423,4 +486,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   logoutButtonText: {
-    fontSize: Typography.f
+    fontSize: Typography.fontSize.base,
+    fontWeight: Typography.fontWeight.bold,
+    color: Colors.error,
+  },
+});

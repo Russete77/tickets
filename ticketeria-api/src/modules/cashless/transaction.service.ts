@@ -90,7 +90,7 @@ export class TransactionService {
           throw new BadRequestError('Saldo insuficiente - transação concorrente detectada');
         }
 
-        // Decrementar saldo
+        // Decrementar saldo (version: optimistic-lock defense-in-depth — Serializable já protege)
         const updated = await tx.cashlessWallet.update({
           where: { id: walletId },
           data: {
@@ -100,6 +100,7 @@ export class TransactionService {
             totalSpentCents: {
               increment: amountCents, // Não inclui gorjeta no total gasto
             },
+            version: { increment: 1 },
             lastUsedAt: new Date(),
           },
           select: {
@@ -191,7 +192,7 @@ export class TransactionService {
 
     // Executar reversão atomicamente
     const result = await prisma.$transaction(async (tx) => {
-      // Restaurar saldo
+      // Restaurar saldo (version: optimistic-lock defense-in-depth)
       const updated = await tx.cashlessWallet.update({
         where: { id: transaction.walletId },
         data: {
@@ -201,6 +202,7 @@ export class TransactionService {
           totalSpentCents: {
             decrement: transaction.amountCents,
           },
+          version: { increment: 1 },
           lastUsedAt: new Date(),
         },
         select: {
