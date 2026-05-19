@@ -166,4 +166,9 @@ export const AuditActions = {
   POS_DEVICE_PAIR_CODE_ISSUED: 'pos_device.pair_code_issued',
   POS_DEVICE_PAIRED: 'pos_device.paired',
   POS_DEVICE_REVOKED: 'pos_device.revoked',
+
+  // Customer Orders — Engine 5 (2026-05)
+  CUSTOMER_ORDER_CREATED: 'customer_order.created',
+  CUSTOMER_ORDER_STATUS_CHANGED: 'customer_order.status_changed',
+  CUSTOMER_ORDER_CANCELLED: 'customer_order.cancelled',
 } as const;
