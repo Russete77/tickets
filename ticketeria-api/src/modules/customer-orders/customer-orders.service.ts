@@ -1,8 +1,10 @@
 import { prisma } from '../../config/database';
 import { BadRequestError, NotFoundError } from '../../shared/errors';
 import { logAudit, AuditActions } from '../../shared/audit';
-import { debitWithinTx, postCashlessPurchaseToLedger } from '../cashless/transaction.service';
-import { emitCustomerOrderNew } from './shared/customerOrderEvents';
+import { debitWithinTx, postCashlessPurchaseToLedger, transactionService } from '../cashless/transaction.service';
+import { assertCustomerOrderBelongsToOrg } from '../cashless/shared/orgScope';
+import { buildCursorPagination, formatPaginatedResponse } from '../../shared/pagination';
+import { emitCustomerOrderNew, emitCustomerOrderStatus } from './shared/customerOrderEvents';
 
 const CONSUMER_POS = ['bar', 'mobile', 'totem', 'vip_lounge', 'food_truck'];
 
@@ -198,5 +200,92 @@ export class CustomerOrdersService {
     });
 
     return order;
+  }
+
+  static async updateStatus(input: {
+    orderId: string;
+    operatorId: string;
+    organizationId: string;
+    status: 'preparing' | 'ready' | 'delivered';
+  }) {
+    const order = await assertCustomerOrderBelongsToOrg(input.orderId, input.organizationId);
+    const valid: Record<string, string> = { pending: 'preparing', preparing: 'ready', ready: 'delivered' };
+    if (valid[order.status] !== input.status) {
+      throw new BadRequestError(`Transição inválida: ${order.status} → ${input.status}`);
+    }
+    const tsField = ({ preparing: 'preparingAt', ready: 'readyAt', delivered: 'deliveredAt' } as const)[input.status];
+    const updated = await prisma.customerOrder.update({
+      where: { id: input.orderId },
+      data: { status: input.status, [tsField]: new Date() },
+    });
+    await emitCustomerOrderStatus({
+      orderId: updated.id,
+      posId: updated.posId,
+      userId: updated.userId,
+      status: updated.status,
+      totalCents: updated.totalCents,
+      pickupCode: updated.pickupCode,
+      ts: Date.now(),
+    });
+    await logAudit({
+      actorId: input.operatorId,
+      action: AuditActions.CUSTOMER_ORDER_STATUS_CHANGED,
+      entityType: 'CustomerOrder',
+      entityId: updated.id,
+      metadata: { to: input.status },
+    });
+    return updated;
+  }
+
+  static async cancelByCustomer(input: { orderId: string; userId: string }) {
+    const order = await prisma.customerOrder.findUnique({ where: { id: input.orderId } });
+    if (!order || order.userId !== input.userId) throw new NotFoundError('Pedido não encontrado');
+    if (order.status !== 'pending') throw new BadRequestError('Pedido já em preparo não pode ser cancelado pelo cliente');
+
+    const items = order.items as Array<{ productId: string; qty: number }>;
+    if (order.walletTxId) await transactionService.reverse(order.walletTxId, 'Pedido cancelado pelo cliente');
+    const cancelled = await prisma.$transaction(
+      async (tx) => {
+        for (const i of items) {
+          const p = await tx.pOSProduct.findUnique({ where: { id: i.productId } });
+          if (p && p.stockQty != null) {
+            await tx.pOSProduct.update({ where: { id: i.productId }, data: { stockQty: { increment: i.qty } } });
+          }
+        }
+        return tx.customerOrder.update({ where: { id: order.id }, data: { status: 'cancelled', cancelledAt: new Date() } });
+      },
+      { isolationLevel: 'Serializable' },
+    );
+
+    await emitCustomerOrderStatus({
+      orderId: cancelled.id,
+      posId: cancelled.posId,
+      userId: cancelled.userId,
+      status: cancelled.status,
+      totalCents: cancelled.totalCents,
+      pickupCode: cancelled.pickupCode,
+      ts: Date.now(),
+    });
+    await logAudit({
+      actorId: input.userId,
+      action: AuditActions.CUSTOMER_ORDER_CANCELLED,
+      entityType: 'CustomerOrder',
+      entityId: cancelled.id,
+      metadata: {},
+    });
+    return cancelled;
+  }
+
+  static async getMyOrders(input: {
+    userId: string;
+    pagination: { cursor?: string; limit: number; direction: 'forward' | 'backward' };
+    filters?: { status?: string; eventId?: string };
+  }) {
+    const cp = buildCursorPagination(input.pagination);
+    const where: Record<string, unknown> = { userId: input.userId };
+    if (input.filters?.status) where.status = input.filters.status;
+    if (input.filters?.eventId) where.eventId = input.filters.eventId;
+    const rows = await prisma.customerOrder.findMany({ where, ...cp });
+    return formatPaginatedResponse(rows, input.pagination.limit);
   }
 }

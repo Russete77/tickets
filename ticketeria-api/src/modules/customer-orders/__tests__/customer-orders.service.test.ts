@@ -54,6 +54,11 @@ function txClient() {
       }),
       // Returns 0 by default (no collision) so existing tests are unaffected.
       count: vi.fn(() => Promise.resolve(0)),
+      update: vi.fn(({ where, data }) => {
+        const o = orders.get(where.id);
+        Object.assign(o, data);
+        return Promise.resolve(o);
+      }),
     },
   };
 }
@@ -74,7 +79,16 @@ vi.mock('../../../config/database', () => ({
     event: { findUnique: vi.fn(({ where }) => Promise.resolve(events.get(where.id) ?? null)) },
     customerOrder: {
       findUnique: vi.fn(({ where }) => Promise.resolve(orders.get(where.id) ?? null)),
-      findMany: vi.fn(() => Promise.resolve([...orders.values()])),
+      findMany: vi.fn(({ where }) => {
+        const all = [...orders.values()];
+        if (where?.userId) return Promise.resolve(all.filter((o) => o.userId === where.userId));
+        return Promise.resolve(all);
+      }),
+      update: vi.fn(({ where, data }) => {
+        const o = orders.get(where.id);
+        Object.assign(o, data);
+        return Promise.resolve(o);
+      }),
     },
     $transaction: vi.fn(async (fn: any) => fn(txClient())),
   },
@@ -89,6 +103,13 @@ vi.mock('../../cashless/transaction.service', () => ({
   }),
   postCashlessPurchaseToLedger: vi.fn(() => Promise.resolve()),
   transactionService: { reverse: vi.fn(() => Promise.resolve({})) },
+}));
+vi.mock('../../cashless/shared/orgScope', () => ({
+  assertCustomerOrderBelongsToOrg: vi.fn(async (id: string, org: string) => {
+    const o = orders.get(id);
+    if (!o || org !== 'org-1') throw new Error('Pedido não encontrado');
+    return o;
+  }),
 }));
 
 import { CustomerOrdersService } from '../customer-orders.service';
@@ -160,5 +181,72 @@ describe('CustomerOrdersService.create', () => {
     await expect(
       CustomerOrdersService.create({ userId: 'u-1', eventId: 'ev-1', posId: 'pos-1', items: [{ productId: 'p-1', qty: 1 }] }),
     ).rejects.toThrow(/[Ee]stoque/);
+  });
+});
+
+describe('CustomerOrdersService.updateStatus', () => {
+  beforeEach(() => {
+    orders.clear(); vi.clearAllMocks();
+    wallets.set('w-1', { id: 'w-1', eventId: 'ev-1', userId: 'u-1', balanceCents: 5000, status: 'wallet_active', version: 0, totalSpentCents: 0 });
+    products.set('p-1', { id: 'p-1', posId: 'pos-1', name: 'Cerveja', priceCents: 1000, stockQty: 5, isArchived: false });
+    txProducts.clear(); products.forEach((v, k) => txProducts.set(k, { ...v }));
+  });
+  it('transição válida pending→preparing grava timestamp', async () => {
+    const o = await CustomerOrdersService.create({ userId: 'u-1', eventId: 'ev-1', posId: 'pos-1', items: [{ productId: 'p-1', qty: 1 }] });
+    const up = await CustomerOrdersService.updateStatus({ orderId: o.id, operatorId: 'op-1', organizationId: 'org-1', status: 'preparing' });
+    expect(up.status).toBe('preparing');
+    expect(up.preparingAt).toBeTruthy();
+  });
+  it('rejeita transição inválida pending→ready', async () => {
+    const o = await CustomerOrdersService.create({ userId: 'u-1', eventId: 'ev-1', posId: 'pos-1', items: [{ productId: 'p-1', qty: 1 }] });
+    await expect(CustomerOrdersService.updateStatus({ orderId: o.id, operatorId: 'op-1', organizationId: 'org-1', status: 'ready' }))
+      .rejects.toThrow(/transição|inválid/i);
+  });
+  it('IDOR: org diferente → erro', async () => {
+    const o = await CustomerOrdersService.create({ userId: 'u-1', eventId: 'ev-1', posId: 'pos-1', items: [{ productId: 'p-1', qty: 1 }] });
+    await expect(CustomerOrdersService.updateStatus({ orderId: o.id, operatorId: 'op-1', organizationId: 'org-X', status: 'preparing' }))
+      .rejects.toThrow();
+  });
+});
+
+describe('CustomerOrdersService.cancelByCustomer', () => {
+  beforeEach(() => {
+    orders.clear(); vi.clearAllMocks();
+    wallets.set('w-1', { id: 'w-1', eventId: 'ev-1', userId: 'u-1', balanceCents: 5000, status: 'wallet_active', version: 0, totalSpentCents: 0 });
+    products.set('p-1', { id: 'p-1', posId: 'pos-1', name: 'Cerveja', priceCents: 1000, stockQty: 5, isArchived: false });
+    txProducts.clear(); products.forEach((v, k) => txProducts.set(k, { ...v }));
+  });
+  it('cancela em pending: estorna + repõe estoque + status cancelled', async () => {
+    const o = await CustomerOrdersService.create({ userId: 'u-1', eventId: 'ev-1', posId: 'pos-1', items: [{ productId: 'p-1', qty: 2 }] });
+    expect(products.get('p-1').stockQty).toBe(3);
+    const c = await CustomerOrdersService.cancelByCustomer({ orderId: o.id, userId: 'u-1' });
+    expect(c.status).toBe('cancelled');
+    expect(c.cancelledAt).toBeTruthy();
+    expect(products.get('p-1').stockQty).toBe(5);
+  });
+  it('rejeita cancelar fora de pending', async () => {
+    const o = await CustomerOrdersService.create({ userId: 'u-1', eventId: 'ev-1', posId: 'pos-1', items: [{ productId: 'p-1', qty: 1 }] });
+    await CustomerOrdersService.updateStatus({ orderId: o.id, operatorId: 'op-1', organizationId: 'org-1', status: 'preparing' });
+    await expect(CustomerOrdersService.cancelByCustomer({ orderId: o.id, userId: 'u-1' }))
+      .rejects.toThrow(/preparo|cancel/i);
+  });
+  it('rejeita cancelar pedido de outro usuário', async () => {
+    const o = await CustomerOrdersService.create({ userId: 'u-1', eventId: 'ev-1', posId: 'pos-1', items: [{ productId: 'p-1', qty: 1 }] });
+    await expect(CustomerOrdersService.cancelByCustomer({ orderId: o.id, userId: 'outro' }))
+      .rejects.toThrow();
+  });
+});
+
+describe('CustomerOrdersService.getMyOrders', () => {
+  beforeEach(() => {
+    orders.clear(); vi.clearAllMocks();
+    wallets.set('w-1', { id: 'w-1', eventId: 'ev-1', userId: 'u-1', balanceCents: 5000, status: 'wallet_active', version: 0, totalSpentCents: 0 });
+    products.set('p-1', { id: 'p-1', posId: 'pos-1', name: 'Cerveja', priceCents: 1000, stockQty: 5, isArchived: false });
+    txProducts.clear(); products.forEach((v, k) => txProducts.set(k, { ...v }));
+  });
+  it('retorna só pedidos do usuário', async () => {
+    await CustomerOrdersService.create({ userId: 'u-1', eventId: 'ev-1', posId: 'pos-1', items: [{ productId: 'p-1', qty: 1 }] });
+    const res = await CustomerOrdersService.getMyOrders({ userId: 'u-1', pagination: { limit: 20, direction: 'forward' } });
+    expect(res.data.length).toBe(1);
   });
 });
