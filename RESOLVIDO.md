@@ -189,9 +189,34 @@
 - 3 migrations Fase 1/POS precisam rodar em ambiente com Postgres real (`npm run db:migrate`)
 - Push da branch pro `origin` (feito junto deste commit de docs)
 
-### ❌ FASE 3 — Engine 5 Super App — NÃO INICIADA
-- Confirmado por grep: `customer-orders`, `VenueMap`, `Friendship` não existem em nenhuma branch.
-- Próximo trabalho de produto real começa aqui (Sprint 1 = pedido pelo bar).
+### 🟡 FASE 3 — Engine 5 Super App — EM ANDAMENTO
+
+**Sprint 1 — `customer-orders` backend (vertical slice) — ENTREGUE 2026-05-19**
+
+> Branch `worktree-engine5-customer-orders` (base `origin/master` @ `c9a1737`). Spec: `docs/superpowers/specs/2026-05-18-customer-orders-design.md` · Plano: `docs/superpowers/plans/2026-05-18-customer-orders.md`. Executado via subagent-driven-development (implementer + spec review + code-quality review por task).
+
+Pedido no bar pelo app: cliente autenticado escolhe bar (POS) + produtos, paga com saldo cashless atomicamente, acompanha status até retirar.
+
+- **`debitWithinTx` refactor** (`transaction.service.ts`): núcleo de débito extraído de `charge()` para débito dentro de transação do caller. Zero regressão (10 testes). `charge()` preserva mensagem de race concorrente.
+- **Schema**: `CustomerOrder` + enum `CustomerOrderStatus` (pending/preparing/ready/delivered/cancelled) + migration `20260604000000_add_customer_orders` + relations inversas.
+- **Infra**: `assertCustomerOrderBelongsToOrg` (anti-IDOR), `customerOrderEvents` (socket `customer_order:new`/`:status`), 3 AuditActions.
+- **Service** (`CustomerOrdersService`, 15 testes TDD):
+  - `create()` — re-precificação **server-side** (ignora preço do cliente), débito + baixa de estoque + criação do pedido numa única transação **Serializable** (leitura autoritativa via `tx`), `pickupCode` único entre pedidos ativos do POS (retry bounded), idempotência.
+  - `updateStatus()` — operador, transições forward-only `pending→preparing→ready→delivered`, IDOR por org.
+  - `cancelByCustomer()` — só em `pending`, estorno via `reverse()` + reposição de estoque atômica.
+  - `getMyOrders()` — paginação cursor, filtro por user.
+- **HTTP**: `/api/v1/customer-orders` — `POST /` (idempotente), `GET /me`, `PATCH /:id/status`, `POST /:id/cancel`. Envelope `{success,data}`, todas atrás de `authenticate`.
+- **Verificação**: typecheck global verde; suíte completa 339 passed / 13 failed **idênticas ao baseline pré-existente** (events.service ×3 + gateway.registry ×1 timeout + 9 integration sem Postgres/Redis) — **zero regressão**.
+
+**Dívida técnica registrada (não bloqueia, escopo aceito):**
+- `idempotencyCache` é Map por processo sem TTL (reforço além do middleware HTTP) — adicionar TTL/limite se escalar horizontalmente.
+- Pricing/stock em loop de awaits (N+1) — aceitável p/ carrinho ≤30 itens; otimizável p/ `findMany({id:{in:[]}})`.
+- Teste de `cancelByCustomer` não assere `expect(reverse).toHaveBeenCalledWith(...)` explicitamente (estoque/status são verificados).
+
+**Pendente desta entrega (não-código / próximos PRs):**
+- Migration `20260604000000_add_customer_orders` rodar em ambiente com Postgres real.
+- Branch não-mergeada em `master` ainda.
+- Próximos cortes Engine 5: tela mobile (pedir no bar + acompanhar), fila admin web por POS, worker de push (status `ready` → notificação), depois mapa/social/gamificação.
 
 ## O fluxo completo opera
 
