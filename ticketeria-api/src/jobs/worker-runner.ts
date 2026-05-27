@@ -23,6 +23,15 @@ import { webhookOutboundWorker } from './workers/webhook-outbound.worker';
 import { searchSyncWorker } from './workers/search-sync.worker';
 import { lgpdExportWorker } from './workers/lgpd-export.worker';
 
+// Engine 5 Sprint 2 — notification triggers
+import { notificationTriggerWorker } from './workers/notification-trigger.worker';
+
+// Engine 5 Sprint 4 — zone occupancy heatmap
+import { zoneOccupancyWorker } from './workers/zone-occupancy.worker';
+
+// Engine 5 Sprint 6 — achievement evaluator
+import { achievementEvaluatorWorker } from './workers/achievement-evaluator.worker';
+
 const workers = [
   emailWorker,
   expireReservationsWorker,
@@ -36,6 +45,9 @@ const workers = [
   webhookOutboundWorker,
   searchSyncWorker,
   lgpdExportWorker,
+  notificationTriggerWorker,
+  zoneOccupancyWorker,
+  achievementEvaluatorWorker,
 ];
 
 async function startWorkers(): Promise<void> {

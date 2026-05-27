@@ -114,6 +114,24 @@ export const lgpdExportQueue = new Queue('lgpd-export', {
   defaultJobOptions: { ...defaultJobOptions, priority: 3 },
 });
 
+/** Notification triggers — remarketing/reminders (Engine 5 Sprint 2) */
+export const notificationTriggerQueue = new Queue('notification-trigger', {
+  connection: redis,
+  defaultJobOptions: { ...defaultJobOptions, priority: 3 },
+});
+
+/** Zone occupancy — heatmap live updates (Engine 5 Sprint 4) */
+export const zoneOccupancyQueue = new Queue('zone-occupancy', {
+  connection: redis,
+  defaultJobOptions: { ...defaultJobOptions, priority: 3 },
+});
+
+/** Achievement evaluator — pós-evento (Engine 5 Sprint 6) */
+export const achievementEvaluatorQueue = new Queue('achievement-evaluator', {
+  connection: redis,
+  defaultJobOptions: { ...defaultJobOptions, priority: 3 },
+});
+
 // ============================================
 // Setup de CRON jobs
 // ============================================
@@ -161,6 +179,27 @@ export async function setupRecurringJobs(): Promise<void> {
     { repeat: { pattern: '0 4 * * *' }, jobId: 'search-rebuild-cron' },
   );
 
+  // Engine 5 Sprint 2 — notification triggers a cada 5 minutos
+  await notificationTriggerQueue.add(
+    'notification-trigger-cycle',
+    {},
+    { repeat: { pattern: '*/5 * * * *' }, jobId: 'notification-trigger-cron' },
+  );
+
+  // Engine 5 Sprint 4 — zone occupancy tick (cada 30s; BullMQ pattern não suporta segundos, usar every)
+  await zoneOccupancyQueue.add(
+    'zone-occupancy-tick',
+    {},
+    { repeat: { every: 30_000 }, jobId: 'zone-occupancy-tick-cron' },
+  );
+
+  // Engine 5 Sprint 6 — achievement evaluator às 5h
+  await achievementEvaluatorQueue.add(
+    'achievement-evaluator-daily',
+    {},
+    { repeat: { pattern: '0 5 * * *' }, jobId: 'achievement-evaluator-cron' },
+  );
+
   logger.info('✅ Recurring jobs configurados');
 }
 
@@ -183,6 +222,9 @@ export function setupQueueEvents(): void {
     searchSyncQueue,
     ledgerCloseQueue,
     lgpdExportQueue,
+    notificationTriggerQueue,
+    zoneOccupancyQueue,
+    achievementEvaluatorQueue,
   ];
   for (const queue of queues) {
     const events = new QueueEvents(queue.name, { connection: redis });

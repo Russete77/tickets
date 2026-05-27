@@ -101,6 +101,39 @@ export default function RootLayout() {
               headerTitleStyle: { fontWeight: '600', color: Colors.textPrimary },
             }}
           />
+          <Stack.Screen
+            name="venue-map/[eventId]"
+            options={{
+              headerShown: true,
+              headerBackTitle: 'Voltar',
+              title: 'Mapa do venue',
+              headerStyle: { backgroundColor: Colors.bg },
+              headerTintColor: Colors.textPrimary,
+              headerTitleStyle: { fontWeight: '600', color: Colors.textPrimary },
+            }}
+          />
+          <Stack.Screen
+            name="friends"
+            options={{
+              headerShown: true,
+              headerBackTitle: 'Voltar',
+              title: 'Amigos',
+              headerStyle: { backgroundColor: Colors.bg },
+              headerTintColor: Colors.textPrimary,
+              headerTitleStyle: { fontWeight: '600', color: Colors.textPrimary },
+            }}
+          />
+          <Stack.Screen
+            name="achievements"
+            options={{
+              headerShown: true,
+              headerBackTitle: 'Voltar',
+              title: 'Conquistas',
+              headerStyle: { backgroundColor: Colors.bg },
+              headerTintColor: Colors.textPrimary,
+              headerTitleStyle: { fontWeight: '600', color: Colors.textPrimary },
+            }}
+          />
         </Stack>
         )}
         <StatusBar style="light" />

@@ -72,6 +72,9 @@ import { webhooksOutboundRouter } from './modules/webhooks-outbound/webhooks-out
 import lgpdRouter from './modules/lgpd/lgpd.router';
 import posDevicesRouter from './modules/pos-devices/pos-devices.router';
 import { customerOrdersRouter } from './modules/customer-orders/customer-orders.router';
+import { venueMapsRouter } from './modules/venue-maps/venue-maps.router';
+import { friendshipsRouter } from './modules/social/friendships.router';
+import { achievementsRouter } from './modules/achievements/achievements.router';
 
 export function createApp() {
   const app = express();
@@ -194,6 +197,9 @@ export function createApp() {
   app.use(`${apiPrefix}/lgpd`, lgpdRouter);
   app.use(`${apiPrefix}/pos-devices`, posDevicesRouter);
   app.use(`${apiPrefix}/customer-orders`, customerOrdersRouter);
+  app.use(`${apiPrefix}`, venueMapsRouter);
+  app.use(`${apiPrefix}`, friendshipsRouter);
+  app.use(`${apiPrefix}`, achievementsRouter);
 
   // ============================
   // 404 handler
