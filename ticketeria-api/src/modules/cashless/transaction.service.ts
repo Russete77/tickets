@@ -2,7 +2,7 @@ import { prisma } from '../../config/database';
 import { redis } from '../../config/redis';
 import { NotFoundError, BadRequestError } from '../../shared/errors';
 import { buildCursorPagination, formatPaginatedResponse, type PaginatedResponse } from '../../shared/pagination';
-import { CashlessTransactionType } from '../../generated/prisma/client';
+import { CashlessTransactionType, Prisma } from '../../generated/prisma/client';
 import { LedgerService } from '../ledger/ledger.service';
 import { logger } from '../../shared/logger';
 import { emitWebhookSafe, resolveOrgIdFromEvent } from '../webhooks-outbound/webhook-emit.helper';
@@ -30,6 +30,67 @@ export interface ChargeResult {
   tipCents: number;
   newBalance: number;
   timestamp: Date;
+}
+
+export interface DebitWithinTxArgs {
+  walletId: string;
+  amountCents: number;
+  tipCents?: number;
+  items?: Array<{ productId: string; name: string; qty: number; priceCents: number }>;
+  posId?: string;
+  operatorId?: string;
+  metadata?: Record<string, unknown>;
+}
+
+export async function debitWithinTx(
+  tx: Prisma.TransactionClient,
+  args: DebitWithinTxArgs,
+): Promise<{ transactionId: string; newBalance: number; timestamp: Date }> {
+  const tip = args.tipCents ?? 0;
+  const totalCents = args.amountCents + tip;
+
+  const currentWallet = await tx.cashlessWallet.findUnique({
+    where: { id: args.walletId },
+    select: { balanceCents: true, status: true },
+  });
+  if (!currentWallet) throw new NotFoundError('Carteira não encontrada');
+  if (currentWallet.status !== 'wallet_active')
+    throw new BadRequestError('Carteira não está ativa para compras');
+  if (currentWallet.balanceCents < totalCents)
+    throw new BadRequestError('Saldo insuficiente para realizar esta compra');
+
+  const updated = await tx.cashlessWallet.update({
+    where: { id: args.walletId },
+    data: {
+      balanceCents: { decrement: totalCents },
+      totalSpentCents: { increment: args.amountCents },
+      version: { increment: 1 },
+      lastUsedAt: new Date(),
+    },
+    select: { id: true, balanceCents: true },
+  });
+
+  const transaction = await tx.cashlessTransaction.create({
+    data: {
+      walletId: args.walletId,
+      posId: args.posId,
+      operatorId: args.operatorId,
+      type: 'purchase',
+      status: 'tx_completed',
+      amountCents: args.amountCents,
+      tipCents: tip,
+      balanceAfter: updated.balanceCents,
+      items: args.items,
+      metadata: args.metadata ? JSON.parse(JSON.stringify(args.metadata)) : undefined,
+    },
+    select: { id: true, createdAt: true },
+  });
+
+  return {
+    transactionId: transaction.id,
+    newBalance: updated.balanceCents,
+    timestamp: transaction.createdAt,
+  };
 }
 
 /**
@@ -80,62 +141,33 @@ export class TransactionService {
     // Executar transação atomicamente com isolamento
     const result = await prisma.$transaction(
       async (tx) => {
-        // Verificar saldo novamente (lock pessimista)
-        const currentWallet = await tx.cashlessWallet.findUnique({
-          where: { id: walletId },
-          select: { balanceCents: true },
-        });
-
-        if (!currentWallet || currentWallet.balanceCents < totalCents) {
-          throw new BadRequestError('Saldo insuficiente - transação concorrente detectada');
-        }
-
-        // Decrementar saldo (version: optimistic-lock defense-in-depth — Serializable já protege)
-        const updated = await tx.cashlessWallet.update({
-          where: { id: walletId },
-          data: {
-            balanceCents: {
-              decrement: totalCents,
-            },
-            totalSpentCents: {
-              increment: amountCents, // Não inclui gorjeta no total gasto
-            },
-            version: { increment: 1 },
-            lastUsedAt: new Date(),
-          },
-          select: {
-            id: true,
-            balanceCents: true,
-          },
-        });
-
-        // Criar transação
-        const transaction = await tx.cashlessTransaction.create({
-          data: {
+        try {
+          const debitResult = await debitWithinTx(tx, {
             walletId,
-            posId,
-            operatorId,
-            type: 'purchase',
-            status: 'tx_completed',
             amountCents,
             tipCents,
-            balanceAfter: updated.balanceCents,
             items,
-            metadata: metadata ? JSON.parse(JSON.stringify(metadata)) : undefined,
-          },
-          select: {
-            id: true,
-            createdAt: true,
-          },
-        });
+            posId,
+            operatorId,
+            metadata,
+          });
 
-        return {
-          transactionId: transaction.id,
-          amountCents,
-          tipCents,
-          newBalance: updated.balanceCents,
-          timestamp: transaction.createdAt,
-        };
+          return {
+            transactionId: debitResult.transactionId,
+            amountCents,
+            tipCents,
+            newBalance: debitResult.newBalance,
+            timestamp: debitResult.timestamp,
+          };
+        } catch (err) {
+          if (
+            err instanceof BadRequestError &&
+            err.message === 'Saldo insuficiente para realizar esta compra'
+          ) {
+            throw new BadRequestError('Saldo insuficiente - transação concorrente detectada');
+          }
+          throw err;
+        }
       },
       {
         isolationLevel: 'Serializable',
@@ -318,7 +350,7 @@ export const transactionService = new TransactionService();
 // Helpers — postar no ledger + emitir webhooks (Auditoria CTO 2026-05)
 // ============================================================
 
-async function postCashlessPurchaseToLedger(args: {
+export async function postCashlessPurchaseToLedger(args: {
   walletId: string;
   transactionId: string;
   amountCents: number;
@@ -374,7 +406,7 @@ async function postCashlessPurchaseToLedger(args: {
   }
 }
 
-async function postCashlessRefundToLedger(args: {
+export async function postCashlessRefundToLedger(args: {
   walletId: string;
   originalTransactionId: string;
   amountCents: number;

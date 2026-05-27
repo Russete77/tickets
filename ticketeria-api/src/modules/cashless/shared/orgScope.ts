@@ -59,3 +59,14 @@ export async function assertEventBelongsToOrg(eventId: string, organizationId: s
   }
   return event;
 }
+
+export async function assertCustomerOrderBelongsToOrg(orderId: string, organizationId: string) {
+  const order = await prisma.customerOrder.findUnique({
+    where: { id: orderId },
+    include: { event: { select: { organizationId: true } } },
+  });
+  if (!order || order.event.organizationId !== organizationId) {
+    throw new NotFoundError('Pedido não encontrado');
+  }
+  return order;
+}

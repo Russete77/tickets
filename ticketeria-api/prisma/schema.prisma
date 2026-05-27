@@ -315,6 +315,7 @@ model User {
   posOperations      POSOperator[]
   certificates       Certificate[]
   boxOfficeSessions  BoxOfficeSession[] @relation("BoxOfficeOperator")
+  customerOrders     CustomerOrder[]
 
   @@map("users")
 }
@@ -402,6 +403,7 @@ model Event {
   insurance          EventInsurance?
   boxOfficeSessions  BoxOfficeSession[]
   productCategories  ProductCategory[]
+  customerOrders     CustomerOrder[]
 
   // Índices
   @@index([status, startsAt, category], name: "idx_events_search")
@@ -1008,6 +1010,7 @@ model PointOfSale {
   transactions   CashlessTransaction[]
   stockMovements StockMovement[]
   devices        PosDevice[]
+  customerOrders CustomerOrder[]
 
   @@map("points_of_sale")
 }
@@ -1521,4 +1524,43 @@ enum PaymentGatewayProvider {
   pagarme
   mercadopago
   stripe
+}
+
+enum CustomerOrderStatus {
+  pending
+  preparing
+  ready
+  delivered
+  cancelled
+}
+
+// ============================================
+// NEW MODELS - CUSTOMER ORDERS (Bar ordering, Engine 5)
+// ============================================
+
+model CustomerOrder {
+  id           String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String              @map("user_id") @db.Uuid
+  eventId      String              @map("event_id") @db.Uuid
+  posId        String              @map("pos_id") @db.Uuid
+  walletTxId   String?             @map("wallet_tx_id") @db.Uuid
+  status       CustomerOrderStatus @default(pending)
+  totalCents   Int                 @map("total_cents")
+  items        Json
+  pickupCode   String              @map("pickup_code") @db.VarChar(8)
+  preparingAt  DateTime?           @map("preparing_at") @db.Timestamptz
+  readyAt      DateTime?           @map("ready_at") @db.Timestamptz
+  deliveredAt  DateTime?           @map("delivered_at") @db.Timestamptz
+  cancelledAt  DateTime?           @map("cancelled_at") @db.Timestamptz
+  createdAt    DateTime            @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime            @updatedAt @map("updated_at") @db.Timestamptz
+
+  user  User        @relation(fields: [userId], references: [id])
+  event Event       @relation(fields: [eventId], references: [id])
+  pos   PointOfSale @relation(fields: [posId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([posId, status])
+  @@index([eventId])
+  @@map("customer_orders")
 }
