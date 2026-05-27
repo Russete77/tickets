@@ -12,7 +12,7 @@ import { useTranslation } from '@shared/i18n';
 import styles from './HomePage.module.css';
 
 const HomePage: React.FC = () => {
-  const { t } = useTranslation();
+  useTranslation();
   const { isAuthenticated } = useAuth();
 
   useDocumentHead({

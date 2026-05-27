@@ -53,7 +53,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({
       style={[
         styles.skeleton,
         {
-          width,
+          width: width as number,
           height,
           borderRadius: radius,
           opacity,

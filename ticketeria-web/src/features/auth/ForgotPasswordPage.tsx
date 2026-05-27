@@ -102,4 +102,11 @@ const ForgotPasswordPage: React.FC = () => {
               Lembrou a senha?{' '}
               <Link to="/login">Voltar para o login</Link>
             </p>
- 
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default ForgotPasswordPage;

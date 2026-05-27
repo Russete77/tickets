@@ -16,7 +16,7 @@ interface FormErrors {
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
 
 const ResetPasswordPage: React.FC = () => {
-  const { t } = useTranslation();
+  useTranslation();
   useDocumentHead({
     title: 'Nova senha — Ticketeria Digital',
     description: 'Defina sua nova senha na Ticketeria Digital',

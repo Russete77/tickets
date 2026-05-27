@@ -54,7 +54,7 @@ export const Input: React.FC<InputProps> = ({
         <TextInput
           style={[
             styles.input,
-            icon && styles.inputWithIcon,
+            icon ? styles.inputWithIcon : undefined,
           ]}
           placeholder={placeholder}
           placeholderTextColor={Colors.textTertiary}

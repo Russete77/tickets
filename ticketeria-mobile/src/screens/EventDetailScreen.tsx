@@ -185,7 +185,7 @@ export function EventDetailScreen() {
             </View>
             <View style={styles.metaItem}>
               <Text style={styles.metaLabel}>Horário</Text>
-              <Text style={styles.metaValue}>{formatTime(event.startTime)}</Text>
+              <Text style={styles.metaValue}>{formatTime(event.startTime ?? event.startsAt)}</Text>
             </View>
           </View>
 
@@ -240,7 +240,7 @@ export function EventDetailScreen() {
                   </View>
                 </View>
               )}
-              keyExtractor={(item) => item.id}
+              keyExtractor={(item, index) => item.id ?? item.name ?? String(index)}
               scrollEnabled={false}
             />
           </View>
@@ -284,7 +284,7 @@ export function EventDetailScreen() {
         {/* Ticket Batches */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Escolha seu ingresso</Text>
-          {event.ticketBatches.map((batch) => (
+          {(event.ticketBatches ?? event.batches ?? []).map((batch) => (
             <AvailableBatch key={batch.id} batchId={batch.id} batch={batch} />
           ))}
         </View>

@@ -14,6 +14,8 @@ export interface Event {
     lat?: number;
     lng?: number;
     capacity: number;
+    city?: string;
+    state?: string;
   };
   price: number;
   rating: number;
@@ -29,6 +31,13 @@ export interface Event {
   batches: TicketBatch[];
   producer: ProducerInfo;
   reviews: Review[];
+  startTime?: string;
+  endTime?: string;
+  image?: string;
+  reviewCount?: number;
+  timeline?: Array<{ time: string; title: string; description?: string }>;
+  images?: string[];
+  ticketBatches?: TicketBatch[];
 }
 
 export interface LineupItem {
@@ -36,6 +45,8 @@ export interface LineupItem {
   role?: string;
   imageUrl?: string;
   time?: string;
+  id?: string;
+  image?: string;
 }
 
 export interface ProducerInfo {
@@ -60,6 +71,12 @@ export interface EventSummary {
   price: number;
   rating: number;
   category: string;
+  image?: string;
+  originalPrice?: number;
+  ticketsRemaining?: number;
+  totalCapacity?: number;
+  reviewCount?: number;
+  city?: string;
 }
 
 export interface CategoryFilter {
@@ -78,6 +95,13 @@ export interface TicketBatch {
   isVisible: boolean;
 }
 
+export interface CheckinRecord {
+  id: string;
+  ticketId: string;
+  timestamp: string;
+  location?: string;
+}
+
 export interface Ticket {
   id: string;
   code: string;
@@ -94,6 +118,12 @@ export interface Ticket {
   checkedInAt: string | null;
   qrData?: string;
   createdAt: string;
+  holderName?: string;
+  qrCode?: string;
+  batch?: { name: string };
+  event?: { title: string; venue: { name: string }; date: string };
+  checkins?: CheckinRecord[];
+  ticketHash?: string;
 }
 
 export interface User {
@@ -107,6 +137,14 @@ export interface User {
   avatarUrl: string | null;
   totpEnabled: boolean;
   createdAt: string;
+  avatar?: string | null;
+}
+
+export interface AuthTokens {
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
+  token?: string;
 }
 
 export interface AuthResponse {
@@ -114,12 +152,7 @@ export interface AuthResponse {
   refreshToken: string;
   expiresIn: number;
   user: User;
-}
-
-export interface AuthTokens {
-  accessToken: string;
-  refreshToken: string;
-  expiresIn: number;
+  tokens?: AuthTokens;
 }
 
 export interface Order {
@@ -142,6 +175,7 @@ export interface Review {
   rating: number;
   comment: string;
   createdAt: string;
+  title?: string;
 }
 
 export interface CheckInEvent {
@@ -150,6 +184,8 @@ export interface CheckInEvent {
   startsAt: string;
   totalTickets: number;
   checkedIn: number;
+  date?: string;
+  venue?: string;
 }
 
 export interface CheckInResult {
@@ -161,7 +197,10 @@ export interface CheckInResult {
     name: string;
     email: string;
     cpf: string;
+    holderName?: string;
+    eventTitle?: string;
   } | null;
   message: string;
   checkedInAt?: string;
+  success?: boolean;
 }

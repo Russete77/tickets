@@ -86,13 +86,13 @@ export function MyTicketsScreen() {
       <View style={styles.ticketHeader}>
         <View style={styles.ticketInfo}>
           <Text style={styles.ticketEventTitle} numberOfLines={1}>
-            {ticket.event.title}
+            {ticket.event?.title ?? ticket.eventTitle}
           </Text>
           <Text style={styles.ticketVenue} numberOfLines={1}>
-            {ticket.event.venue.name}
+            {ticket.event?.venue?.name ?? ''}
           </Text>
           <Text style={styles.ticketDate}>
-            {new Date(ticket.event.date).toLocaleDateString('pt-BR')}
+            {new Date(ticket.event?.date ?? ticket.eventStartsAt).toLocaleDateString('pt-BR')}
           </Text>
         </View>
         <View
@@ -114,7 +114,7 @@ export function MyTicketsScreen() {
         </View>
         <View style={styles.detailItem}>
           <Text style={styles.detailLabel}>Lote</Text>
-          <Text style={styles.detailValue}>{ticket.batch.name}</Text>
+          <Text style={styles.detailValue}>{ticket.batch?.name ?? ticket.batchType}</Text>
         </View>
         <View style={styles.detailItem}>
           <Text style={styles.detailLabel}>Código</Text>
@@ -149,7 +149,7 @@ export function MyTicketsScreen() {
       <View style={styles.ticketActions}>
         <TouchableOpacity
           style={styles.actionButton}
-          onPress={() => handleToggleQR(ticket.id, ticket.qrCode)}
+          onPress={() => handleToggleQR(ticket.id, ticket.qrCode ?? ticket.qrData ?? ticket.code)}
         >
           <Text style={styles.actionButtonText}>
             {expandedTicketId === ticket.id ? 'Ocultar QR' : 'Mostrar QR'}

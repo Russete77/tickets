@@ -11,7 +11,7 @@ import styles from './MyTicketsPage.module.css';
 type Tab = 'active' | 'history';
 
 const MyTicketsPage: React.FC = () => {
-  const { t } = useTranslation();
+  useTranslation();
   const [activeTab, setActiveTab] = useState<Tab>('active');
 
   const { data: tickets, isLoading } = useQuery({

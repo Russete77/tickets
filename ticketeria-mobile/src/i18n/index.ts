@@ -26,7 +26,7 @@ const STORAGE_KEY = 'pulsepass.locale';
 
 function detectLocale(): Locale {
   const tags = Localization.getLocales?.() ?? [];
-  const tag = tags[0]?.languageTag ?? Localization.locale ?? 'pt-BR';
+  const tag = tags[0]?.languageTag ?? 'pt-BR';
   if (tag.startsWith('pt')) return 'pt-BR';
   if (tag.startsWith('es')) return 'es-AR';
   if (tag.startsWith('en')) return 'en-US';

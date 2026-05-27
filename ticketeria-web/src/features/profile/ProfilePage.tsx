@@ -19,7 +19,7 @@ const ROLE_LABEL: Record<string, string> = {
 };
 
 const ProfilePage: React.FC = () => {
-  const { t } = useTranslation();
+  useTranslation();
   const { user, setUser } = useAuth();
   const addToast = useToastStore((s) => s.addToast);
 

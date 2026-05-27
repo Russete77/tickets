@@ -58,7 +58,7 @@ export function CheckoutScreen() {
     enabled: !!eventId,
   });
 
-  const batch = event?.ticketBatches.find((b) => b.id === batchId);
+  const batch = (event?.ticketBatches ?? event?.batches)?.find((b: TicketBatch) => b.id === batchId);
 
   const updateHolder = (index: number, field: keyof TicketHolder, value: string) => {
     const newHolders = [...holders];

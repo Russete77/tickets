@@ -1,7 +1,7 @@
 import { Colors, Typography, Spacing, BorderRadius } from './tokens';
 
 export interface Theme {
-  colors: typeof Colors;
+  colors: Record<keyof typeof Colors, string>;
   typography: typeof Typography;
   spacing: typeof Spacing;
   borderRadius: typeof BorderRadius;

@@ -135,4 +135,12 @@ const LoginPage: React.FC = () => {
         </div>
 
         <p className={styles.registerLink}>
-          Não tem uma conta?{
+          Não tem uma conta?{' '}
+          <Link to="/register">Cadastre-se grátis</Link>
+        </p>
+      </div>
+    </div>
+  );
+};
+
+export default LoginPage;

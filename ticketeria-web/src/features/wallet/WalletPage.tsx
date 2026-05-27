@@ -317,4 +317,9 @@ const WalletPage: React.FC = () => {
         </div>
       </div>
 
-      {showModal && <RechargeModal onClose={()
+      {showModal && <RechargeModal onClose={() => setShowModal(false)} />}
+    </PublicLayout>
+  );
+};
+
+export default WalletPage;

@@ -235,4 +235,11 @@ const RegisterPage: React.FC = () => {
 
         <p className={styles.loginLink}>
           Já tem uma conta?{' '}
-          
+          <Link to="/login">Entrar</Link>
+        </p>
+      </div>
+    </div>
+  );
+};
+
+export default RegisterPage;

@@ -4,42 +4,35 @@ import * as Device from 'expo-device';
 import { Platform } from 'react-native';
 import { apiClient } from '../lib/api';
 
-// Configure how notifications appear when app is in foreground
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
     shouldPlaySound: true,
     shouldSetBadge: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
   }),
 });
 
 export function useNotifications() {
-  const notificationListener = useRef<Notifications.Subscription>();
-  const responseListener = useRef<Notifications.Subscription>();
+  const notificationListener = useRef<Notifications.EventSubscription | null>(null);
+  const responseListener = useRef<Notifications.EventSubscription | null>(null);
 
   useEffect(() => {
-    registerForPushNotifications();
+    void registerForPushNotifications();
 
-    // Listen for incoming notifications while app is foregrounded
     notificationListener.current = Notifications.addNotificationReceivedListener((notification) => {
       console.log('[Push] Received:', notification.request.content.title);
     });
 
-    // Listen for user tapping on a notification
     responseListener.current = Notifications.addNotificationResponseReceivedListener((response) => {
       const data = response.notification.request.content.data;
       console.log('[Push] Tapped:', data);
-      // Deep linking will be handled by Expo Router automatically
-      // if data contains a URL/route
     });
 
     return () => {
-      if (notificationListener.current) {
-        Notifications.removeNotificationSubscription(notificationListener.current);
-      }
-      if (responseListener.current) {
-        Notifications.removeNotificationSubscription(responseListener.current);
-      }
+      notificationListener.current?.remove();
+      responseListener.current?.remove();
     };
   }, []);
 }

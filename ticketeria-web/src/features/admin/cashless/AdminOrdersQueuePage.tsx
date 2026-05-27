@@ -88,10 +88,10 @@ const AdminOrdersQueuePage: React.FC = () => {
         body: JSON.stringify({ organizationId, status: next }),
       }),
     onSuccess: (order) => {
-      addToast({ kind: 'success', message: `Pedido ${order.pickupCode} → ${order.status}` });
+      addToast({ type: 'success', message: `Pedido ${order.pickupCode} → ${order.status}` });
       void qc.invalidateQueries({ queryKey: ['customer-orders-admin', organizationId] });
     },
-    onError: (e: Error) => addToast({ kind: 'error', message: e.message }),
+    onError: (e: Error) => addToast({ type: 'error', message: e.message }),
   });
 
   useEffect(() => {

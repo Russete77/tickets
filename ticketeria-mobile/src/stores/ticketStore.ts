@@ -42,7 +42,7 @@ export const useTicketStore = create<TicketStore>()(
         const offlineTicket: OfflineTicket = {
           ...ticket,
           syncedAt: now,
-          lastOfflineCheckinsCount: ticket.checkins.length,
+          lastOfflineCheckinsCount: ticket.checkins?.length ?? 0,
         };
 
         let newTickets: OfflineTicket[];
@@ -111,7 +111,7 @@ export const useTicketStore = create<TicketStore>()(
         return get().offlineTickets.filter((ticket) => {
           // Check if there are new checkins that haven't been synced
           const checkinCountDifference =
-            ticket.checkins.length - ticket.lastOfflineCheckinsCount;
+            (ticket.checkins?.length ?? 0) - ticket.lastOfflineCheckinsCount;
           return checkinCountDifference > 0;
         });
       },

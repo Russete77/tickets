@@ -42,18 +42,20 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         password,
       });
 
-      const { user, tokens } = response;
+      const { user } = response;
+      const accessToken = response.tokens?.token ?? response.accessToken;
+      const refreshToken = response.tokens?.refreshToken ?? response.refreshToken;
 
       // Store tokens securely
       await Promise.all([
-        secureStorage.setItem(StorageKey.AUTH_TOKEN, tokens.token),
-        secureStorage.setItem(StorageKey.REFRESH_TOKEN, tokens.refreshToken),
+        secureStorage.setItem(StorageKey.AUTH_TOKEN, accessToken),
+        secureStorage.setItem(StorageKey.REFRESH_TOKEN, refreshToken),
         secureStorage.setJSON(StorageKey.USER_DATA, user),
       ]);
 
       set({
         user,
-        token: tokens.token,
+        token: accessToken,
         isAuthenticated: true,
         isLoading: false,
       });
@@ -73,18 +75,20 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     try {
       const response = await apiClient.post<AuthResponse>('/auth/register', data);
 
-      const { user, tokens } = response;
+      const { user } = response;
+      const accessToken = response.tokens?.token ?? response.accessToken;
+      const refreshToken = response.tokens?.refreshToken ?? response.refreshToken;
 
       // Store tokens securely
       await Promise.all([
-        secureStorage.setItem(StorageKey.AUTH_TOKEN, tokens.token),
-        secureStorage.setItem(StorageKey.REFRESH_TOKEN, tokens.refreshToken),
+        secureStorage.setItem(StorageKey.AUTH_TOKEN, accessToken),
+        secureStorage.setItem(StorageKey.REFRESH_TOKEN, refreshToken),
         secureStorage.setJSON(StorageKey.USER_DATA, user),
       ]);
 
       set({
         user,
-        token: tokens.token,
+        token: accessToken,
         isAuthenticated: true,
         isLoading: false,
       });

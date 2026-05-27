@@ -55,8 +55,10 @@ export function CheckinScreen() {
     },
     onError: (error: any) => {
       setCheckInResult({
-        success: false,
+        result: 'invalid_hash',
+        ticket: null,
         message: error.message || 'Erro ao validar ingresso',
+        success: false,
       });
     },
   });

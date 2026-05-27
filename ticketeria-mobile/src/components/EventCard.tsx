@@ -32,8 +32,10 @@ export const EventCard: React.FC<EventCardProps> = ({
   const imageStyle = isLargeSize ? styles.largeImage : styles.normalImage;
   const contentStyle = isLargeSize ? styles.largeContent : styles.normalContent;
 
-  const ticketsPercentage = (event.ticketsRemaining / event.totalCapacity) * 100;
-  const isUrgent = ticketsPercentage < 20 && event.ticketsRemaining > 0;
+  const remaining = event.ticketsRemaining ?? 0;
+  const total = event.totalCapacity ?? 1;
+  const ticketsPercentage = (remaining / total) * 100;
+  const isUrgent = ticketsPercentage < 20 && remaining > 0;
 
   const formattedDate = new Date(event.date).toLocaleDateString('pt-BR', {
     month: 'short',
@@ -89,7 +91,7 @@ export const EventCard: React.FC<EventCardProps> = ({
         <View style={styles.infoRow}>
           <Text style={styles.infoLabel}>Local</Text>
           <Text style={[styles.infoValue, styles.venueText]} numberOfLines={1}>
-            {event.venue}
+            {typeof event.venue === 'string' ? event.venue : event.venue?.name ?? ''}
           </Text>
         </View>
 
