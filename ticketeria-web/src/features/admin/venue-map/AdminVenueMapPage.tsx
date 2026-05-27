@@ -44,8 +44,8 @@ const AdminVenueMapPage: React.FC = () => {
     queryFn: async () => {
       try {
         return await cashlessApi<VenueMap>(`/events/${eventId}/map`);
-      } catch (e: any) {
-        if (String(e.message ?? '').startsWith('404')) {
+      } catch (e: unknown) {
+        if (String((e as Error)?.message ?? '').startsWith('404')) {
           return { id: '', eventId, svgUrl: null, zones: [] } as VenueMap;
         }
         throw e;

@@ -2,7 +2,9 @@ import { Request, Response, NextFunction } from 'express';
 import { UnauthorizedError } from '../shared/errors';
 import { PosDeviceService } from '../modules/pos-devices/pos-devices.service';
 
+// eslint-disable-next-line @typescript-eslint/no-namespace
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface Request {
       posDevice?: { id: string; posId: string; organizationId: string };

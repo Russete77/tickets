@@ -13,7 +13,9 @@ import { Request, Response, NextFunction } from 'express';
  * a request quando o fingerprint não vier.
  */
 
+// eslint-disable-next-line @typescript-eslint/no-namespace
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface Request {
       deviceFingerprint?: string;

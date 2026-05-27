@@ -19,7 +19,7 @@ interface PostEventReviewJobData {
  */
 export const postEventReviewWorker = new Worker<PostEventReviewJobData>(
   'post-event-review',
-  async (job: Job<PostEventReviewJobData>) => {
+  async (_job: Job<PostEventReviewJobData>) => {
     logger.info('📝 Post-event review worker iniciando...');
 
     const now = new Date();

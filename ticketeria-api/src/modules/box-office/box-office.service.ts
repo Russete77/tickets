@@ -356,6 +356,7 @@ export class BoxOfficeService {
    * Gera hash único para ingresso
    */
   private generateTicketHash(): string {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const crypto = require('crypto');
     return crypto.randomBytes(32).toString('hex');
   }
@@ -364,6 +365,7 @@ export class BoxOfficeService {
    * Gera segredo TOTP para ingresso
    */
   private generateTotpSecret(): string {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const crypto = require('crypto');
     return crypto.randomBytes(32).toString('hex');
   }

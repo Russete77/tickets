@@ -250,7 +250,7 @@ export class SearchService {
     sundayEnd.setDate(sundayEnd.getDate() + daysUntilMonday);
     sundayEnd.setHours(23, 59, 59, 999);
 
-    let whereClause: Record<string, any> = {
+    const whereClause: Record<string, any> = {
       status: 'published',
       startsAt: {
         gte: fridayStart,

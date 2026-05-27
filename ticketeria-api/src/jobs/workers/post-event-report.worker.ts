@@ -39,7 +39,7 @@ interface EventReport {
  */
 export const postEventReportWorker = new Worker<PostEventReportJobData>(
   'post-event-report',
-  async (job: Job<PostEventReportJobData>) => {
+  async (_job: Job<PostEventReportJobData>) => {
     logger.info('📊 Post-event report worker iniciando...');
 
     const now = new Date();

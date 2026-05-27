@@ -110,7 +110,7 @@ describe('useToastStore', () => {
       expect(useToastStore.getState().toasts).toHaveLength(2);
 
       vi.advanceTimersByTime(1000);
-      let toasts = useToastStore.getState().toasts;
+      const toasts = useToastStore.getState().toasts;
       expect(toasts).toHaveLength(1);
       expect(toasts[0].message).toBe('Slow toast');
 
@@ -127,7 +127,7 @@ describe('useToastStore', () => {
         type: 'success',
       });
 
-      let toasts = useToastStore.getState().toasts;
+      const toasts = useToastStore.getState().toasts;
       const toastId = toasts[0].id;
       store.removeToast(toastId);
 
@@ -177,7 +177,7 @@ describe('useToastStore', () => {
         type: 'error',
       });
 
-      let toasts = useToastStore.getState().toasts;
+      const toasts = useToastStore.getState().toasts;
       const firstToastId = toasts[0].id;
       const secondToastId = toasts[1].id;
 

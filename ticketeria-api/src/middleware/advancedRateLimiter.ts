@@ -1,8 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { redis } from '../config/redis';
 import { logger } from '../shared/logger';
-import { TooManyRequestsError } from '../shared/errors';
-import { CustomRequest, RateLimitCheckResult } from '../types/middleware.types';
+import { CustomRequest } from '../types/middleware.types';
 
 const RATE_LIMIT_PREFIX = 'ratelimit:';
 

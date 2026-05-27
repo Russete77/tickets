@@ -70,7 +70,9 @@ describe('PaymentsService', () => {
       // Even though downstream Asaas integration may fail, CheckoutService was called
       try {
         await PaymentsService.checkout(user.id, checkoutInput as any);
-      } catch {}
+      } catch {
+        // ignore — only assertion below matters
+      }
 
       expect(CheckoutService.checkout).toHaveBeenCalled();
     });
@@ -174,7 +176,9 @@ describe('PaymentsService', () => {
       // Even if downstream Asaas fails, CheckoutService was called
       try {
         await PaymentsService.checkout(user.id, checkoutInput as any);
-      } catch {}
+      } catch {
+        // ignore — only assertion below matters
+      }
 
       expect(CheckoutService.checkout).toHaveBeenCalled();
     });

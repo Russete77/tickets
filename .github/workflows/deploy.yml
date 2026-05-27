@@ -31,6 +31,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Compute lowercase image name
+        id: img
+        run: echo "name=ghcr.io/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')/api" >> "$GITHUB_OUTPUT"
+
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
@@ -38,8 +42,8 @@ jobs:
           file: ./ticketeria-api/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}/api:latest
-            ghcr.io/${{ github.repository }}/api:${{ github.sha }}
+            ${{ steps.img.outputs.name }}:latest
+            ${{ steps.img.outputs.name }}:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -49,6 +53,8 @@ jobs:
   web-deploy:
     name: Deploy web → Cloudflare Pages
     runs-on: ubuntu-22.04
+    # Skip se secrets Cloudflare não configurados (gate para evitar falha automática)
+    if: ${{ vars.ENABLE_CLOUDFLARE_DEPLOY == 'true' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -62,11 +68,14 @@ jobs:
         env:
           VITE_API_BASE_URL: ${{ secrets.PROD_API_BASE_URL }}
 
-      - uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy ticketeria-web/dist --project-name=pulsepass-web
+      - name: Install Wrangler
+        run: npm install -g wrangler@4
+
+      - name: Deploy to Cloudflare Pages
+        run: wrangler pages deploy ticketeria-web/dist --project-name=pulsepass-web
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
   # =============================================================
   # Mobile EAS Build (apenas em tags vX.Y.Z)

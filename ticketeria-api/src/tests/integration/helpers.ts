@@ -212,6 +212,7 @@ export async function generateTestJWT(
   userId: string,
   secret: string = 'test-access-secret-minimum-32-characters-length-here'
 ): Promise<string> {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const jwt = require('jsonwebtoken');
   return jwt.sign(
     { userId, iat: Math.floor(Date.now() / 1000) },

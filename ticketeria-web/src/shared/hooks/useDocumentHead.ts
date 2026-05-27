@@ -14,7 +14,7 @@ export interface DocumentHeadConfig {
   twitterTitle?: string;
   twitterDescription?: string;
   twitterImage?: string;
-  jsonLd?: Record<string, any>;
+  jsonLd?: Record<string, unknown>;
 }
 
 /**

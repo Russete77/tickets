@@ -10,7 +10,9 @@ export interface AuthPayload {
   role: UserRole;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-namespace
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface Request {
       user?: AuthPayload;

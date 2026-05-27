@@ -20,7 +20,7 @@ interface BatchScheduleJobData {
  */
 export const batchScheduleWorker = new Worker<BatchScheduleJobData>(
   'batch-schedule',
-  async (job: Job<BatchScheduleJobData>) => {
+  async (_job: Job<BatchScheduleJobData>) => {
     logger.info('⏰ Batch schedule worker iniciando...');
 
     const now = new Date();
