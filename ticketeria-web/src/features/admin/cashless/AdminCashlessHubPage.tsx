@@ -7,6 +7,7 @@ const cards = [
   { key: 'products', label: 'Produtos', desc: 'Cardápio, preços, fotos, estoque.' },
   { key: 'operators', label: 'Operadores', desc: 'Bartenders e seus PINs.' },
   { key: 'stock', label: 'Estoque', desc: 'Visão geral e movimentações.' },
+  { key: 'orders', label: 'Pedidos pelo app', desc: 'Fila em tempo real dos pedidos feitos pelos clientes.' },
 ];
 
 const AdminCashlessHubPage: React.FC = () => {

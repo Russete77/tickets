@@ -48,6 +48,7 @@ const AdminCashlessCategoriesPage = lazy(() => import('@features/admin/cashless/
 const AdminCashlessProductsPage = lazy(() => import('@features/admin/cashless/AdminProductsPage'));
 const AdminCashlessOperatorsPage = lazy(() => import('@features/admin/cashless/AdminOperatorsPage'));
 const AdminCashlessStockPage = lazy(() => import('@features/admin/cashless/AdminStockOverviewPage'));
+const AdminCashlessOrdersQueuePage = lazy(() => import('@features/admin/cashless/AdminOrdersQueuePage'));
 
 // User pages
 const WalletPage = lazy(() => import('@features/wallet/WalletPage'));
@@ -143,6 +144,7 @@ const router = createBrowserRouter([
   { path: '/admin/orgs/:organizationId/events/:eventId/cashless/products', element: adminWrap(<AdminCashlessProductsPage />) },
   { path: '/admin/orgs/:organizationId/events/:eventId/cashless/operators', element: adminWrap(<AdminCashlessOperatorsPage />) },
   { path: '/admin/orgs/:organizationId/events/:eventId/cashless/stock', element: adminWrap(<AdminCashlessStockPage />) },
+  { path: '/admin/orgs/:organizationId/events/:eventId/cashless/orders', element: adminWrap(<AdminCashlessOrdersQueuePage />) },
 
   // ── Catch-all ──
   { path: '*', element: <Navigate to="/" replace /> },

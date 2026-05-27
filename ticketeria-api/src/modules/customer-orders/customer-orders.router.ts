@@ -1,5 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { authenticate } from '../../middleware/auth';
+import { requireOrganizationRole } from '../../middleware/organization';
 import { validate } from '../../middleware/validate';
 import { idempotency } from '../../middleware/idempotency';
 import { CustomRequest } from '../../types/middleware.types';
@@ -9,6 +10,7 @@ import {
   updateCustomerOrderStatusSchema,
   customerOrderIdParamsSchema,
   myCustomerOrdersQuerySchema,
+  adminListCustomerOrdersQuerySchema,
 } from './customer-orders.validators';
 
 const router = Router();
@@ -67,6 +69,43 @@ router.get(
         },
       });
       res.json({ success: true, data: orders });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+/**
+ * GET /customer-orders/admin
+ * Listar fila admin de pedidos (operador) filtrada por org / pos / status
+ */
+router.get(
+  '/admin',
+  authenticate,
+  validate({ query: adminListCustomerOrdersQuerySchema }),
+  requireOrganizationRole('viewer'),
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const query = req.query as unknown as {
+        organizationId: string;
+        eventId?: string;
+        posId?: string;
+        status?: string[];
+        cursor?: string;
+        limit?: number;
+      };
+      const data = await CustomerOrdersService.listAdmin({
+        organizationId: query.organizationId,
+        eventId: query.eventId,
+        posId: query.posId,
+        statuses: query.status,
+        pagination: {
+          cursor: query.cursor,
+          limit: query.limit ?? 20,
+          direction: 'forward',
+        },
+      });
+      res.json({ success: true, data });
     } catch (error) {
       next(error);
     }

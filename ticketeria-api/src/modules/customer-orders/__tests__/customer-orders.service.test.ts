@@ -1,6 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-const events = new Map([['ev-1', { id: 'ev-1', organizationId: 'org-1' }]]);
+const events = new Map([
+  ['ev-1', { id: 'ev-1', organizationId: 'org-1' }],
+  ['ev-2', { id: 'ev-2', organizationId: 'org-2' }],
+]);
 const pos = new Map([['pos-1', { id: 'pos-1', eventId: 'ev-1', type: 'bar', isArchived: false }]]);
 const products = new Map<string, any>([
   ['p-1', { id: 'p-1', posId: 'pos-1', name: 'Cerveja', priceCents: 1000, stockQty: 5, isArchived: false }],
@@ -80,8 +83,15 @@ vi.mock('../../../config/database', () => ({
     customerOrder: {
       findUnique: vi.fn(({ where }) => Promise.resolve(orders.get(where.id) ?? null)),
       findMany: vi.fn(({ where }) => {
-        const all = [...orders.values()];
-        if (where?.userId) return Promise.resolve(all.filter((o) => o.userId === where.userId));
+        let all = [...orders.values()];
+        if (where?.userId) all = all.filter((o) => o.userId === where.userId);
+        if (where?.eventId) all = all.filter((o) => o.eventId === where.eventId);
+        if (where?.posId) all = all.filter((o) => o.posId === where.posId);
+        if (where?.status?.in) all = all.filter((o) => where.status.in.includes(o.status));
+        else if (typeof where?.status === 'string') all = all.filter((o) => o.status === where.status);
+        if (where?.event?.organizationId) {
+          all = all.filter((o) => events.get(o.eventId)?.organizationId === where.event.organizationId);
+        }
         return Promise.resolve(all);
       }),
       update: vi.fn(({ where, data }) => {
@@ -111,6 +121,8 @@ vi.mock('../../cashless/shared/orgScope', () => ({
     return o;
   }),
 }));
+vi.mock('../../../jobs/queue', () => ({ pushQueue: { add: vi.fn(() => Promise.resolve()) } }));
+import { pushQueue } from '../../../jobs/queue';
 
 import { CustomerOrdersService } from '../customer-orders.service';
 
@@ -234,6 +246,62 @@ describe('CustomerOrdersService.cancelByCustomer', () => {
     const o = await CustomerOrdersService.create({ userId: 'u-1', eventId: 'ev-1', posId: 'pos-1', items: [{ productId: 'p-1', qty: 1 }] });
     await expect(CustomerOrdersService.cancelByCustomer({ orderId: o.id, userId: 'outro' }))
       .rejects.toThrow();
+  });
+});
+
+describe('CustomerOrdersService.updateStatus push trigger', () => {
+  beforeEach(() => {
+    orders.clear(); vi.clearAllMocks();
+    wallets.set('w-1', { id: 'w-1', eventId: 'ev-1', userId: 'u-1', balanceCents: 5000, status: 'wallet_active', version: 0, totalSpentCents: 0 });
+    products.set('p-1', { id: 'p-1', posId: 'pos-1', name: 'Cerveja', priceCents: 1000, stockQty: 5, isArchived: false });
+    txProducts.clear(); products.forEach((v, k) => txProducts.set(k, { ...v }));
+  });
+  it('enfileira push quando status muda para ready', async () => {
+    const o = await CustomerOrdersService.create({ userId: 'u-1', eventId: 'ev-1', posId: 'pos-1', items: [{ productId: 'p-1', qty: 1 }] });
+    await CustomerOrdersService.updateStatus({ orderId: o.id, operatorId: 'op-1', organizationId: 'org-1', status: 'preparing' });
+    (pushQueue.add as any).mockClear();
+    await CustomerOrdersService.updateStatus({ orderId: o.id, operatorId: 'op-1', organizationId: 'org-1', status: 'ready' });
+    expect(pushQueue.add).toHaveBeenCalledTimes(1);
+    const [, payload] = (pushQueue.add as any).mock.calls[0];
+    expect(payload.userId).toBe('u-1');
+    expect(payload.title).toMatch(/pronto/i);
+    expect(payload.data.type).toBe('customer_order_ready');
+    expect(payload.data.orderId).toBe(o.id);
+    expect(payload.data.pickupCode).toBe(o.pickupCode);
+  });
+  it('NÃO enfileira push em transições que não são ready', async () => {
+    const o = await CustomerOrdersService.create({ userId: 'u-1', eventId: 'ev-1', posId: 'pos-1', items: [{ productId: 'p-1', qty: 1 }] });
+    (pushQueue.add as any).mockClear();
+    await CustomerOrdersService.updateStatus({ orderId: o.id, operatorId: 'op-1', organizationId: 'org-1', status: 'preparing' });
+    expect(pushQueue.add).not.toHaveBeenCalled();
+  });
+});
+
+describe('CustomerOrdersService.listAdmin', () => {
+  beforeEach(() => {
+    orders.clear(); vi.clearAllMocks();
+    wallets.set('w-1', { id: 'w-1', eventId: 'ev-1', userId: 'u-1', balanceCents: 5000, status: 'wallet_active', version: 0, totalSpentCents: 0 });
+    products.set('p-1', { id: 'p-1', posId: 'pos-1', name: 'Cerveja', priceCents: 1000, stockQty: 5, isArchived: false });
+    txProducts.clear(); products.forEach((v, k) => txProducts.set(k, { ...v }));
+  });
+  it('happy path: lista pedidos da org', async () => {
+    await CustomerOrdersService.create({ userId: 'u-1', eventId: 'ev-1', posId: 'pos-1', items: [{ productId: 'p-1', qty: 1 }] });
+    await CustomerOrdersService.create({ userId: 'u-1', eventId: 'ev-1', posId: 'pos-1', items: [{ productId: 'p-1', qty: 2 }] });
+    const res = await CustomerOrdersService.listAdmin({ organizationId: 'org-1', pagination: { limit: 20, direction: 'forward' } });
+    expect(res.data.length).toBe(2);
+  });
+  it('filtra por status (in)', async () => {
+    const a = await CustomerOrdersService.create({ userId: 'u-1', eventId: 'ev-1', posId: 'pos-1', items: [{ productId: 'p-1', qty: 1 }] });
+    await CustomerOrdersService.create({ userId: 'u-1', eventId: 'ev-1', posId: 'pos-1', items: [{ productId: 'p-1', qty: 1 }] });
+    await CustomerOrdersService.updateStatus({ orderId: a.id, operatorId: 'op-1', organizationId: 'org-1', status: 'preparing' });
+    const res = await CustomerOrdersService.listAdmin({ organizationId: 'org-1', statuses: ['pending'], pagination: { limit: 20, direction: 'forward' } });
+    expect(res.data.length).toBe(1);
+    expect(res.data[0].status).toBe('pending');
+  });
+  it('IDOR: não retorna order de outra organização', async () => {
+    await CustomerOrdersService.create({ userId: 'u-1', eventId: 'ev-1', posId: 'pos-1', items: [{ productId: 'p-1', qty: 1 }] });
+    const res = await CustomerOrdersService.listAdmin({ organizationId: 'org-2', pagination: { limit: 20, direction: 'forward' } });
+    expect(res.data.length).toBe(0);
   });
 });
 

@@ -79,6 +79,28 @@ export default function RootLayout() {
               headerTitleStyle: { fontWeight: '600', color: Colors.textPrimary },
             }}
           />
+          <Stack.Screen
+            name="bar/[posId]"
+            options={{
+              headerShown: true,
+              headerBackTitle: 'Voltar',
+              title: 'Pedir no bar',
+              headerStyle: { backgroundColor: Colors.bg },
+              headerTintColor: Colors.textPrimary,
+              headerTitleStyle: { fontWeight: '600', color: Colors.textPrimary },
+            }}
+          />
+          <Stack.Screen
+            name="orders"
+            options={{
+              headerShown: true,
+              headerBackTitle: 'Voltar',
+              title: 'Meus pedidos',
+              headerStyle: { backgroundColor: Colors.bg },
+              headerTintColor: Colors.textPrimary,
+              headerTitleStyle: { fontWeight: '600', color: Colors.textPrimary },
+            }}
+          />
         </Stack>
         )}
         <StatusBar style="light" />

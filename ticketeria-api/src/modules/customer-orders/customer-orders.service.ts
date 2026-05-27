@@ -5,6 +5,7 @@ import { debitWithinTx, postCashlessPurchaseToLedger, transactionService } from 
 import { assertCustomerOrderBelongsToOrg } from '../cashless/shared/orgScope';
 import { buildCursorPagination, formatPaginatedResponse } from '../../shared/pagination';
 import { emitCustomerOrderNew, emitCustomerOrderStatus } from './shared/customerOrderEvents';
+import { pushQueue } from '../../jobs/queue';
 
 const CONSUMER_POS = ['bar', 'mobile', 'totem', 'vip_lounge', 'food_truck'];
 
@@ -227,6 +228,19 @@ export class CustomerOrdersService {
       pickupCode: updated.pickupCode,
       ts: Date.now(),
     });
+    if (input.status === 'ready') {
+      await pushQueue.add('customer-order-ready', {
+        userId: updated.userId,
+        title: 'Seu pedido está pronto! 🍺',
+        body: `Retire no balcão com o código ${updated.pickupCode}`,
+        data: {
+          type: 'customer_order_ready',
+          orderId: updated.id,
+          pickupCode: updated.pickupCode,
+          posId: updated.posId,
+        },
+      });
+    }
     await logAudit({
       actorId: input.operatorId,
       action: AuditActions.CUSTOMER_ORDER_STATUS_CHANGED,
@@ -285,6 +299,24 @@ export class CustomerOrdersService {
     const where: Record<string, unknown> = { userId: input.userId };
     if (input.filters?.status) where.status = input.filters.status;
     if (input.filters?.eventId) where.eventId = input.filters.eventId;
+    const rows = await prisma.customerOrder.findMany({ where, ...cp });
+    return formatPaginatedResponse(rows, input.pagination.limit);
+  }
+
+  static async listAdmin(input: {
+    organizationId: string;
+    eventId?: string;
+    posId?: string;
+    statuses?: string[];
+    pagination: { cursor?: string; limit: number; direction: 'forward' | 'backward' };
+  }) {
+    const cp = buildCursorPagination(input.pagination);
+    const where: Record<string, unknown> = {
+      event: { organizationId: input.organizationId },
+    };
+    if (input.eventId) where.eventId = input.eventId;
+    if (input.posId) where.posId = input.posId;
+    if (input.statuses && input.statuses.length > 0) where.status = { in: input.statuses };
     const rows = await prisma.customerOrder.findMany({ where, ...cp });
     return formatPaginatedResponse(rows, input.pagination.limit);
   }

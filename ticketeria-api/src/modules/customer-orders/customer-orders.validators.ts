@@ -29,3 +29,29 @@ export const myCustomerOrdersQuerySchema = z.object({
   status: z.enum(['pending', 'preparing', 'ready', 'delivered', 'cancelled']).optional(),
   eventId: z.string().uuid().optional(),
 });
+
+const CUSTOMER_ORDER_STATUSES = ['pending', 'preparing', 'ready', 'delivered', 'cancelled'] as const;
+type CustomerOrderStatus = (typeof CUSTOMER_ORDER_STATUSES)[number];
+const customerOrderStatusValues: ReadonlyArray<string> = CUSTOMER_ORDER_STATUSES;
+
+export const adminListCustomerOrdersQuerySchema = z.object({
+  organizationId: z.string().uuid(),
+  eventId: z.string().uuid().optional(),
+  posId: z.string().uuid().optional(),
+  status: z
+    .string()
+    .optional()
+    .transform((csv, ctx) => {
+      if (!csv) return undefined;
+      const parts = csv.split(',').map((s) => s.trim()).filter(Boolean);
+      for (const p of parts) {
+        if (!customerOrderStatusValues.includes(p)) {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, message: `status inválido: ${p}` });
+          return z.NEVER;
+        }
+      }
+      return parts as CustomerOrderStatus[];
+    }),
+  cursor: z.string().optional(),
+  limit: z.coerce.number().int().min(1).max(100).optional(),
+});
