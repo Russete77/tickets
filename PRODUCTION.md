@@ -252,4 +252,55 @@ curl "https://api.pulsepass.com.br/api/v1/branding/by-domain?host=festas.cliente
 - LGPD requests: usar endpoints `/users/me/data` (export) e `DELETE /users/me` (anonimização)
 - Customer success: dashboard admin tem todas as ferramentas (organization, branding, webhooks, ledger, API keys)
 
+## 9. SLOs formais (2026-05-27)
+
+| Serviço | SLO | Indicador | Janela | Alvo |
+|---|---|---|---|---|
+| API público (GET) | latência | p95 `/events` | 30d | < 500 ms |
+| API checkout (POST) | disponibilidade | 2xx ratio | 30d | ≥ 99.5% |
+| Checkin scan | latência | p95 `/checkin/scan` | 7d | < 800 ms |
+| Cashless charge | latência | p95 `/cashless/wallet/:id/charge` | 7d | < 600 ms |
+| Customer order create | latência | p95 `/customer-orders POST` | 7d | < 700 ms |
+| Webhook outbound delivery | success | delivered/(delivered+abandoned) | 24h | ≥ 99% |
+| Push delivery | success | `pushDeliveredCounter`/total | 24h | ≥ 95% |
+| Heatmap publish | freshness | gap entre ticks | live | < 60s |
+| Ledger close invariants | correctness | events_closed sem erro | 30d | 100% |
+
+Error budget = (1 − SLO) × janela. Quando o budget queimar > 50% antes da metade da janela, frear releases e investigar.
+
+## 10. Engine 5 — Super App (2026-05)
+
+### 10.1 Componentes
+- **Pedido pelo bar** (`/customer-orders/*`) — backend + mobile `BarMenuScreen`/`MyOrdersScreen` + web `AdminOrdersQueuePage`
+- **Notification triggers** (worker `notification-trigger.worker.ts`) — cron a cada 5min, regras: event_starts_in_2h, event_starts_in_30min, batch_opens, upsell_remarketing
+- **Venue map** (`VenueMap` model + `/events/:id/map`) — admin SVG editor + mobile `VenueMapScreen`
+- **Heatmap ocupação** (`zone-occupancy.worker.ts`) — cron 30s, agrega `CheckinLog.metadata.zoneId` por zona, publica via Socket.IO `event:${id}` evento `zone:occupancy`
+- **Social** (`Friendship` model + `/friendships/*` + `/events/:id/friends-present`) — request/accept/block, "amigos presentes"
+- **Gamificação** (`Achievement` + `UserAchievement`) — catálogo seed: first_event, five_events, ten_events, first_purchase, big_spender, social_butterfly; worker `achievement-evaluator` diário às 5h
+
+### 10.2 Capturando zone-aware checkins (heatmap)
+O heatmap depende de `CheckinLog.metadata.zoneId`. Operadores devem incluir esse campo ao escanear (já suportado pelo payload — o mobile precisa preencher quando o app souber em qual zone o operador está). Sem isso, todos os checkins caem na zone fallback `general`.
+
+### 10.3 Migrations Engine 5
+- `20260604000000_add_customer_orders`
+- `20260605000000_add_venue_maps`
+- `20260606000000_add_social_and_achievements`
+
+Rodar nessa ordem em Postgres real (`npm run db:migrate`).
+
+## 11. Smoke / load test
+
+```bash
+# Smoke pré-prod (k6)
+k6 run scripts/load-test.k6.js --env BASE_URL=https://staging.pulsepass.com.br/api/v1
+```
+
+Critérios de aprovação:
+- p95 < 500ms sustentado por 2min com 50 VUs
+- error rate < 1%
+- zero erros 5xx
+- queue depths estáveis no painel BullMQ
+
+Rodar antes de qualquer release que toque rotas hot (events, checkout, checkin, cashless, customer-orders).
+
 — Auditoria CTO 2026-05 completa. Bora pra produção.
