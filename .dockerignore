@@ -1,0 +1,20 @@
+# Monorepo .dockerignore — usado quando context=. para builds da API
+**/node_modules
+**/dist
+**/coverage
+**/.env
+**/.env.local
+**/.env.production
+.git
+.github
+.vscode
+.idea
+.claude
+*.md
+docker-data
+
+# Workspaces que não são usados pela API (reduz contexto/cache)
+ticketeria-web
+ticketeria-admin
+ticketeria-mobile
+scripts/load-test.k6.js

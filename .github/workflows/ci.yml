@@ -31,6 +31,12 @@ jobs:
       - name: Install
         run: npm ci
 
+      - name: Generate Prisma client
+        run: npm run db:generate
+
+      - name: Build shared types
+        run: npm run build:types
+
       - name: Lint
         run: npm run lint
 
@@ -52,6 +58,7 @@ jobs:
           cache: 'npm'
 
       - run: npm ci
+      - run: npm run db:generate
       - run: npm run build:types
 
       - name: Run API tests with coverage
@@ -121,11 +128,11 @@ jobs:
           cache: 'npm'
 
       - run: npm ci
+      - run: npm run db:generate
       - run: npm run build:types
 
-      - name: Generate Prisma client
-        working-directory: ticketeria-api
-        run: npm run db:generate
+      - name: Apply Prisma client (generated above; placeholder for sequencing)
+        run: echo "client generated"
 
       - name: Apply migrations
         working-directory: ticketeria-api
@@ -165,6 +172,7 @@ jobs:
           cache: 'npm'
 
       - run: npm ci
+      - run: npm run db:generate
       - run: npm run build
 
       - name: Upload web dist
