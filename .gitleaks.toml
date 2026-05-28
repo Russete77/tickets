@@ -1,0 +1,32 @@
+# Allowlist de strings que parecem secrets mas são placeholders/mocks intencionais.
+# Cada um foi auditado e confirmado como não-secret real.
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Mocks, docs e placeholders sem secret real"
+paths = [
+  '''ticketeria-web/src/mocks/.*''',
+  '''ticketeria-mobile/src/mocks/.*''',
+  '''ticketeria-api/src/mocks/.*''',
+  '''.*/__tests__/.*''',
+  '''.*/__mocks__/.*''',
+  '''docs/.*\.md''',
+  '''README\.md''',
+  '''AUDITORIA.*\.md''',
+  '''PLANO_EXECUCAO.*\.md''',
+  '''HUMAN_ACTIONS\.md''',
+  '''PRODUCTION\.md''',
+  '''RESOLVIDO\.md''',
+  '''CONVENCOES_CODIGO\.md''',
+  '''ticketeria-api/\.env\.example''',
+]
+regexes = [
+  '''REDACTED''',
+  '''fake-.*-mock''',
+  '''ci-fake-.*''',
+  '''min-32-chars-yes-it-is''',
+  '''build:build@localhost''',
+  '''ci:ci@localhost''',
+]

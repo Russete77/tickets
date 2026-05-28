@@ -73,7 +73,8 @@ CREATE UNIQUE INDEX "product_categories_event_id_name_key" ON "product_categorie
 -- CreateIndex
 CREATE INDEX "pos_operators_pos_id_is_active_idx" ON "pos_operators"("pos_id", "is_active");
 
--- AddForeignKey
+-- AddForeignKey (idempotente: constraint já criada em 20260416051811_init)
+ALTER TABLE "events" DROP CONSTRAINT IF EXISTS "events_producer_id_fkey";
 ALTER TABLE "events" ADD CONSTRAINT "events_producer_id_fkey" FOREIGN KEY ("producer_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey

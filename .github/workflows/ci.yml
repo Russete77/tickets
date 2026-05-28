@@ -53,6 +53,15 @@ jobs:
     name: Unit tests + coverage
     runs-on: ubuntu-22.04
     needs: lint-typecheck
+    services:
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -70,6 +79,8 @@ jobs:
         env:
           NODE_ENV: test
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ticketeria_test
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
           JWT_PRIVATE_KEY_BASE64: ${{ secrets.CI_JWT_PRIVATE_KEY_BASE64 }}
           JWT_PUBLIC_KEY_BASE64: ${{ secrets.CI_JWT_PUBLIC_KEY_BASE64 }}
           JWT_REFRESH_SECRET: ci-refresh-secret-min-32-chars-yes-it-is
