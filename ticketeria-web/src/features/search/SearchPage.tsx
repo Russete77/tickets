@@ -1,115 +1,92 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { PublicLayout } from '@shared/layout/PublicLayout/PublicLayout';
-import { Skeleton } from '@shared/ui/Skeleton/Skeleton';
 import { useInfiniteScroll } from '@shared/hooks/useInfiniteScroll';
 import { useDocumentHead } from '@shared/hooks/useDocumentHead';
 import { api } from '@shared/lib/api';
-import { Icon } from '@shared/ui/Icon/Icon';
-import EventCard, { EventData } from '@features/home/EventCard';
 import { useTranslation } from '@shared/i18n';
+import {
+  PpLayout,
+  PBadge,
+  flyerPalette,
+} from '@/design-system';
 import styles from './SearchPage.module.css';
 
+interface EventResult {
+  id: string;
+  slug: string;
+  title: string;
+  coverImageUrl?: string;
+  coverImage?: string;
+  shortDescription?: string;
+  category?: string;
+  startsAt?: string;
+  startDate?: string;
+  venueName?: string;
+  venueCity?: string;
+  venue?: { name?: string; city?: string };
+  city?: string;
+  priceFromCents?: number;
+  currentBatchPrice?: number;
+  isOpenBar?: boolean;
+}
+
 interface SearchResponse {
-  data: EventData[];
+  data: EventResult[];
   pagination: {
-    total: number;
     nextCursor: string | null;
+    total?: number;
   };
 }
 
 const CATEGORIES = [
   { label: 'Todos', value: '' },
-  { label: 'Shows', value: 'shows' },
-  { label: 'Festas', value: 'festas' },
+  { label: 'Shows', value: 'show' },
+  { label: 'Festas', value: 'festival' },
   { label: 'Teatro', value: 'teatro' },
   { label: 'Esporte', value: 'esporte' },
-  { label: 'Museu', value: 'museu' },
-  { label: 'Cursos', value: 'cursos' },
   { label: 'Open Bar', value: 'openbar' },
 ];
 
-const SORT_OPTIONS = [
-  { label: 'Relevância', value: 'relevance' },
-  { label: 'Mais próximos', value: 'date_asc' },
-  { label: 'Menor preço', value: 'price_asc' },
-  { label: 'Maior preço', value: 'price_desc' },
-  { label: 'Mais populares', value: 'trending' },
-];
+const CITY_PRESETS = ['São Paulo', 'Rio de Janeiro', 'Belo Horizonte', 'Porto Alegre', 'Recife'];
 
 const SearchPage: React.FC = () => {
-  const { t } = useTranslation();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const navigate = useNavigate();
-  const [searchInput, setSearchInput] = useState(searchParams.get('q') ?? '');
+  useTranslation();
+  const [params, setParams] = useSearchParams();
+  const [input, setInput] = useState(params.get('q') ?? '');
 
-  const q = searchParams.get('q') ?? '';
-  const category = searchParams.get('category') ?? '';
-  const sort = searchParams.get('sort') ?? 'relevance';
-  const dateFrom = searchParams.get('dateFrom') ?? '';
-  const dateTo = searchParams.get('dateTo') ?? '';
-  const priceMin = searchParams.get('priceMin') ?? '';
-  const priceMax = searchParams.get('priceMax') ?? '';
-  const city = searchParams.get('city') ?? '';
+  const q = params.get('q') ?? '';
+  const category = params.get('category') ?? '';
+  const city = params.get('city') ?? '';
 
-  const [priceMinInput, setPriceMinInput] = useState(priceMin);
-  const [priceMaxInput, setPriceMaxInput] = useState(priceMax);
-  const [cityInput, setCityInput] = useState(city);
-
-  const PRICE_PRESETS = [
-    { label: 'Grátis', min: '0', max: '0' },
-    { label: 'Até R$50', min: '', max: '50' },
-    { label: 'Até R$100', min: '', max: '100' },
-    { label: 'Até R$200', min: '', max: '200' },
-    { label: 'R$200+', min: '200', max: '' },
-  ];
-
-  // Set SEO meta tags
   useDocumentHead({
-    title: q ? `Resultados para "${q}" — Ticketeria Digital` : 'Buscar eventos — Ticketeria Digital',
+    title: q ? `"${q}" — PulsePass` : 'Buscar eventos — PulsePass',
     description: q
-      ? `Encontre ingressos para ${q} e outros eventos na Ticketeria Digital`
-      : 'Busque ingressos para shows, festas, teatro, esportes e eventos culturais',
-    keywords:
-      'buscar eventos, ingressos, busca de eventos, eventos digitais',
-    ogTitle: 'Buscar eventos — Ticketeria Digital',
-    ogDescription: 'Descubra eventos e compre seus ingressos online',
-    ogUrl: window.location.href,
-    ogType: 'website',
-    ogSiteName: 'Ticketeria Digital',
-    twitterCard: 'summary',
-    twitterTitle: 'Buscar eventos — Ticketeria Digital',
-    twitterDescription: 'Descubra eventos e compre seus ingressos online',
+      ? `Resultados para "${q}" — descubra rolês na PulsePass.`
+      : 'Busque ingressos para shows, festas e eventos.',
   });
 
   const {
     data,
     isLoading,
+    isFetchingNextPage,
     hasNextPage,
     fetchNextPage,
-    isFetchingNextPage,
-    isError,
   } = useInfiniteQuery({
-    queryKey: ['search', q, category, sort, dateFrom, dateTo, priceMin, priceMax, city],
+    queryKey: ['search', q, category, city],
     queryFn: async ({ pageParam }) => {
-      const params = new URLSearchParams();
-      if (q) params.set('q', q);
-      if (category) params.set('category', category);
-      if (sort) params.set('sort', sort);
-      if (dateFrom) params.set('dateFrom', dateFrom);
-      if (dateTo) params.set('dateTo', dateTo);
-      if (priceMin) params.set('priceMin', priceMin);
-      if (priceMax) params.set('priceMax', priceMax);
-      if (city) params.set('city', city);
-      params.set('limit', '12');
-      if (pageParam) params.set('cursor', pageParam as string);
-      const response = await api.get(`/v1/events/search?${params}`);
-      return response.data as SearchResponse;
+      const qs = new URLSearchParams();
+      if (q) qs.set('q', q);
+      if (category) qs.set('category', category);
+      if (city) qs.set('city', city);
+      qs.set('limit', '12');
+      if (pageParam) qs.set('cursor', pageParam as string);
+      const r = await api.get<SearchResponse>(`/v1/events/search?${qs.toString()}`);
+      return (r.data ?? { data: [], pagination: { nextCursor: null } }) as SearchResponse;
     },
     initialPageParam: undefined as string | undefined,
-    getNextPageParam: (lastPage) => lastPage?.pagination?.nextCursor ?? undefined,
-    staleTime: 1000 * 60 * 5,
+    getNextPageParam: (last) => last?.pagination?.nextCursor ?? undefined,
+    staleTime: 5 * 60_000,
   });
 
   const { sentinelRef } = useInfiniteScroll({
@@ -118,260 +95,232 @@ const SearchPage: React.FC = () => {
     isLoading: isFetchingNextPage,
   });
 
-  const events = data?.pages.flatMap((p) => p?.data ?? []) ?? [];
-  const total = data?.pages[0]?.pagination?.total ?? 0;
-
-  const updateParam = useCallback((key: string, value: string) => {
-    const next = new URLSearchParams(searchParams);
-    if (value) next.set(key, value);
-    else next.delete(key);
-    // Reset cursor when filters change
-    next.delete('cursor');
-    setSearchParams(next, { replace: true });
-  }, [searchParams, setSearchParams]);
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
+  const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    updateParam('q', searchInput);
+    const next = new URLSearchParams(params);
+    if (input.trim()) next.set('q', input.trim());
+    else next.delete('q');
+    setParams(next);
   };
 
-  // Sync inputs when URL params change from elsewhere
-  useEffect(() => {
-    setSearchInput(searchParams.get('q') ?? '');
-    setPriceMinInput(searchParams.get('priceMin') ?? '');
-    setPriceMaxInput(searchParams.get('priceMax') ?? '');
-    setCityInput(searchParams.get('city') ?? '');
-  }, [searchParams]);
+  const setFilter = (key: string, value: string) => {
+    const next = new URLSearchParams(params);
+    if (value) next.set(key, value);
+    else next.delete(key);
+    setParams(next);
+  };
+
+  const clearFilter = (key: string) => {
+    const next = new URLSearchParams(params);
+    next.delete(key);
+    setParams(next);
+  };
+
+  const items: EventResult[] = (data?.pages ?? []).flatMap((p) => p?.data ?? []);
+  const total = data?.pages?.[0]?.pagination?.total ?? items.length;
 
   return (
-    <PublicLayout>
-      <div className={styles.page}>
-        {/* ── Search bar ── */}
-        <div className={styles.searchBar}>
-          <div className={styles.searchBarInner}>
-            <form onSubmit={handleSearchSubmit} className={styles.searchForm}>
-              <Icon name="search" size={18} className={styles.searchIcon} />
-              <input
-                type="text"
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="Shows, festas, teatro, artistas..."
-                className={styles.searchInput}
-              />
-              <button type="submit" className={styles.searchBtn}>{t("common.search")}</button>
-            </form>
+    <PpLayout intensity={0.4}>
+      <main className={styles.main}>
+        {/* Search bar */}
+        <form onSubmit={submit} className={styles.searchForm}>
+          <Link to="/" className={styles.backBtn} aria-label="Voltar">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="m15 18-6-6 6-6" />
+            </svg>
+          </Link>
+          <div className={styles.searchInputWrap}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--pp-pulse)" strokeWidth="2" className={styles.searchIcon}>
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.3-4.3" />
+            </svg>
+            <input
+              type="search"
+              placeholder="Buscar evento, artista, casa…"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              className={styles.searchInput}
+            />
+            {input && (
+              <button
+                type="button"
+                onClick={() => setInput('')}
+                className={styles.searchClear}
+                aria-label="Limpar"
+              >
+                ×
+              </button>
+            )}
+          </div>
+        </form>
+
+        {/* Filter chips */}
+        <div className={styles.chipsRow}>
+          {CATEGORIES.map((c) => (
+            <button
+              key={c.value || 'all'}
+              type="button"
+              onClick={() => setFilter('category', c.value)}
+              className={`${styles.chip} ${category === c.value ? styles.chipActive : ''}`}
+            >
+              {c.label}
+              {category === c.value && <span className={styles.chipX}>×</span>}
+            </button>
+          ))}
+        </div>
+
+        {/* City chips (secondary) */}
+        <div className={styles.chipsRow}>
+          {CITY_PRESETS.map((c) => (
+            <button
+              key={c}
+              type="button"
+              onClick={() => setFilter('city', city === c ? '' : c)}
+              className={`${styles.chipCity} ${city === c ? styles.chipCityActive : ''}`}
+            >
+              {c}
+            </button>
+          ))}
+        </div>
+
+        {/* Active filters */}
+        {(category || city || q) && (
+          <div className={styles.activeFilters}>
+            <span className={styles.eyebrow}>Filtros ativos</span>
+            {q && (
+              <PBadge tone="pulse" dot>
+                {q}
+              </PBadge>
+            )}
+            {category && (
+              <button type="button" onClick={() => clearFilter('category')} className={styles.activeFilter}>
+                {CATEGORIES.find((c) => c.value === category)?.label ?? category} ×
+              </button>
+            )}
+            {city && (
+              <button type="button" onClick={() => clearFilter('city')} className={styles.activeFilter}>
+                {city} ×
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Result count */}
+        <div className={styles.countRow}>
+          <span className={styles.countText}>
+            {isLoading ? (
+              'Buscando…'
+            ) : items.length === 0 ? (
+              'Nenhum resultado'
+            ) : (
+              <>
+                <span className={styles.countNumber}>{total}</span>{' '}
+                {total === 1 ? 'evento encontrado' : 'eventos encontrados'}
+              </>
+            )}
+          </span>
+        </div>
+
+        {/* Results */}
+        {isLoading ? (
+          <div className={styles.list}>
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className={styles.skeleton} />
+            ))}
+          </div>
+        ) : items.length === 0 ? (
+          <div className={styles.empty}>
+            <div
+              className={styles.emptyGlow}
+              style={{
+                background: `radial-gradient(60% 60% at 50% 50%, ${flyerPalette.violet}, transparent 70%)`,
+              }}
+            />
+            <h3 className={styles.emptyTitle}>Nada por aqui</h3>
+            <p className={styles.emptyBody}>
+              Tenta um termo diferente, outra cidade ou remove os filtros.
+            </p>
+          </div>
+        ) : (
+          <div className={styles.list}>
+            {items.map((event, i) => (
+              <ResultRow key={event.id} event={event} index={i} />
+            ))}
+          </div>
+        )}
+
+        {/* Sentinel */}
+        <div ref={sentinelRef} style={{ height: 1 }} />
+
+        {isFetchingNextPage && (
+          <div className={styles.loadingMore}>Carregando mais eventos…</div>
+        )}
+      </main>
+    </PpLayout>
+  );
+};
+
+const ResultRow: React.FC<{ event: EventResult; index: number }> = ({ event, index }) => {
+  const palette: Array<[string, string]> = [
+    [flyerPalette.green, flyerPalette.violet],
+    [flyerPalette.pink, flyerPalette.amber],
+    [flyerPalette.cyan, flyerPalette.violet],
+    [flyerPalette.amber, flyerPalette.pink],
+    [flyerPalette.violet, flyerPalette.cyan],
+  ];
+  const [hue, hue2] = palette[index % palette.length];
+  const cover = event.coverImageUrl ?? event.coverImage;
+  const venue = event.venueName ?? event.venue?.name ?? '';
+  const city = event.venueCity ?? event.venue?.city ?? event.city ?? '';
+  const dateRaw = event.startsAt ?? event.startDate;
+  const dateLabel = dateRaw
+    ? new Date(dateRaw)
+        .toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric', month: 'short' })
+        .toUpperCase()
+    : 'EM BREVE';
+  const price = event.currentBatchPrice ?? (event.priceFromCents != null ? event.priceFromCents / 100 : null);
+  const isFree = price === 0;
+
+  return (
+    <Link to={`/event/${event.slug}`} className={styles.resultLink}>
+      <div className={styles.result}>
+        <div
+          className={styles.resultImage}
+          style={{
+            background: cover
+              ? `linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.7)), url(${cover}) center/cover`
+              : `radial-gradient(80% 80% at 20% 20%, ${hue}, transparent 60%), radial-gradient(80% 80% at 80% 80%, ${hue2}, transparent 60%), #0a0a0c`,
+          }}
+        >
+          <div className={styles.resultDate}>{dateLabel}</div>
+        </div>
+        <div className={styles.resultInfo}>
+          <div className={styles.resultTitle}>{event.title}</div>
+          <div className={styles.resultSub}>
+            {venue}
+            {city ? ` · ${city}` : ''}
+          </div>
+          <div className={styles.resultBadges}>
+            {event.isOpenBar && <PBadge tone="violet">Open Bar</PBadge>}
+            {event.category && <PBadge tone="cyan">{event.category}</PBadge>}
           </div>
         </div>
-
-        <div className={styles.layout}>
-          {/* ── Sidebar filters ── */}
-          <aside className={styles.sidebar}>
-            <div className={styles.filterGroup}>
-              <h3 className={styles.filterTitle}>Categoria</h3>
-              <div className={styles.filterList}>
-                {CATEGORIES.map((cat) => (
-                  <button
-                    key={cat.value}
-                    className={`${styles.filterBtn} ${category === cat.value ? styles.filterBtnActive : ''}`}
-                    onClick={() => updateParam('category', cat.value)}
-                  >
-                    {cat.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className={styles.filterGroup}>
-              <h3 className={styles.filterTitle}>Período</h3>
-              <div className={styles.dateRange}>
-                <label className={styles.dateLabel}>De</label>
-                <input
-                  type="date"
-                  value={dateFrom}
-                  onChange={(e) => updateParam('dateFrom', e.target.value)}
-                  className={styles.dateInput}
-                />
-                <label className={styles.dateLabel}>Até</label>
-                <input
-                  type="date"
-                  value={dateTo}
-                  onChange={(e) => updateParam('dateTo', e.target.value)}
-                  className={styles.dateInput}
-                />
-              </div>
-            </div>
-
-            <div className={styles.filterGroup}>
-              <h3 className={styles.filterTitle}>Preço</h3>
-              <div className={styles.filterList}>
-                {PRICE_PRESETS.map((preset) => {
-                  const isActive = priceMin === preset.min && priceMax === preset.max;
-                  return (
-                    <button
-                      key={preset.label}
-                      className={`${styles.filterBtn} ${isActive ? styles.filterBtnActive : ''}`}
-                      onClick={() => {
-                        updateParam('priceMin', preset.min);
-                        updateParam('priceMax', preset.max);
-                        setPriceMinInput(preset.min);
-                        setPriceMaxInput(preset.max);
-                      }}
-                    >
-                      {preset.label}
-                    </button>
-                  );
-                })}
-              </div>
-              <div className={styles.priceRangeInputs}>
-                <input
-                  type="number"
-                  min="0"
-                  placeholder="Mín R$"
-                  value={priceMinInput}
-                  className={styles.priceInput}
-                  onChange={(e) => setPriceMinInput(e.target.value)}
-                  onBlur={() => updateParam('priceMin', priceMinInput)}
-                />
-                <span className={styles.priceRangeSep}>–</span>
-                <input
-                  type="number"
-                  min="0"
-                  placeholder="Máx R$"
-                  value={priceMaxInput}
-                  className={styles.priceInput}
-                  onChange={(e) => setPriceMaxInput(e.target.value)}
-                  onBlur={() => updateParam('priceMax', priceMaxInput)}
-                />
-              </div>
-            </div>
-
-            <div className={styles.filterGroup}>
-              <h3 className={styles.filterTitle}>Cidade</h3>
-              <input
-                type="text"
-                placeholder="Ex: São Paulo"
-                value={cityInput}
-                className={styles.dateInput}
-                onChange={(e) => setCityInput(e.target.value)}
-                onBlur={() => updateParam('city', cityInput)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') updateParam('city', cityInput);
-                }}
-              />
-            </div>
-          </aside>
-
-          {/* ── Results ── */}
-          <main className={styles.results}>
-            {/* Results header */}
-            <div className={styles.resultsHeader}>
-              {!isLoading && (
-                <p className={styles.resultCount}>
-                  {total > 0 ? (
-                    <><strong>{total.toLocaleString('pt-BR')}</strong> eventos encontrados</>
-                  ) : events.length > 0 ? (
-                    <><strong>{events.length}</strong> eventos</>
-                  ) : null}
-                </p>
-              )}
-              <div className={styles.sortWrapper}>
-                <label className={styles.sortLabel}>Ordenar:</label>
-                <select
-                  value={sort}
-                  onChange={(e) => updateParam('sort', e.target.value)}
-                  className={styles.sortSelect}
-                >
-                  {SORT_OPTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {/* Active filters */}
-            {(q || category || dateFrom || priceMin || priceMax || city) && (
-              <div className={styles.activeFilters}>
-                {q && (
-                  <span className={styles.filterChip}>
-                    "{q}"
-                    <button onClick={() => updateParam('q', '')}>×</button>
-                  </span>
-                )}
-                {category && (
-                  <span className={styles.filterChip}>
-                    {CATEGORIES.find(c => c.value === category)?.label ?? category}
-                    <button onClick={() => updateParam('category', '')}>×</button>
-                  </span>
-                )}
-                {dateFrom && (
-                  <span className={styles.filterChip}>
-                    {dateFrom}
-                    <button onClick={() => updateParam('dateFrom', '')}>×</button>
-                  </span>
-                )}
-                {(priceMin || priceMax) && (
-                  <span className={styles.filterChip}>
-                    {priceMin && priceMax
-                      ? `R$${priceMin} – R$${priceMax}`
-                      : priceMin
-                      ? `A partir de R$${priceMin}`
-                      : `Até R$${priceMax}`}
-                    <button onClick={() => { updateParam('priceMin', ''); updateParam('priceMax', ''); }}>×</button>
-                  </span>
-                )}
-                {city && (
-                  <span className={styles.filterChip}>
-                    {city}
-                    <button onClick={() => updateParam('city', '')}>×</button>
-                  </span>
-                )}
-              </div>
-            )}
-
-            {/* Grid */}
-            {isError ? (
-              <div className={styles.emptyContainer}>
-                <div className={styles.emptyIcon}><Icon name="warning" size={48} /></div>
-                <h3 className={styles.emptyTitle}>Erro ao carregar</h3>
-                <p className={styles.emptyDesc}>Não foi possível carregar os resultados. Tente novamente.</p>
-              </div>
-            ) : isLoading ? (
-              <div className={styles.grid}>
-                {Array.from({ length: 12 }).map((_, i) => (
-                  <Skeleton key={i} width="100%" height="340px" borderRadius="12px" />
-                ))}
-              </div>
-            ) : events.length === 0 ? (
-              <div className={styles.emptyContainer}>
-                <div className={styles.emptyIcon}><Icon name="search" size={48} /></div>
-                <h3 className={styles.emptyTitle}>Nenhum evento encontrado</h3>
-                <p className={styles.emptyDesc}>Tente ajustar seus filtros ou buscar por outros termos.</p>
-                <button className={styles.emptyLink} onClick={() => navigate('/')}>
-                  Ver todos os eventos
-                </button>
-              </div>
-            ) : (
-              <div className={styles.grid}>
-                {events.map((event) => (
-                  <EventCard key={event.id} event={event} size="md" />
-                ))}
-              </div>
-            )}
-
-            {/* Load more sentinel */}
-            <div ref={sentinelRef} style={{ height: '1px' }} />
-
-            {isFetchingNextPage && (
-              <div className={styles.loadingMore}>
-                <div className={styles.loadingDot} />
-                <div className={styles.loadingDot} />
-                <div className={styles.loadingDot} />
-              </div>
-            )}
-          </main>
+        <div className={styles.resultPrice}>
+          {isFree ? (
+            <>
+              <div className={styles.priceFree}>LIVRE</div>
+            </>
+          ) : price != null ? (
+            <>
+              <div className={styles.priceFrom}>desde</div>
+              <div className={styles.priceValue}>R$ {price.toFixed(0)}</div>
+            </>
+          ) : (
+            <div className={styles.priceFrom}>—</div>
+          )}
         </div>
       </div>
-    </PublicLayout>
+    </Link>
   );
 };
 
