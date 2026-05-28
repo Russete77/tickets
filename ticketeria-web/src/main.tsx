@@ -10,6 +10,9 @@ import '@shared/styles/animations.css';
 // Mantém os tokens legacy do shared/styles acima pra compatibilidade,
 // e adiciona os tokens novos do DS (--pp-*) por cima sem conflito de namespace.
 import './design-system/tokens.css';
+// Aliases (--tl-*) → (--pp-*) — atualiza visual de TODOS os CSS modules existentes
+// sem precisar reescrever cada arquivo.
+import './design-system/aliases.css';
 
 // Initialize Sentry at the very top
 initSentry();

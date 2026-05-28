@@ -1,0 +1,165 @@
+/* ═══════════════════════════════════════════════════════════
+   PULSEPASS v3 — Aliases para tokens legacy (--tl-*)
+   Mapeia os tokens antigos do "Timelapse v2.0" para os
+   tokens novos --pp-* sem precisar tocar nos 50+ arquivos
+   CSS module existentes. Carregado DEPOIS de tokens.css
+   e dos tokens legacy do shared/styles/tokens.css.
+   ═══════════════════════════════════════════════════════════ */
+
+:root,
+:root[data-theme='dark'],
+:root[data-theme='light'] {
+  /* ── Brand ── */
+  --tl-brand:               var(--pp-pulse);
+  --tl-brand-hover:         var(--pp-pulse-hi);
+  --tl-brand-fg:            var(--pp-pulse-ink);
+  --tl-brand-muted:         rgba(0, 255, 133, 0.18);
+  --tl-brand-bg:            rgba(0, 255, 133, 0.10);
+  --tl-brand-bg-hover:      rgba(0, 255, 133, 0.16);
+  --tl-brand-bg-active:     rgba(0, 255, 133, 0.22);
+  --tl-brand-dark:          var(--pp-pulse-ink);
+
+  /* ── Backgrounds (dark mode forçado) ── */
+  --tl-bg-primary:          var(--pp-ink-950);
+  --tl-bg-secondary:        var(--pp-ink-900);
+  --tl-bg-tertiary:         var(--pp-ink-850);
+  --tl-bg-elevated:         var(--pp-ink-800);
+  --tl-bg-surface:          var(--pp-ink-700);
+  --tl-bg-overlay:          rgba(0, 0, 0, 0.6);
+  --tl-bg-glass:            var(--pp-glass-2);
+  --tl-bg-glass-light:      var(--pp-glass-1);
+  --tl-admin-sidebar-bg:    var(--pp-ink-900);
+
+  /* ── Borders ── */
+  --tl-border-default:      var(--pp-edge-1);
+  --tl-border-medium:       var(--pp-edge-2);
+  --tl-border-strong:       var(--pp-edge-3);
+  --tl-border-accent:       rgba(0, 255, 133, 0.35);
+
+  /* ── Text ── */
+  --tl-text-primary:        var(--pp-fg);
+  --tl-text-secondary:      var(--pp-fg-2);
+  --tl-text-tertiary:       var(--pp-fg-3);
+  --tl-text-muted:          var(--pp-fg-4);
+  --tl-text-accent:         var(--pp-pulse);
+  --tl-text-inverse:        var(--pp-pulse-ink);
+
+  /* ── Semantic ── */
+  --tl-success:             var(--pp-pulse);
+  --tl-success-muted:       rgba(0, 255, 133, 0.18);
+  --tl-error:               var(--pp-red);
+  --tl-error-hover:         #FF5C53;
+  --tl-error-muted:         rgba(255, 59, 48, 0.18);
+  --tl-warning:             var(--pp-amber);
+  --tl-warning-muted:       rgba(255, 184, 0, 0.18);
+  --tl-info:                var(--pp-cyan);
+  --tl-info-muted:          rgba(34, 211, 238, 0.18);
+
+  /* ── Ticket states ── */
+  --tl-ticket-few-left:     var(--pp-amber);
+  --tl-ticket-sold-out:     var(--pp-red);
+  --tl-ticket-coming-soon:  var(--pp-violet);
+
+  /* ── Type ── */
+  --tl-font-display:        var(--pp-font-display);
+  --tl-font-body:           var(--pp-font-body);
+  --tl-font-mono:           var(--pp-font-mono);
+
+  /* type scale */
+  --tl-text-xs:             0.75rem;
+  --tl-text-sm:             0.875rem;
+  --tl-text-md:             1rem;
+  --tl-text-base:           1rem;
+  --tl-text-lg:             1.125rem;
+  --tl-text-xl:             1.25rem;
+  --tl-text-2xl:            1.5rem;
+  --tl-text-3xl:            1.875rem;
+  --tl-text-4xl:            2.25rem;
+  --tl-text-5xl:            3rem;
+
+  /* ── Spacing ── */
+  --tl-space-1:             4px;
+  --tl-space-1-5:           6px;
+  --tl-space-2:             8px;
+  --tl-space-3:             12px;
+  --tl-space-4:             16px;
+  --tl-space-5:             20px;
+  --tl-space-6:             24px;
+  --tl-space-7:             28px;
+  --tl-space-8:             32px;
+  --tl-space-10:            40px;
+  --tl-space-12:            48px;
+  --tl-space-16:            64px;
+  --tl-space-20:            80px;
+
+  /* ── Radius ── */
+  --tl-radius-xs:           var(--pp-r-xs);
+  --tl-radius-sm:           var(--pp-r-sm);
+  --tl-radius-md:           var(--pp-r-md);
+  --tl-radius-lg:           var(--pp-r-lg);
+  --tl-radius-xl:           var(--pp-r-xl);
+  --tl-radius-2xl:          var(--pp-r-2xl);
+  --tl-radius-pill:         var(--pp-r-pill);
+  --tl-radius-full:         9999px;
+
+  /* ── Shadows ── */
+  --tl-shadow-sm:           var(--pp-shadow-1);
+  --tl-shadow-md:           var(--pp-shadow-2);
+  --tl-shadow-lg:           var(--pp-shadow-3);
+  --tl-shadow-xl:           var(--pp-shadow-pop);
+  --tl-shadow-glow:         var(--pp-glow-pulse-soft);
+  --tl-shadow-glow-strong:  var(--pp-glow-pulse);
+  --tl-shadow-focus:        0 0 0 3px rgba(0, 255, 133, 0.28);
+  --tl-shadow-inner:        inset 0 1px 2px rgba(0, 0, 0, 0.3);
+
+  /* ── Scroll ── */
+  --tl-scrollbar-track:     transparent;
+  --tl-scrollbar-thumb:     var(--pp-edge-3);
+  --tl-scrollbar-hover:     var(--pp-edge-4);
+
+  /* ── Shimmer ── */
+  --tl-shimmer-from:        var(--pp-ink-800);
+  --tl-shimmer-to:          var(--pp-ink-700);
+
+  /* ── Layout ── */
+  --tl-container-max:       1280px;
+  --tl-header-height:       72px;
+  --tl-header-height-sm:    60px;
+  --tl-sidebar-width:       260px;
+
+  /* ── Motion ── */
+  --tl-duration-instant:    var(--pp-dur-1);
+  --tl-duration-fast:       var(--pp-dur-2);
+  --tl-duration-normal:     var(--pp-dur-3);
+  --tl-duration-slow:       var(--pp-dur-4);
+  --tl-duration-slower:     800ms;
+  --tl-ease-default:        var(--pp-ease);
+  --tl-ease-spring:         var(--pp-ease-spring);
+  --tl-transition-fast:     all var(--pp-dur-1) var(--pp-ease);
+  --tl-transition-normal:   all var(--pp-dur-3) var(--pp-ease);
+
+  /* ── z-index ── */
+  --tl-z-dropdown:          100;
+  --tl-z-fixed:             200;
+  --tl-z-header:            400;
+  --tl-z-overlay:            800;
+  --tl-z-modal:             900;
+  --tl-z-whatsapp:          950;
+}
+
+/* Headlines globais — Space Grotesk */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--pp-font-display);
+  letter-spacing: -0.02em;
+}
+h1 { letter-spacing: -0.03em; }
+
+/* Strong scrollbar dark */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--pp-edge-3) transparent;
+}
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb { background: var(--pp-edge-3); border-radius: 999px; }
+*::-webkit-scrollbar-thumb:hover { background: var(--pp-edge-4); }
