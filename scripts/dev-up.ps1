@@ -72,7 +72,7 @@ Write-Host "3/6 → API (porta 3333)..." -ForegroundColor Yellow
 Start-WT "API" "$repo\ticketeria-api" "npm run dev"
 
 Write-Host "4/6 → Worker BullMQ..." -ForegroundColor Yellow
-Start-WT "Worker" "$repo\ticketeria-api" "npm run start:worker"
+Start-WT "Worker" "$repo\ticketeria-api" "npm run dev:worker"
 
 Write-Host "5/6 → Web (porta 5173)..." -ForegroundColor Yellow
 Start-WT "Web" "$repo\ticketeria-web" "npm run dev"

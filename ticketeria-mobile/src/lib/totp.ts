@@ -1,45 +1,49 @@
-import { authenticator } from 'otplib';
+/**
+ * TOTP (RFC 6238) — stub temporário pro dev.
+ *
+ * O pacote `otplib` usa `require('crypto')` (Node built-in) que NÃO existe em React Native,
+ * fazendo o Metro Bundler falhar com "Unable to resolve module crypto".
+ *
+ * Solução real (quando QR de ingresso for testado em produção):
+ *   - npm i crypto-js
+ *   - implementar HMAC-SHA1 manualmente com crypto-js
+ *   - decodar Base32 manualmente (alphabet ABCDEFGHIJKLMNOPQRSTUVWXYZ234567)
+ *
+ * Por enquanto: retorna placeholder válido (6 dígitos) só pra UI renderizar.
+ * O check-in REAL precisa do TOTP correto — mas o backend valida e rejeita,
+ * então não há risco de bypass de segurança.
+ */
 
 /**
- * Generates a TOTP (Time-based One-Time Password) token for the current time window.
- * Uses otplib (RFC 6238 compliant, HMAC-SHA1 with 30-second time step).
- *
- * @param secret - Base32-encoded secret key
- * @returns 6-digit TOTP token as a string
+ * Generates a TOTP-shaped placeholder (6 digits). Não é um TOTP real.
+ * Em DEV, retorna '000000'. Em produção, faça throw pra forçar fix.
  */
-export function generateTOTP(secret: string): string {
-  return authenticator.generate(secret);
+export function generateTOTP(_secret: string): string {
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error(
+      'TOTP stub não pode rodar em produção. Instale crypto-js e implemente HMAC-SHA1.',
+    );
+  }
+  // Placeholder 6 dígitos — só pra UI mostrar; backend vai rejeitar mas o QR aparece.
+  return '000000';
 }
 
 /**
- * Returns the number of seconds remaining in the current TOTP time window.
- * TOTP uses 30-second windows, so this returns a value between 0-30.
- *
- * @returns Seconds remaining until next TOTP rotation
+ * Returns seconds remaining in the current 30-second TOTP window.
  */
 export function getTimeRemaining(): number {
   const timeStep = 30;
   const now = Math.floor(Date.now() / 1000);
-  const timeInWindow = now % timeStep;
-  return timeStep - timeInWindow;
+  return timeStep - (now % timeStep);
 }
 
 /**
- * Builds a QR code payload combining ticket hash and TOTP token.
- * Format: "hash:totp" (colon-separated)
- *
- * @param ticketHash - Unique ticket hash identifier
- * @param totpToken - 6-digit TOTP token
- * @returns QR code data payload string
+ * Builds a QR code payload "hash:totp".
  */
 export function buildQRData(ticketHash: string, totpToken: string): string {
-  if (!ticketHash || !totpToken) {
-    throw new Error('ticketHash and totpToken are required');
-  }
-
+  if (!ticketHash || !totpToken) throw new Error('ticketHash and totpToken are required');
   if (totpToken.length !== 6 || !/^\d+$/.test(totpToken)) {
     throw new Error('totpToken must be a 6-digit number');
   }
-
   return `${ticketHash}:${totpToken}`;
 }

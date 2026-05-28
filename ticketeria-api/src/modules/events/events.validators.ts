@@ -103,9 +103,33 @@ export const createEventSchema = z.object({
 
 export const updateEventSchema = createEventSchema.partial().omit({ batches: true });
 
+// Aliases plurais aceitos no front (mocks/links antigos): "shows"→"show", "esportes"→"esporte", etc.
+const CATEGORY_ALIAS: Record<string, string> = {
+  shows: 'show',
+  festivais: 'festival',
+  esportes: 'esporte',
+  teatros: 'teatro',
+  museus: 'museu',
+  cursos: 'curso',
+  outros: 'outro',
+};
+const categoryWithAlias = z
+  .string()
+  .optional()
+  .transform((v, ctx) => {
+    if (!v) return undefined;
+    const normalized = CATEGORY_ALIAS[v] ?? v;
+    const valid = (Object.values(EventCategory) as string[]).includes(normalized);
+    if (!valid) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: `categoria inválida: ${v}` });
+      return z.NEVER;
+    }
+    return normalized;
+  });
+
 export const searchEventsSchema = z.object({
   query: z.string().max(255).optional(),
-  category: z.enum(Object.values(EventCategory) as [string, ...string[]]).optional(),
+  category: categoryWithAlias,
   city: z.string().max(100).optional(),
   dateFrom: z.coerce.date().optional(),
   dateTo: z.coerce.date().optional(),

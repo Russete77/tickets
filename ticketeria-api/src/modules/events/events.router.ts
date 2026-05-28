@@ -47,15 +47,17 @@ router.get('/trending', optionalAuth, getTrendingEvents);
 // GET /events/slug/:slug
 router.get('/slug/:slug', optionalAuth, getEventBySlug);
 
-// GET /events/:id
-router.get('/:id', optionalAuth, validate({ params: eventIdParamSchema }), getEvent);
-
 /**
  * Rotas autenticadas (usuário)
+ * IMPORTANTE: rotas literais ('/recommendations') devem vir ANTES de '/:id'
+ * para não serem capturadas pelo wildcard.
  */
 
 // GET /events/recommendations
 router.get('/recommendations', authenticate, getRecommendations);
+
+// GET /events/:id
+router.get('/:id', optionalAuth, validate({ params: eventIdParamSchema }), getEvent);
 
 /**
  * Rotas autenticadas (produtor)

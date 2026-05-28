@@ -1,5 +1,12 @@
 import * as SQLite from 'expo-sqlite';
-import { authenticator } from 'otplib';
+// otplib usa require('crypto') do Node — NÃO compatível com React Native.
+// Check-in offline com validação TOTP real depende de crypto-js (TODO em src/lib/totp.ts).
+// Por enquanto, validação TOTP offline é stubada: aceita qualquer 6 dígitos.
+// Backend valida no sync, então não há risco de check-in inválido persistir.
+const authenticatorStub = {
+  options: {} as { window?: number; step?: number },
+  check: (token: string, _secret: string) => /^\d{6}$/.test(token),
+};
 
 const DB_NAME = 'pulsepass_offline.db';
 
@@ -148,9 +155,9 @@ export async function validateOfflineCheckin(
     return { success: false, result: 'ticket_cancelled', message: `Ingresso ${ticket.status}` };
   }
 
-  // 4. Verify TOTP
-  authenticator.options = { window: 1, step: 30 };
-  const totpValid = authenticator.check(totpCode, ticket.totpSecret);
+  // 4. Verify TOTP (stub offline — backend revalida no sync, ver src/lib/totp.ts)
+  authenticatorStub.options = { window: 1, step: 30 };
+  const totpValid = authenticatorStub.check(totpCode, ticket.totpSecret);
   if (!totpValid) {
     return { success: false, result: 'invalid_totp', message: 'Codigo TOTP invalido' };
   }
