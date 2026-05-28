@@ -189,7 +189,13 @@ async function main() {
   const existingOperator = await prisma.pOSOperator.findFirst({ where: { posId: pos.id } });
   if (!existingOperator) {
     await prisma.pOSOperator.create({
-      data: { posId: pos.id, pinHash: operatorPinHash },
+      data: {
+        posId: pos.id,
+        name: 'Bartender Carlos',
+        cpf: '333.333.333-33',
+        pin: '1234',
+        pinHash: operatorPinHash,
+      },
     });
   }
   console.log(`✅ Operator: Bartender Carlos  (PIN: 1234)`);
