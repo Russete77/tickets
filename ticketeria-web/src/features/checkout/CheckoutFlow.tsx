@@ -3,13 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { useCartStore } from '@shared/stores/cartStore';
 import { useAuth } from '@shared/hooks/useAuth';
 import { useToastStore } from '@shared/stores/toastStore';
-import { Button } from '@shared/ui/Button/Button';
-import { Input } from '@shared/ui/Input/Input';
-import { PublicLayout } from '@shared/layout/PublicLayout/PublicLayout';
 import { api } from '@shared/lib/api';
-import OrderSummary from './OrderSummary';
-import PaymentForm, { PaymentMethod } from './PaymentForm';
-import PixQR from './PixQR';
+import {
+  Aurora,
+  PpHeader,
+  PButton,
+  PBadge,
+} from '@/design-system';
 import styles from './CheckoutFlow.module.css';
 
 interface HolderInfo {
@@ -35,6 +35,18 @@ const CheckoutFlow: React.FC = () => {
   const SESSION_DURATION = 10 * 60 * 1000;
   const expiresAtRef = useRef<number>(Date.now() + SESSION_DURATION);
   const [timeLeft, setTimeLeft] = useState<number>(SESSION_DURATION);
+  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [holders, setHolders] = useState<HolderInfo[]>(() => {
+    const totalQty = items.reduce((acc, it) => acc + it.quantity, 0);
+    return Array.from({ length: Math.max(1, totalQty) }, () => ({
+      name: user?.name ?? '',
+      cpf: user?.cpf ?? '',
+      email: user?.email ?? '',
+      phone: '',
+    }));
+  });
+  const [pix, setPix] = useState<PixData | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -42,14 +54,14 @@ const CheckoutFlow: React.FC = () => {
       if (remaining <= 0) {
         clearInterval(interval);
         setTimeLeft(0);
-        alert('Tempo esgotado! Sua reserva expirou.');
+        addToast({ type: 'error', message: 'Reserva expirou. Volte e tente novamente.' });
         navigate(-1);
       } else {
         setTimeLeft(remaining);
       }
     }, 1000);
     return () => clearInterval(interval);
-  }, [navigate]);
+  }, [navigate, addToast]);
 
   const formatTime = (ms: number): string => {
     const totalSeconds = Math.max(0, Math.floor(ms / 1000));
@@ -58,261 +70,329 @@ const CheckoutFlow: React.FC = () => {
     return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
   };
 
-  const timerClass =
-    timeLeft < 60_000
-      ? styles.timerCritical
-      : timeLeft < 120_000
-      ? styles.timerWarning
-      : styles.timerNormal;
+  const total = getTotal();
+  const firstItem = items[0];
 
-  const [loading, setLoading] = useState(false);
-  const [couponCode, setCouponCode] = useState('');
-  const [couponDiscount, setCouponDiscount] = useState(0);
-  const [couponApplied, setCouponApplied] = useState(false);
-  const [couponLoading, setCouponLoading] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('pix');
-  const [pixData, setPixData] = useState<PixData | null>(null);
-  const [holderInfo, setHolderInfo] = useState<HolderInfo>({
-    name: user?.name ?? '',
-    cpf: '',
-    email: user?.email ?? '',
-    phone: '',
-  });
-
-  if (items.length === 0 && !pixData) {
-    return (
-      <PublicLayout>
-        <div className={styles.empty}>
-          <div className={styles.emptyIcon}>
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
-            </svg>
-          </div>
-          <h2>Seu carrinho está vazio</h2>
-          <p>Adicione ingressos para continuar com o checkout</p>
-          <Button variant="primary" onClick={() => navigate('/')}>
-            Explorar eventos
-          </Button>
-        </div>
-      </PublicLayout>
+  const handleHolderChange = (idx: number, field: keyof HolderInfo, value: string) => {
+    setHolders((prev) =>
+      prev.map((h, i) => (i === idx ? { ...h, [field]: value } : h)),
     );
-  }
-
-  const applyCoupon = async () => {
-    if (!couponCode.trim()) return;
-    setCouponLoading(true);
-    try {
-      const response = await api.post<{ discount: number }>('/v1/coupons/validate', {
-        code: couponCode,
-        subtotal: getTotal(),
-      });
-      if (response.error) {
-        addToast({ type: 'error', message: 'Cupom inválido ou expirado' });
-        setCouponApplied(false);
-      } else {
-        setCouponDiscount(response.data!.discount);
-        setCouponApplied(true);
-        addToast({ type: 'success', message: 'Cupom aplicado com sucesso!' });
-      }
-    } catch {
-      addToast({ type: 'error', message: 'Erro ao validar cupom' });
-    } finally {
-      setCouponLoading(false);
-    }
   };
 
-  const handlePlaceOrder = async () => {
-    if (!holderInfo.name.trim() || !holderInfo.cpf.trim() || !holderInfo.email.trim()) {
-      addToast({ type: 'error', message: 'Preencha todos os dados do titular' });
+  const validateHolders = (): boolean => {
+    for (const h of holders) {
+      if (!h.name.trim() || !h.cpf.trim() || !h.email.trim()) return false;
+    }
+    return true;
+  };
+
+  const handleCheckout = async () => {
+    if (!validateHolders()) {
+      addToast({ type: 'error', message: 'Preencha nome, CPF e e-mail de todos os ingressos.' });
       return;
     }
-    setLoading(true);
+    if (!firstItem) {
+      addToast({ type: 'error', message: 'Carrinho vazio.' });
+      return;
+    }
+    setSubmitting(true);
     try {
-      const response = await api.post<PixData>('/v1/orders', {
-        items: items.map((item) => ({ batchId: item.batchId, quantity: item.quantity })),
-        holder: holderInfo,
-        couponCode: couponCode || undefined,
-        paymentMethod,
+      const idempotencyKey = (window.crypto as { randomUUID?: () => string }).randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
+      const r = await api.post(
+        '/v1/payments/checkout',
+        {
+          eventId: firstItem.eventId,
+          batches: items.map((it) => ({
+            batchId: it.batchId,
+            quantity: it.quantity,
+            holders: holders.slice(0, it.quantity).map((h) => ({
+              name: h.name,
+              cpf: h.cpf.replace(/\D/g, ''),
+              email: h.email,
+            })),
+          })),
+          paymentMethod: 'pix',
+          idempotencyKey,
+        },
+      );
+      const data = (r.data ?? r) as { paymentInfo?: { pixCopyPaste?: string; expiresAt?: string }; order?: { id: string; totalCents: number } };
+      setPix({
+        pixCode: data.paymentInfo?.pixCopyPaste ?? '',
+        amount: (data.order?.totalCents ?? total * 100) / 100,
+        expiresAt: data.paymentInfo?.expiresAt ?? new Date(Date.now() + 5 * 60_000).toISOString(),
+        orderId: data.order?.id ?? '',
       });
-      if (response.error) {
-        addToast({ type: 'error', message: response.error });
-        return;
-      }
-      if (paymentMethod === 'pix' && response.data) {
-        setPixData(response.data);
-      } else {
-        clear();
-        addToast({ type: 'success', message: 'Pedido realizado com sucesso!' });
-        navigate('/tickets');
-      }
-    } catch {
-      addToast({ type: 'error', message: 'Erro ao finalizar pedido' });
+      setStep(3);
+    } catch (err) {
+      addToast({
+        type: 'error',
+        message: err instanceof Error ? err.message : 'Não foi possível processar o checkout.',
+      });
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
-  if (pixData) {
+  const copyPix = () => {
+    if (!pix?.pixCode) return;
+    navigator.clipboard.writeText(pix.pixCode).then(() => {
+      addToast({ type: 'success', message: 'Código PIX copiado!' });
+    });
+  };
+
+  if (items.length === 0 && !pix) {
     return (
-      <PublicLayout>
-        <div className={styles.pixPage}>
-          <div className={styles.pixCard}>
-            <div className={styles.pixHeader}>
-              <div className={styles.pixIconWrap}>
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="var(--tl-brand)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </div>
-              <h2 className={styles.pixTitle}>Pague com PIX</h2>
-              <p className={styles.pixSubtitle}>Escaneie o QR Code com seu app do banco</p>
-            </div>
-            <PixQR
-              pixCode={pixData.pixCode}
-              amount={pixData.amount}
-              expiresAt={pixData.expiresAt}
-            />
-            <p className={styles.pixNote}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-              </svg>
-              Após o pagamento, seus ingressos serão enviados para <strong>{holderInfo.email}</strong>
-            </p>
-          </div>
-        </div>
-      </PublicLayout>
+      <Aurora style={{ minHeight: '100vh' }} intensity={0.5}>
+        <PpHeader user={user ? { name: user.name } : null} />
+        <main className={styles.emptyMain}>
+          <h1 className={styles.emptyTitle}>Carrinho vazio</h1>
+          <p className={styles.emptyBody}>
+            Você não tem nenhum ingresso reservado.
+          </p>
+          <PButton variant="primary" size="lg" onClick={() => navigate('/')}>
+            Descobrir eventos
+          </PButton>
+        </main>
+      </Aurora>
     );
   }
 
   return (
-    <PublicLayout>
-      <div className={styles.page}>
-        {/* Timer banner */}
-        <div className={`${styles.timer} ${timerClass}`}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="12" cy="12" r="10" />
-            <polyline points="12 6 12 12 16 14" />
-          </svg>
-          <span>Sua reserva expira em <strong>{formatTime(timeLeft)}</strong></span>
+    <Aurora style={{ minHeight: '100vh' }} intensity={0.6}>
+      <PpHeader user={user ? { name: user.name } : null} />
+
+      <main className={styles.main}>
+        {/* Top bar: timer + secure badge */}
+        <div className={styles.topBar}>
+          <button
+            type="button"
+            className={styles.backBtn}
+            onClick={() => (step === 3 ? navigate('/tickets') : step === 1 ? navigate(-1) : setStep((s) => (s - 1) as 1 | 2))}
+            aria-label="Voltar"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="m15 18-6-6 6-6" />
+            </svg>
+          </button>
+          <div className={styles.topBarTitle}>
+            Pagamento · <span className={styles.stepNumber}>{step}</span> de 3
+          </div>
+          <PBadge tone="pulse">Seguro</PBadge>
         </div>
 
-        <div className={styles.layout}>
-          {/* ── LEFT / MAIN ── */}
-          <div className={styles.main}>
-            {/* Section 1 — Titular */}
-            <section className={styles.section}>
-              <div className={styles.sectionHeader}>
-                <div className={styles.sectionNum}>1</div>
-                <h2 className={styles.sectionTitle}>Dados do titular</h2>
-              </div>
-              <div className={styles.holderGrid}>
-                <div className={styles.fieldFull}>
-                  <label className={styles.label}>Nome completo</label>
-                  <Input
-                    type="text"
-                    value={holderInfo.name}
-                    onChange={(e) => setHolderInfo((p) => ({ ...p, name: e.target.value }))}
-                    placeholder="Nome como no documento"
-                  />
-                </div>
-                <div className={styles.field}>
-                  <label className={styles.label}>CPF</label>
-                  <Input
-                    type="text"
-                    value={holderInfo.cpf}
-                    onChange={(e) => setHolderInfo((p) => ({ ...p, cpf: e.target.value }))}
-                    placeholder="000.000.000-00"
-                    inputMode="numeric"
-                  />
-                </div>
-                <div className={styles.field}>
-                  <label className={styles.label}>Telefone</label>
-                  <Input
-                    type="tel"
-                    value={holderInfo.phone}
-                    onChange={(e) => setHolderInfo((p) => ({ ...p, phone: e.target.value }))}
-                    placeholder="(00) 00000-0000"
-                  />
-                </div>
-                <div className={styles.fieldFull}>
-                  <label className={styles.label}>E-mail</label>
-                  <Input
-                    type="email"
-                    value={holderInfo.email}
-                    onChange={(e) => setHolderInfo((p) => ({ ...p, email: e.target.value }))}
-                    placeholder="seu@email.com"
-                  />
-                </div>
-              </div>
-            </section>
+        {/* Stepper */}
+        <div className={styles.stepper}>
+          {[1, 2, 3].map((s) => (
+            <div
+              key={s}
+              className={`${styles.stepBar} ${s <= step ? styles.stepBarActive : ''}`}
+            />
+          ))}
+        </div>
 
-            {/* Section 2 — Cupom */}
-            <section className={styles.section}>
-              <div className={styles.sectionHeader}>
-                <div className={styles.sectionNum}>2</div>
-                <h2 className={styles.sectionTitle}>Cupom de desconto</h2>
+        {/* Step content */}
+        {step !== 3 ? (
+          <div className={styles.formArea}>
+            <div className={styles.eyebrow}>
+              Tempo restante <span className={styles.timer}>{formatTime(timeLeft)}</span>
+            </div>
+            <h1 className={styles.title}>
+              {step === 1 ? 'Dados dos ingressos' : 'Revisar pedido'}
+            </h1>
+            <p className={styles.subtitle}>
+              {step === 1
+                ? 'Cada ingresso precisa de um titular com CPF. Pode ser você ou amigos.'
+                : 'Confirme tudo antes de gerar o PIX.'}
+            </p>
+
+            {step === 1 && (
+              <div className={styles.holdersList}>
+                {holders.map((h, idx) => (
+                  <div key={idx} className={styles.holderCard}>
+                    <div className={styles.holderHeader}>
+                      <span className={styles.holderNumber}>#{idx + 1}</span>
+                      <span className={styles.holderLabel}>Titular</span>
+                    </div>
+                    <div className={styles.fieldRow}>
+                      <Field
+                        label="Nome completo"
+                        value={h.name}
+                        onChange={(v) => handleHolderChange(idx, 'name', v)}
+                      />
+                      <Field
+                        label="CPF"
+                        placeholder="000.000.000-00"
+                        value={h.cpf}
+                        onChange={(v) => handleHolderChange(idx, 'cpf', v)}
+                      />
+                    </div>
+                    <div className={styles.fieldRow}>
+                      <Field
+                        label="E-mail"
+                        type="email"
+                        value={h.email}
+                        onChange={(v) => handleHolderChange(idx, 'email', v)}
+                      />
+                      <Field
+                        label="WhatsApp"
+                        placeholder="(11) 9 9999-0000"
+                        value={h.phone}
+                        onChange={(v) => handleHolderChange(idx, 'phone', v)}
+                      />
+                    </div>
+                  </div>
+                ))}
               </div>
-              <div className={styles.couponRow}>
-                <Input
-                  type="text"
-                  value={couponCode}
-                  onChange={(e) => {
-                    setCouponCode(e.target.value.toUpperCase());
-                    setCouponApplied(false);
-                  }}
-                  placeholder="Digite seu cupom (opcional)"
-                />
-                <Button
-                  variant="outline"
-                  onClick={applyCoupon}
-                  loading={couponLoading}
-                  disabled={couponApplied}
-                >
-                  {couponApplied ? 'Aplicado' : 'Aplicar'}
-                </Button>
-              </div>
-              {couponApplied && couponDiscount > 0 && (
-                <div className={styles.couponSuccess}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <path d="M20 6L9 17l-5-5"/>
-                  </svg>
-                  Desconto de {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(couponDiscount)} aplicado!
+            )}
+
+            {step === 2 && (
+              <div className={styles.summaryBox}>
+                <div className={styles.summaryRow}>
+                  <span className={styles.summaryLabel}>{items.length} ingresso(s)</span>
+                  <span className={styles.summaryValue}>R$ {total.toFixed(2).replace('.', ',')}</span>
                 </div>
-              )}
-            </section>
-
-            {/* Section 3 — Pagamento */}
-            <section className={styles.section}>
-              <div className={styles.sectionHeader}>
-                <div className={styles.sectionNum}>3</div>
-                <h2 className={styles.sectionTitle}>Forma de pagamento</h2>
+                <div className={styles.summaryRow}>
+                  <span className={styles.summaryLabel}>Taxa de serviço</span>
+                  <span className={styles.summaryValue}>R$ 0,00</span>
+                </div>
+                <div className={styles.summaryDivider} />
+                <div className={`${styles.summaryRow} ${styles.summaryTotal}`}>
+                  <span>Total</span>
+                  <span className={styles.totalValue}>R$ {total.toFixed(2).replace('.', ',')}</span>
+                </div>
               </div>
-              <PaymentForm
-                selectedMethod={paymentMethod}
-                onMethodChange={setPaymentMethod}
-              />
-            </section>
+            )}
 
-            {/* Submit button */}
-            <Button
-              variant="primary"
-              loading={loading}
-              onClick={handlePlaceOrder}
-              className={styles.submitBtn}
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-              </svg>
-              Finalizar Pedido
-            </Button>
+            <div className={styles.actions}>
+              <PButton
+                variant="primary"
+                size="lg"
+                full
+                loading={submitting}
+                onClick={() => (step === 1 ? setStep(2) : handleCheckout())}
+                iconRight={
+                  !submitting && (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M5 12h14M13 6l6 6-6 6" />
+                    </svg>
+                  )
+                }
+              >
+                {step === 1 ? 'Revisar pedido' : submitting ? 'Gerando PIX…' : 'Gerar PIX'}
+              </PButton>
+            </div>
           </div>
+        ) : pix ? (
+          <PixSuccess pix={pix} timeLeft={timeLeft} formatTime={formatTime} onCopy={copyPix} onClear={clear} />
+        ) : null}
+      </main>
+    </Aurora>
+  );
+};
 
-          {/* ── RIGHT / SIDEBAR ── */}
-          <aside className={styles.sidebar}>
-            <OrderSummary couponDiscount={couponDiscount} />
-          </aside>
+const Field: React.FC<{
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  type?: string;
+  placeholder?: string;
+}> = ({ label, value, onChange, type = 'text', placeholder }) => (
+  <div className={styles.field}>
+    <div className={styles.fieldLabel}>{label}</div>
+    <div className={styles.fieldInputWrap}>
+      <input
+        type={type}
+        value={value}
+        placeholder={placeholder}
+        onChange={(e) => onChange(e.target.value)}
+        className={styles.fieldInput}
+      />
+    </div>
+  </div>
+);
+
+const PixSuccess: React.FC<{
+  pix: { pixCode: string; amount: number; expiresAt: string; orderId: string };
+  timeLeft: number;
+  formatTime: (ms: number) => string;
+  onCopy: () => void;
+  onClear: () => void;
+}> = ({ pix, timeLeft, formatTime, onCopy, onClear }) => {
+  // Simulação visual de QR — pixels deterministicos
+  const cells = React.useMemo(() => {
+    return Array.from({ length: 21 * 21 }, (_, i) => {
+      const x = i % 21,
+        y = Math.floor(i / 21);
+      const isFinder = (x < 7 && y < 7) || (x > 13 && y < 7) || (x < 7 && y > 13);
+      const seed = (x * 73 + y * 31) % 100;
+      return isFinder ? 'finder' : seed > 52 ? 'on' : 'off';
+    });
+  }, []);
+
+  React.useEffect(() => () => onClear(), [onClear]);
+
+  return (
+    <div className={styles.pixArea}>
+      <div className={styles.eyebrow}>
+        Aguardando pagamento{' '}
+        <span className={styles.timerCountdown}>{formatTime(timeLeft)}</span>
+      </div>
+      <h1 className={styles.title}>
+        Pague com Pix{' '}
+        <span className={styles.titleAccent}>e seu ingresso é seu.</span>
+      </h1>
+
+      <div className={styles.qrWrap}>
+        <div className={styles.qrPanel}>
+          <div className={styles.qrGrid}>
+            {cells.map((c, i) => {
+              const x = i % 21,
+                y = Math.floor(i / 21);
+              const inFinder =
+                (x < 7 && y < 7) || (x > 13 && y < 7) || (x < 7 && y > 13);
+              let fill = 'transparent';
+              if (inFinder) {
+                const fx = x < 7 ? x : x - 14;
+                const fy = y < 7 ? y : y - 14;
+                const ring = fx === 0 || fx === 6 || fy === 0 || fy === 6;
+                const center = fx >= 2 && fx <= 4 && fy >= 2 && fy <= 4;
+                if (ring || center) fill = '#06070A';
+              } else if (c === 'on') {
+                fill = '#06070A';
+              }
+              return <div key={i} style={{ background: fill, borderRadius: 1 }} />;
+            })}
+          </div>
+          <div className={styles.qrCenter}>pix</div>
         </div>
       </div>
-    </PublicLayout>
+
+      <div className={styles.pixCode}>
+        <div className={styles.pixCodeText}>{pix.pixCode || 'Aguardando código…'}</div>
+        <PButton variant="primary" size="sm" onClick={onCopy}>
+          Copiar
+        </PButton>
+      </div>
+
+      <div className={styles.summaryAfter}>
+        <div className={styles.summaryAfterRow}>
+          <div>
+            <div className={styles.summaryAfterLabel}>Total</div>
+            <div className={styles.summaryAfterValue}>
+              R$ {pix.amount.toFixed(2).replace('.', ',')}
+            </div>
+          </div>
+          <PBadge tone="pulse" dot>
+            Aguardando confirmação
+          </PBadge>
+        </div>
+      </div>
+
+      <div className={styles.helper}>
+        A confirmação chega aqui em{' '}
+        <span className={styles.helperBold}>até 30 segundos</span>. Você pode fechar o app.
+      </div>
+    </div>
   );
 };
 
