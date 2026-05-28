@@ -1,106 +1,128 @@
-/* ── Page ── */
-.page {
-  max-width: var(--tl-container-max);
+/* ═══════════════════════════════════════════
+   MY TICKETS — PulsePass v3
+   ═══════════════════════════════════════════ */
+
+.main {
+  max-width: 1280px;
   margin: 0 auto;
-  padding: var(--tl-space-8) var(--tl-space-4) var(--tl-space-16);
-  display: flex;
-  flex-direction: column;
-  gap: var(--tl-space-6);
+  padding: 32px 24px 96px;
 }
 
-/* ── Header ── */
-.header {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: var(--tl-space-4);
+.header { margin-bottom: 24px; }
+
+.eyebrow {
+  font-family: var(--pp-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--pp-pulse);
 }
 
 .title {
-  font-size: var(--tl-text-3xl);
+  font-family: var(--pp-font-display);
   font-weight: 700;
-  color: var(--tl-text-primary);
-  line-height: 1.1;
+  font-size: clamp(36px, 5vw, 56px);
+  line-height: 0.98;
+  letter-spacing: -0.03em;
+  margin: 12px 0 0;
+  color: var(--pp-fg);
+}
+
+.titleAccent {
+  font-family: var(--pp-font-serif);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--pp-pulse);
 }
 
 .subtitle {
-  font-size: var(--tl-text-base);
-  color: var(--tl-text-secondary);
-  margin-top: var(--tl-space-1);
+  margin: 8px 0 0;
+  font-size: 15px;
+  color: var(--pp-fg-2);
 }
 
-/* ── Tab bar ── */
-.tabBar {
-  display: flex;
-  gap: var(--tl-space-2);
-  padding: var(--tl-space-1-5);
-  background: var(--tl-bg-surface);
-  border: 1px solid var(--tl-border-default);
-  border-radius: var(--tl-radius-xl);
-  width: fit-content;
-}
-
-.tab {
-  display: flex;
-  align-items: center;
-  gap: var(--tl-space-2);
-  padding: var(--tl-space-2) var(--tl-space-5);
-  border-radius: var(--tl-radius-lg);
-  background: none;
-  border: none;
-  font-size: var(--tl-text-sm);
-  font-weight: 600;
-  color: var(--tl-text-secondary);
-  cursor: pointer;
-  transition: all var(--tl-duration-fast);
-  white-space: nowrap;
-}
-
-.tab:hover {
-  color: var(--tl-text-primary);
-}
-
-.tabActive {
-  background: var(--tl-bg-elevated);
-  color: var(--tl-text-primary);
-  box-shadow: var(--tl-shadow-sm);
-}
-
-.tabBadge {
+/* ── Tab pills ── */
+.tabPills {
   display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--pp-glass-2);
+  border: 1px solid var(--pp-edge-2);
+  margin-bottom: 24px;
+}
+
+.tabPill {
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: transparent;
+  border: none;
+  font-family: var(--pp-font-body);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--pp-fg-3);
+  cursor: pointer;
+  transition: all var(--pp-dur-1) var(--pp-ease);
+  display: flex;
   align-items: center;
-  justify-content: center;
-  min-width: 20px;
-  height: 20px;
-  padding: 0 var(--tl-space-1-5);
-  background: var(--tl-bg-elevated);
-  border-radius: var(--tl-radius-pill);
-  font-size: var(--tl-text-xs);
-  font-weight: 700;
-  color: var(--tl-text-tertiary);
-  transition: all var(--tl-duration-fast);
+  gap: 4px;
 }
 
-.tabBadgeActive {
-  background: var(--tl-brand-muted);
-  color: var(--tl-brand);
+.tabPill:hover { color: var(--pp-fg); }
+
+.tabPillActive {
+  background: var(--pp-pulse);
+  color: var(--pp-pulse-ink);
+  box-shadow: var(--pp-glow-pulse-soft);
 }
 
-/* ── Responsive grid ── */
+.tabPillActive:hover { color: var(--pp-pulse-ink); }
+
+.tabCount {
+  opacity: 0.7;
+  font-family: var(--pp-font-mono);
+  font-size: 12px;
+}
+
+/* ── Grid ── */
 .grid {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--tl-space-4);
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
 }
 
-@media (min-width: 640px) {
-  .grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+.skeleton {
+  height: 280px;
+  border-radius: 20px;
+  background: linear-gradient(90deg, var(--pp-ink-800), var(--pp-ink-700), var(--pp-ink-800));
+  background-size: 200% 100%;
+  animation: pp-shimmer 1.5s ease infinite;
 }
 
-@media (min-width: 1100px) {
-  .grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
+/* ── Empty ── */
+.emptyWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 60px 24px 80px;
+  position: relative;
+}
+
+.emptyVisual {
+  width: 200px;
+  height: 200px;
+  filter: blur(40px);
+  opacity: 0.5;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+@media (max-width: 768px) {
+  .main { padding: 24px 16px 96px; }
+  .grid { grid-template-columns: 1fr; }
 }

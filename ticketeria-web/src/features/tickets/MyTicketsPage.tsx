@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@shared/lib/api';
-import { PublicLayout } from '@shared/layout/PublicLayout/PublicLayout';
-import { Skeleton } from '@shared/ui/Skeleton/Skeleton';
 import { EmptyState } from '@shared/ui/EmptyState/EmptyState';
 import TicketCard, { TicketData } from './TicketCard';
 import { useTranslation } from '@shared/i18n';
+import { PpLayout, PButton, flyerPalette } from '@/design-system';
 import styles from './MyTicketsPage.module.css';
 
 type Tab = 'active' | 'history';
@@ -19,7 +19,7 @@ const MyTicketsPage: React.FC = () => {
     queryFn: async () => {
       const response = await api.get<TicketData[]>('/v1/tickets/mine');
       if (response.error) throw new Error(response.error);
-      return response.data!;
+      return response.data ?? [];
     },
   });
 
@@ -29,54 +29,48 @@ const MyTicketsPage: React.FC = () => {
   const count = displayed.length;
 
   return (
-    <PublicLayout>
-      <div className={styles.page}>
+    <PpLayout intensity={0.5}>
+      <main className={styles.main}>
         {/* Header */}
-        <div className={styles.header}>
+        <header className={styles.header}>
           <div>
-            <h1 className={styles.title}>Meus Ingressos</h1>
+            <div className={styles.eyebrow}>Sua carteira</div>
+            <h1 className={styles.title}>
+              Meus{' '}
+              <span className={styles.titleAccent}>ingressos</span>
+            </h1>
             {!isLoading && (
               <p className={styles.subtitle}>
                 {count === 0
-                  ? 'Nenhum ingresso encontrado'
+                  ? 'Você ainda não tem ingressos. Bora descobrir um rolê?'
                   : count === 1
                   ? '1 ingresso'
                   : `${count} ingressos`}
               </p>
             )}
           </div>
-        </div>
+        </header>
 
-        {/* Tab bar */}
-        <div className={styles.tabBar}>
+        {/* Tab pills */}
+        <div className={styles.tabPills}>
           <button
-            className={`${styles.tab} ${activeTab === 'active' ? styles.tabActive : ''}`}
+            type="button"
             onClick={() => setActiveTab('active')}
+            className={`${styles.tabPill} ${activeTab === 'active' ? styles.tabPillActive : ''}`}
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
-              <polyline points="22 4 12 14.01 9 11.01"/>
-            </svg>
-            Ativos
-            {!isLoading && (
-              <span className={`${styles.tabBadge} ${activeTab === 'active' ? styles.tabBadgeActive : ''}`}>
-                {activeTickets.length}
-              </span>
+            Próximos
+            {!isLoading && activeTickets.length > 0 && (
+              <span className={styles.tabCount}>· {activeTickets.length}</span>
             )}
           </button>
           <button
-            className={`${styles.tab} ${activeTab === 'history' ? styles.tabActive : ''}`}
+            type="button"
             onClick={() => setActiveTab('history')}
+            className={`${styles.tabPill} ${activeTab === 'history' ? styles.tabPillActive : ''}`}
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <polyline points="12 8 12 12 14 14"/>
-              <path d="M3.05 11a9 9 0 1 0 .5-4M3 3v4h4"/>
-            </svg>
-            Histórico
-            {!isLoading && (
-              <span className={`${styles.tabBadge} ${activeTab === 'history' ? styles.tabBadgeActive : ''}`}>
-                {historyTickets.length}
-              </span>
+            Passados
+            {!isLoading && historyTickets.length > 0 && (
+              <span className={styles.tabCount}>· {historyTickets.length}</span>
             )}
           </button>
         </div>
@@ -85,18 +79,37 @@ const MyTicketsPage: React.FC = () => {
         {isLoading ? (
           <div className={styles.grid}>
             {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} width="100%" height="280px" borderRadius="20px" />
+              <div key={i} className={styles.skeleton} />
             ))}
           </div>
         ) : displayed.length === 0 ? (
-          <EmptyState
-            title={activeTab === 'active' ? 'Nenhum ingresso ativo' : 'Nenhum ingresso no histórico'}
-            description={
-              activeTab === 'active'
-                ? 'Compre ingressos para eventos e eles aparecerão aqui.'
-                : 'Você ainda não utilizou nenhum ingresso.'
-            }
-          />
+          <div className={styles.emptyWrap}>
+            <div
+              className={styles.emptyVisual}
+              style={{
+                background: `radial-gradient(60% 60% at 50% 50%, ${flyerPalette.green}, transparent 70%)`,
+              }}
+            />
+            <EmptyState
+              title={
+                activeTab === 'active'
+                  ? 'Nenhum ingresso ativo'
+                  : 'Nenhum ingresso no histórico'
+              }
+              description={
+                activeTab === 'active'
+                  ? 'Compre ingressos para eventos e eles aparecerão aqui — com QR rotativo, cashless e transferência.'
+                  : 'Você ainda não usou nenhum ingresso.'
+              }
+            />
+            {activeTab === 'active' && (
+              <Link to="/" style={{ textDecoration: 'none', marginTop: 16 }}>
+                <PButton variant="primary" size="lg">
+                  Descobrir eventos
+                </PButton>
+              </Link>
+            )}
+          </div>
         ) : (
           <div className={styles.grid}>
             {displayed.map((ticket) => (
@@ -104,8 +117,8 @@ const MyTicketsPage: React.FC = () => {
             ))}
           </div>
         )}
-      </div>
-    </PublicLayout>
+      </main>
+    </PpLayout>
   );
 };
 
