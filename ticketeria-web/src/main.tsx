@@ -6,28 +6,18 @@ import '@shared/styles/reset.css';
 import '@shared/styles/tokens.css';
 import '@shared/styles/typography.css';
 import '@shared/styles/animations.css';
+// PulsePass Design System v3 — Premium Glass
+// Mantém os tokens legacy do shared/styles acima pra compatibilidade,
+// e adiciona os tokens novos do DS (--pp-*) por cima sem conflito de namespace.
+import './design-system/tokens.css';
 
 // Initialize Sentry at the very top
 initSentry();
 
-// Initialize theme before rendering to prevent flash
-function initializeTheme() {
-  const THEME_STORAGE_KEY = 'ticketeria-theme';
-
-  // Check localStorage first
-  const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
-  if (savedTheme === 'dark' || savedTheme === 'light') {
-    document.documentElement.setAttribute('data-theme', savedTheme);
-    return;
-  }
-
-  // Check system preference
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  const systemTheme = prefersDark ? 'dark' : 'light';
-  document.documentElement.setAttribute('data-theme', systemTheme);
-}
-
-initializeTheme();
+// PulsePass v3 — força dark em toda a ticketeria.
+// O DS é desenhado pra dark (imersivo, cinematográfico). Admin/produtor
+// terá toggle dedicado depois; consumer/cliente é sempre dark.
+document.documentElement.setAttribute('data-theme', 'dark');
 
 async function enableMocking() {
   // Ativa mock apenas em desenvolvimento (sem backend)
