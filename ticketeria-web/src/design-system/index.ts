@@ -9,3 +9,4 @@ export { default as Logo, BrandLockup } from './components/Logo';
 export { default as Flyer, flyerPalette } from './components/Flyer';
 export { default as Counter } from './components/Counter';
 export { default as PpHeader } from './components/PpHeader';
+export { default as PpLayout } from './components/PpLayout';
